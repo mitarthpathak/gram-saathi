@@ -13,11 +13,15 @@ export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json(body);
 };
 
-/** Turns every error into `ApiErrorBody` JSON. Registered last in app.ts. */
+/** Turns every error into `ApiErrorBody` JSON. Registered last in createApp.ts. */
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const { status, body } = toErrorResponse(err);
-  if (status >= 500 && status !== 501) {
+  if (status === 500) {
+    // A bug: log the stack.
     logger.error(`${req.method} ${req.originalUrl} failed`, err);
+  } else if (status > 501) {
+    // Expected outages (AI unavailable, knowledge base missing...): one line is enough.
+    logger.warn(`${req.method} ${req.originalUrl}: ${body.error.code} ${body.error.message}`);
   }
   res.status(status).json(body);
 };

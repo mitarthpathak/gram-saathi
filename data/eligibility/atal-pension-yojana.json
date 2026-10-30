@@ -1,0 +1,57 @@
+{
+  "$comment": "SAMPLE RULE - VERIFY AGAINST OFFICIAL SOURCE (PFRDA Atal Pension Yojana guidelines) before real use. Income-tax payers are excluded from 1 October 2022.",
+  "schemeId": "atal-pension-yojana",
+  "verified": false,
+  "source": "https://www.pfrda.org.in",
+  "schemeName": {
+    "en": "Atal Pension Yojana",
+    "hi": "अटल पेंशन योजना",
+    "mr": "अटल पेन्शन योजना",
+    "ta": "அடல் ஓய்வூதியத் திட்டம்"
+  },
+  "eligibleIf": {
+    "all": [
+      {
+        "question": "age",
+        "op": "between",
+        "value": [18, 40],
+        "reason": {
+          "en": "Atal Pension Yojana is only for people aged 18 to 40.",
+          "hi": "अटल पेंशन योजना केवल 18 से 40 साल के लोगों के लिए है।",
+          "mr": "अटल पेन्शन योजना फक्त 18 ते 40 वयोगटातील लोकांसाठी आहे.",
+          "ta": "அடல் ஓய்வூதியத் திட்டம் 18 முதல் 40 வயதுடையவர்களுக்கு மட்டுமே."
+        }
+      },
+      {
+        "question": "paysIncomeTax",
+        "op": "==",
+        "value": false,
+        "reason": {
+          "en": "People who pay income tax cannot join Atal Pension Yojana.",
+          "hi": "आयकर भरने वाले लोग अटल पेंशन योजना में नहीं जुड़ सकते।",
+          "mr": "आयकर भरणारे लोक अटल पेन्शन योजनेत सामील होऊ शकत नाहीत.",
+          "ta": "வருமான வரி செலுத்துபவர்கள் அடல் ஓய்வூதியத் திட்டத்தில் சேர முடியாது."
+        }
+      },
+      {
+        "question": "hasBankAccount",
+        "op": "==",
+        "value": true,
+        "reason": {
+          "en": "You need a savings account in a bank or post office to join.",
+          "hi": "जुड़ने के लिए बैंक या डाकघर में बचत खाता होना ज़रूरी है।",
+          "mr": "सामील होण्यासाठी बँकेत किंवा पोस्ट ऑफिसमध्ये बचत खाते असणे आवश्यक आहे.",
+          "ta": "சேர வங்கி அல்லது அஞ்சலகத்தில் சேமிப்புக் கணக்கு தேவை."
+        }
+      }
+    ]
+  },
+  "reasons": {
+    "eligible": {
+      "en": "You can join at your bank or post office and get a pension of ₹1,000 to ₹5,000 a month after age 60.",
+      "hi": "आप अपने बैंक या डाकघर में जुड़ सकते हैं और 60 साल के बाद हर महीने ₹1,000 से ₹5,000 तक पेंशन पा सकते हैं।",
+      "mr": "तुम्ही तुमच्या बँकेत किंवा पोस्ट ऑफिसमध्ये सामील होऊ शकता आणि 60 वर्षांनंतर दरमहा ₹1,000 ते ₹5,000 पेन्शन मिळवू शकता.",
+      "ta": "உங்கள் வங்கி அல்லது அஞ்சலகத்தில் சேரலாம்; 60 வயதுக்குப் பிறகு மாதம் ₹1,000 முதல் ₹5,000 வரை ஓய்வூதியம் பெறலாம்."
+    }
+  }
+}

@@ -17,7 +17,8 @@ const startBody = z.object({
 const answerBody = z.object({
   sessionId: sessionIdSchema,
   questionId: z.string().trim().min(1).max(50),
-  answer: z.union([z.number(), z.boolean(), z.string().trim().min(1).max(100)]),
+  // A string may also be a free-form (spoken) answer, e.g. "do bigha zameen".
+  answer: z.union([z.number(), z.boolean(), z.string().trim().min(1).max(300)]),
 });
 
 /** POST /api/eligibility/start */

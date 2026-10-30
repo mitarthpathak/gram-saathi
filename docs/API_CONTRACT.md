@@ -37,21 +37,33 @@ Every non-2xx response has the same body (`ApiErrorBody`):
 }
 ```
 
-| Status | `code`                                  | When                                                   |
-| ------ | --------------------------------------- | ------------------------------------------------------ |
-| 400    | `VALIDATION_ERROR`                      | Body or query does not match the schema (`details`)    |
-| 400    | `INVALID_JSON`                          | Malformed JSON body                                    |
-| 400    | `AUDIO_REQUIRED`                        | Voice query without a non-empty `audio` file           |
-| 400    | `INVALID_ANSWER`                        | Eligibility answer of the wrong type or unknown option |
-| 404    | `NOT_FOUND`                             | Unknown `/api` route                                   |
-| 404    | `SESSION_NOT_FOUND`                     | Eligibility answer without an active wizard session    |
-| 409    | `QUESTION_MISMATCH`                     | Answer to a question other than the current one        |
-| 413    | `LIMIT_FILE_SIZE` / `PAYLOAD_TOO_LARGE` | Audio over 10 MB / JSON body over 100 kB               |
-| 415    | `UNSUPPORTED_MEDIA_TYPE`                | Uploaded file is not `audio/*`                         |
-| 500    | `INTERNAL_ERROR`                        | Bug on the server                                      |
-| 501    | `NOT_IMPLEMENTED`                       | Real (non-mock) logic not written yet                  |
+| Status | `code`                                  | When                                                                    |
+| ------ | --------------------------------------- | ----------------------------------------------------------------------- |
+| 400    | `VALIDATION_ERROR`                      | Body or query does not match the schema (`details`)                     |
+| 400    | `INVALID_JSON`                          | Malformed JSON body                                                     |
+| 400    | `AUDIO_REQUIRED`                        | Voice query without a non-empty `audio` file                            |
+| 400    | `INVALID_ANSWER`                        | Eligibility answer of the wrong type, out of range or an unknown option |
+| 404    | `NOT_FOUND`                             | Unknown `/api` route                                                    |
+| 404    | `SESSION_NOT_FOUND`                     | Eligibility answer without an active wizard session                     |
+| 409    | `QUESTION_MISMATCH`                     | Answer to a question other than the current one                         |
+| 413    | `LIMIT_FILE_SIZE` / `PAYLOAD_TOO_LARGE` | Audio over 10 MB / JSON body over 100 kB                                |
+| 415    | `UNSUPPORTED_MEDIA_TYPE`                | Uploaded file is not `audio/*`                                          |
+| 422    | `NO_SPEECH_DETECTED`                    | Voice query: no speech recognised in the recording                      |
+| 422    | `UNCLEAR_ANSWER`                        | Eligibility: a free-form answer could not be understood                 |
+| 429    | `AI_RATE_LIMITED`                       | Gemini quota or rate limit, still hit after retries                     |
+| 500    | `INTERNAL_ERROR`                        | Bug on the server                                                       |
+| 501    | `NOT_IMPLEMENTED`                       | Reserved for features not built yet (none since v2)                     |
+| 502    | `AI_ERROR`                              | Gemini rejected the request or returned unusable output                 |
+| 503    | `AI_NOT_CONFIGURED`                     | `GEMINI_API_KEY` missing or rejected                                    |
+| 503    | `AI_UNAVAILABLE`                        | Gemini unreachable or overloaded, after retries                         |
+| 503    | `KNOWLEDGE_BASE_MISSING`                | No knowledge base: run `npm run ingest -w server`                       |
+| 503    | `FAQ_NOT_READY`                         | No pre-generated FAQ: run `npm run prewarm -w server`                   |
+| 504    | `AI_TIMEOUT`                            | Gemini did not answer in time                                           |
 
-The `message` is for developers (English). The UI shows its own translated text.
+The `message` is for developers (English). The UI shows its own translated text. Suggested
+handling: `NO_SPEECH_DETECTED` and `UNCLEAR_ANSWER` → ask the user to say it again; `AI_*` → "please
+try again"; `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and `AI_NOT_CONFIGURED` are setup problems
+(the message names the fix).
 
 ## Endpoints
 
@@ -95,11 +107,11 @@ The `message` is for developers (English). The UI shows its own translated text.
 
 **Voice request** (`multipart/form-data`):
 
-| Part        | Type           | Notes                                                   |
-| ----------- | -------------- | ------------------------------------------------------- |
-| `audio`     | file           | Required, `audio/*` (webm/opus, wav, mp4, ogg), ≤ 10 MB |
-| `language`  | `LanguageCode` | Optional hint; an empty value counts as missing         |
-| `sessionId` | string         | Required                                                |
+| Part        | Type           | Notes                                                        |
+| ----------- | -------------- | ------------------------------------------------------------ |
+| `audio`     | file           | Required, `audio/*` (webm/opus, wav, mp4, ogg, mp3), ≤ 10 MB |
+| `language`  | `LanguageCode` | Optional hint; an empty value counts as missing              |
+| `sessionId` | string         | Required                                                     |
 
 ```bash
 curl -F "audio=@question.webm;type=audio/webm" -F language=ta -F sessionId=demo-123 \
@@ -131,19 +143,26 @@ curl -F "audio=@question.webm;type=audio/webm" -F language=ta -F sessionId=demo-
 }
 ```
 
-| Field              | Type           | Notes                                                                                      |
-| ------------------ | -------------- | ------------------------------------------------------------------------------------------ |
-| `sessionId`        | string         | Echo of the request                                                                        |
-| `transcript`       | string?        | Voice only: what the user said                                                             |
-| `detectedLanguage` | string         | Language of the question; the answer, fraud warning and SMS are in this language           |
-| `answer`           | string         | Grounded only in `sources`                                                                 |
-| `sources`          | `Source[]`     | Citations; empty when `notFound`                                                           |
-| `fraudWarning`     | string         | Always present. Static text, never generated by the model                                  |
-| `smsText`          | string         | SMS-length version of the answer                                                           |
-| `smsSegments`      | number         | Segments needed: GSM-7 160 chars (153 per part); Unicode 70 (67 per part). Indic = Unicode |
-| `audioUrl`         | string \| null | Server-generated speech; `null` = use the browser's speech synthesis                       |
-| `usedCache`        | boolean        | Served from the answer cache (same question in the same language)                          |
-| `notFound`         | boolean        | The documents don't answer it; `answer` says where to ask instead (never a guess)          |
+| Field              | Type           | Notes                                                                                                                                                        |
+| ------------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sessionId`        | string         | Echo of the request                                                                                                                                          |
+| `transcript`       | string?        | Voice only: what the user said                                                                                                                               |
+| `detectedLanguage` | string         | Language of the question; the answer, fraud warning and SMS are in this language. Always a `LanguageCode` since v2 (a dialect such as Bhojpuri maps to `hi`) |
+| `answer`           | string         | Grounded only in `sources`                                                                                                                                   |
+| `sources`          | `Source[]`     | The passages the answer actually uses (`snippet` ≤ ~300 chars); empty when `notFound`                                                                        |
+| `fraudWarning`     | string         | Always present. Static text, never generated by the model                                                                                                    |
+| `smsText`          | string         | SMS-length version of the answer                                                                                                                             |
+| `smsSegments`      | number         | Segments needed: GSM-7 160 chars (153 per part); Unicode 70 (67 per part). Indic = Unicode                                                                   |
+| `audioUrl`         | string \| null | Server-generated speech; `null` = use the browser's speech synthesis                                                                                         |
+| `usedCache`        | boolean        | Served from the answer cache (same question in the same language)                                                                                            |
+| `notFound`         | boolean        | The documents don't answer it; `answer` says where to ask instead (never a guess)                                                                            |
+
+How the server decides: the question's language comes from speech recognition (voice) or from
+its script and wording (text). The best passages of the scheme documents are retrieved; if none
+is similar enough (`RAG_MIN_SCORE`), or Gemini reports that the passages do not answer the
+question, the response is `notFound: true` with a fixed answer telling the user to confirm at
+the nearest CSC or gram panchayat office. Otherwise Gemini answers only from the passages and
+reports which ones it used. A voice recording without speech gets `422 NO_SPEECH_DETECTED`.
 
 ---
 
@@ -156,11 +175,13 @@ curl -F "audio=@question.webm;type=audio/webm" -F language=ta -F sessionId=demo-
 ```json
 {
   "question": { "id": "age", "type": "number", "text": "How old are you? (in years)" },
-  "progress": { "current": 1, "total": 4 }
+  "progress": { "current": 1, "total": 6 }
 }
 ```
 
 Starting again with the same `sessionId` resets the wizard. Questions come back in `language`.
+Questions and rules come from `data/eligibility/` (mock mode: 4 fixed questions), so clients
+must not hard-code question ids or their order.
 
 ### `POST /api/eligibility/answer`
 
@@ -179,7 +200,7 @@ Next question:
     "text": "What work do you mainly do?",
     "options": ["Farmer", "Daily-wage labourer", "ASHA / Anganwadi worker", "Other"]
   },
-  "progress": { "current": 2, "total": 4 }
+  "progress": { "current": 2, "total": 6 }
 }
 ```
 
@@ -211,8 +232,17 @@ After the last question:
 | `boolean`       | `true` / `false`                                        | big Yes / No buttons  |
 | `choice`        | one of `options`, verbatim (the label in that language) | one button per option |
 
+**Free-form answers (v2).** For any question type `answer` may instead be what the user said, as
+text (1–300 characters, e.g. a voice transcript): `"35 saal"`, `"do bigha zameen"`, `"हाँ"`,
+`"main kisaan hu"`. Plain numbers, yes / no words and option labels in any of the four languages
+are read without AI; anything else is read by Gemini. The eligibility decision itself never uses
+AI. An answer that cannot be understood gets `422 UNCLEAR_ANSWER` and the wizard stays on the
+same question.
+
 - Answer only the current question (`409 QUESTION_MISMATCH` otherwise). Results list eligible
   schemes first. The session ends after the results (`404 SESSION_NOT_FOUND` if answered again).
+- Questions that can no longer change any result are skipped, so `progress.total` may go down
+  between steps (it is an upper bound).
 - `progress` is **optional**: clients must work without it (show "Question N" without a total).
 - Wizard state is kept in server memory: after a restart the client gets `SESSION_NOT_FOUND`
   and simply starts again.
@@ -229,9 +259,11 @@ After the last question:
 { "sms": "Under PM-KISAN, eligible farmer families get Rs 6,000 a year, …", "segments": 2 }
 ```
 
-`text` is 1–5000 characters. The result fits in 2 segments (mock: cut at a word boundary with
-`...`; step 2: rewritten by Gemini). In English, prefer "Rs" to "₹": ₹ is not in GSM-7 and turns
-the whole SMS into Unicode (70 instead of 160 characters).
+`text` is 1–5000 characters. The result fits in `SMS_MAX_SEGMENTS` segments (default 2). Text that
+already fits is returned as it is; longer text is rewritten by Gemini under a character budget,
+and if that fails or is still too long the server keeps the whole sentences that fit (mock mode
+always does the sentence cut). English SMS use "Rs" instead of "₹" and plain punctuation: ₹ is
+not in GSM-7 and turns the whole SMS into Unicode (70 instead of 160 characters).
 
 ---
 
@@ -260,6 +292,8 @@ the whole SMS into Unicode (70 instead of 160 characters).
 ```
 
 Small on purpose: low-bandwidth clients download the whole list and keep it for offline use.
+The answers are generated ahead of time from `data/faq/questions.json` by
+`npm run prewarm -w server` (`503 FAQ_NOT_READY` until then) and also seed the answer cache.
 
 ---
 
@@ -300,10 +334,12 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 }
 ```
 
-`topK` is 1–10 (default 4). `score` is in [0, 1], best first.
+`topK` is 1–10 (default `RAG_TOP_K`). `score` is the cosine similarity, best first, before the
+`RAG_MIN_SCORE` filter that the answer pipeline applies.
 
 ## Changelog
 
-| Version | Change                                                                                                                                     |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1       | Initial contract. Additions to the original brief: optional eligibility `progress`, the standard error body, `/api/rag/search` (internal). |
+| Version | Change                                                                                                                                                                                                                                                                                                                                   |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | Initial contract. Additions to the original brief: optional eligibility `progress`, the standard error body, `/api/rag/search` (internal).                                                                                                                                                                                               |
+| 2       | No type changes. Eligibility answers may be free-form text (`422 UNCLEAR_ANSWER` if unreadable); questions come from data and may be skipped, so `progress.total` can shrink. `detectedLanguage` is always a `LanguageCode`. New error codes: `NO_SPEECH_DETECTED`, `UNCLEAR_ANSWER`, `AI_*`, `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY`. |

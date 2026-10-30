@@ -6,7 +6,7 @@ import { NotImplementedError } from '../../lib/httpError';
 export async function synthesizeSpeech(_request: TtsRequest): Promise<TtsResponse> {
   // null tells the client to fall back to browser speech.
   if (isMocked('tts')) return { audioUrl: null };
-  // TODO(step-2) (optional): Gemini TTS or Google Cloud TTS for voices phones often lack
+  // TODO(step-3) (optional): Gemini TTS or Google Cloud TTS for voices phones often lack
   //   (e.g. Marathi). Save the audio file, serve it statically and return its URL.
   throw new NotImplementedError('tts.synthesizeSpeech');
 }

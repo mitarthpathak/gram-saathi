@@ -6,8 +6,11 @@ officialUrl: https://pmkisan.gov.in
 helpline: '155261'
 tags: [farmer, income-support, dbt]
 languages: [en]
-verified: false # sample for development: check every fact on officialUrl before the demo
+sample: true
+verified: false
 ---
+
+<!-- SAMPLE: written for the hackathon from public summaries. Replace with the official scheme text, then set sample: false and verified: true. -->
 
 # PM-KISAN Samman Nidhi
 

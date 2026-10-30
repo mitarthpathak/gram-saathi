@@ -1,99 +1,184 @@
-import type { LanguageCode, QueryResponse, RetrievedChunk } from '@gram-saathi/shared';
+import type { LanguageCode, QueryResponse, Source } from '@gram-saathi/shared';
 import { env, isMocked } from '../../config/env';
 import { LruCache } from '../../lib/cache';
-import { NotImplementedError } from '../../lib/httpError';
-import { mockDetectLanguage, mockGenerateAnswer } from '../../mocks';
+import { generateJson } from '../../lib/geminiClient';
+import { logger } from '../../lib/logger';
+import { mockGenerateAnswer } from '../../mocks';
+import { ANSWER_SYSTEM_PROMPT, answerSchema, buildAnswerInput } from '../rag/prompts';
 import { searchSchemes } from '../rag/service';
-import { countSmsSegments } from '../sms/service';
-import { getFraudWarning } from './fraudWarning';
+import type { ScoredChunk } from '../rag/vectorStore';
+import { compressForSms, countSmsSegments, truncateAtSentence } from '../sms/service';
+import { detectTextLanguage } from './language';
+import { getFraudWarning, MESSAGES } from './messages';
 
 export interface AnswerInput {
   text: string;
   /** Hint from the client's language selector. */
   language?: LanguageCode;
+  /** Language already known from speech recognition; skips text-based detection. */
+  detectedLanguage?: LanguageCode;
   sessionId: string;
   /** Set when `text` came from speech-to-text. */
   transcript?: string;
 }
 
-interface GeneratedAnswer {
-  answer: string;
-  smsText: string;
-  notFound: boolean;
-}
+/** The part of a response that depends only on the question, so it can be cached and shared. */
+export type CachedAnswer = Omit<QueryResponse, 'sessionId' | 'transcript' | 'usedCache'>;
 
-const answerCache = new LruCache<QueryResponse>({
+const answerCache = new LruCache<CachedAnswer>({
   maxEntries: env.CACHE_MAX_ENTRIES,
   ttlMs: env.CACHE_TTL_MINUTES * 60_000,
 });
+/** Identical questions that arrive at the same time share one pipeline run. */
+const inFlight = new Map<string, Promise<CachedAnswer>>();
 
 /**
  * The answer pipeline shared by text and voice queries:
- * detect language -> retrieve scheme chunks -> grounded answer -> SMS version + fraud warning.
+ * language -> cache -> retrieve -> relevance gate -> grounded answer -> SMS + fraud warning.
  */
 export async function answerQuestion(input: AnswerInput): Promise<QueryResponse> {
-  const language = await detectLanguage(input.text, input.language);
+  const language = input.detectedLanguage ?? detectTextLanguage(input.text, input.language);
+  const key = cacheKey(input.text, language);
 
-  const cacheKey = `${language}:${normalizeQuestion(input.text)}`;
-  const cached = answerCache.get(cacheKey);
-  if (cached) {
-    return { ...cached, sessionId: input.sessionId, transcript: input.transcript, usedCache: true };
+  const cached = answerCache.get(key);
+  if (cached) return toResponse(cached, input, true);
+
+  let pending = inFlight.get(key);
+  if (!pending) {
+    pending = buildAnswer(input.text, language)
+      .then((answer) => {
+        answerCache.set(key, answer);
+        return answer;
+      })
+      .finally(() => inFlight.delete(key));
+    inFlight.set(key, pending);
+  }
+  return toResponse(await pending, input, false);
+}
+
+async function buildAnswer(question: string, language: LanguageCode): Promise<CachedAnswer> {
+  const retrieved = await searchSchemes({ query: question, language });
+  const relevant = retrieved.filter((chunk) => chunk.score >= env.RAG_MIN_SCORE);
+  if (relevant.length === 0) {
+    logger.debug(
+      `not found: best score ${retrieved[0]?.score.toFixed(3) ?? '-'} < RAG_MIN_SCORE ${env.RAG_MIN_SCORE}`,
+    );
+    return notFoundAnswer(language);
   }
 
-  const chunks = await searchSchemes({ query: input.text, language, topK: 3 });
-  const { answer, smsText, notFound } = await generateAnswer(input.text, language, chunks);
+  if (isMocked('chat')) {
+    const mock = mockGenerateAnswer(relevant, language);
+    if (mock.notFound) return notFoundAnswer(language);
+    return foundAnswer(language, mock.answer, relevant, mock.smsText);
+  }
 
-  const response: QueryResponse = {
-    sessionId: input.sessionId,
-    transcript: input.transcript,
+  const result = await generateJson({
+    label: 'answer',
+    system: ANSWER_SYSTEM_PROMPT,
+    input: buildAnswerInput(question, language, relevant),
+    schema: answerSchema(relevant.map((chunk) => chunk.chunkId)),
+  });
+  const answer = toPlainText(result.answer);
+  const used = relevant.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
+  // No passage used: the model found the documents do not answer it. Say so in reviewed words.
+  if (used.length === 0 || !answer) return notFoundAnswer(language);
+
+  const { sms } = await compressForSms({ text: answer, language });
+  return foundAnswer(language, answer, used, sms);
+}
+
+function foundAnswer(
+  language: LanguageCode,
+  answer: string,
+  chunks: ScoredChunk[],
+  smsText: string,
+): CachedAnswer {
+  return {
     detectedLanguage: language,
     answer,
-    sources: notFound
-      ? []
-      : chunks.map(({ schemeId, schemeName, section, text }) => ({
-          schemeId,
-          schemeName,
-          section,
-          snippet: text,
-        })),
+    sources: chunks.map(toSource),
     fraudWarning: getFraudWarning(language),
     smsText,
     smsSegments: countSmsSegments(smsText),
-    // TODO(step-2): optional server TTS (modules/tts); null tells the client to use browser speech.
+    // TODO(step-3) (optional): server TTS (modules/tts); null tells the client to use browser speech.
     audioUrl: null,
-    usedCache: false,
-    notFound,
+    notFound: false,
   };
-  answerCache.set(cacheKey, response);
-  return response;
 }
 
-async function detectLanguage(text: string, hint?: LanguageCode): Promise<LanguageCode> {
-  if (isMocked('chat')) return mockDetectLanguage(text, hint);
-  // TODO(step-2): detect the language (and dialect) of `text` with Gemini, using `hint` as a
-  //   tie-breaker for romanised text. Script alone is enough for Tamil vs Devanagari.
-  throw new NotImplementedError('chat.detectLanguage');
+/** Honest fixed answer, no model call: we do not know, confirm at the CSC / gram panchayat. */
+function notFoundAnswer(language: LanguageCode): CachedAnswer {
+  const smsText = truncateAtSentence(MESSAGES[language].notFoundSms, env.SMS_MAX_SEGMENTS);
+  return {
+    detectedLanguage: language,
+    answer: MESSAGES[language].notFound,
+    sources: [],
+    fraudWarning: getFraudWarning(language),
+    smsText,
+    smsSegments: countSmsSegments(smsText),
+    audioUrl: null,
+    notFound: true,
+  };
 }
 
-async function generateAnswer(
+function toResponse(answer: CachedAnswer, input: AnswerInput, usedCache: boolean): QueryResponse {
+  return { sessionId: input.sessionId, transcript: input.transcript, ...answer, usedCache };
+}
+
+function toSource(chunk: ScoredChunk): Source {
+  return {
+    schemeId: chunk.schemeId,
+    schemeName: chunk.schemeName,
+    section: chunk.section,
+    snippet: excerpt(toPlainText(chunk.text)),
+  };
+}
+
+/** Puts a ready answer in the cache, e.g. the pre-generated FAQ answers. */
+export function seedAnswerCache(
   question: string,
   language: LanguageCode,
-  chunks: RetrievedChunk[],
-): Promise<GeneratedAnswer> {
-  if (isMocked('chat')) return mockGenerateAnswer(chunks, language);
-  // TODO(step-2): grounded generation with lib/geminiClient.generateText:
-  //   - no chunks above the relevance threshold -> return notFound without calling the model
-  //   - system prompt: answer ONLY from `chunks`, in `language`, in short simple sentences,
-  //     never invent amounts or dates; if the chunks don't answer it, set notFound
-  //   - ask for JSON { answer, smsText, notFound }; keep smsText within 2 SMS segments
-  //     (or call sms/service.compressForSms on the answer)
-  throw new NotImplementedError('chat.generateAnswer');
+  answer: CachedAnswer,
+): void {
+  answerCache.set(cacheKey(question, language), answer);
 }
 
-/** Cache key normalisation: case, punctuation (incl. the Devanagari danda) and spacing. */
-function normalizeQuestion(text: string): string {
-  return text
+export function clearAnswerCache(): void {
+  answerCache.clear();
+}
+
+/** Language + the question without case, punctuation (incl. the Devanagari danda) or extra spaces. */
+export function cacheKey(question: string, language: LanguageCode): string {
+  const normalized = question
+    .normalize('NFC')
     .toLowerCase()
-    .replace(/[\s?!.,।]+/g, ' ')
+    .replace(/[\s?!.,;:'"‘’“”।॥-]+/g, ' ')
     .trim();
+  return `${language}:${normalized}`;
+}
+
+/** Markdown (lists, bold, links, hard-wrapped lines) -> one line of plain text. */
+export function toPlainText(markdown: string): string {
+  return markdown
+    .split('\n')
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, '')
+        .replace(/^#+\s*/, '')
+        .replace(/\*\*|__|`/g, ''),
+    )
+    .join(' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Opening of `text`, at most `maxChars` long: whole sentences if possible, else whole words. */
+export function excerpt(text: string, maxChars = 300): string {
+  if (text.length <= maxChars) return text;
+  const head = text.slice(0, maxChars);
+  const sentenceEnd = Math.max(...['. ', '। ', '? ', '! '].map((mark) => head.lastIndexOf(mark)));
+  if (sentenceEnd >= maxChars / 2) return head.slice(0, sentenceEnd + 1);
+  const wordEnd = head.lastIndexOf(' ');
+  return `${head.slice(0, wordEnd > 0 ? wordEnd : maxChars).trimEnd()}…`;
 }

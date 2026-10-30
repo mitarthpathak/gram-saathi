@@ -14,12 +14,12 @@ part behind the mocks, then switch it on (`USE_MOCKS` takes a list of modules th
 
 ## Ownership map
 
-| Workstream                 | Branches                              | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **1. Voice + Chat UI**     | `feature/voice-ui`, `feature/chat-ui` | `client/src/features/voice/`<br>`client/src/features/chat/`<br>`client/src/features/sources/`<br>`client/src/features/language/`<br>`client/src/mocks/query.ts`                                                                                                                                                                                                                                                                                                                                              |
-| **2. RAG backend**         | `feature/rag-backend`                 | `server/src/modules/chat/`, `voice/`, `rag/`, `tts/`<br>`server/src/lib/geminiClient.ts`, `server/src/lib/cache.ts`<br>`server/src/mocks/query.ts`<br>`data/schemes/`                                                                                                                                                                                                                                                                                                                                        |
-| **3. Eligibility + SMS**   | `feature/eligibility`, `feature/sms`  | `client/src/features/eligibility/`<br>`client/src/features/sms/` (except the two low-bandwidth files below)<br>`server/src/modules/eligibility/`, `server/src/modules/sms/`<br>`server/src/mocks/eligibility.ts`, `client/src/mocks/eligibility.ts`                                                                                                                                                                                                                                                          |
-| **4. PWA + Deploy + Demo** | `feature/sms-pwa`, `feature/deploy`   | `client/src/app/`, `client/src/components/ui/`, `client/src/lib/`<br>`client/public/`, `client/index.html`, `client/vite.config.ts`<br>`client/src/features/sms/LowBandwidthToggle.tsx`, `client/src/features/sms/OfflineFaqList.tsx`<br>`server/src/modules/faq/`, `server/src/mocks/faq.ts`, `client/src/mocks/faq.ts`<br>`server/src/{index,app}.ts`, `server/src/config/`, `server/src/middleware/`, the rest of `server/src/lib/`<br>root config files, `.github/`, `README.md`, `docs/ARCHITECTURE.md` |
+| Workstream                 | Branches                              | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Voice + Chat UI**     | `feature/voice-ui`, `feature/chat-ui` | `client/src/features/voice/`<br>`client/src/features/chat/`<br>`client/src/features/sources/`<br>`client/src/features/language/`<br>`client/src/mocks/query.ts`                                                                                                                                                                                                                                                                                                                                                           |
+| **2. RAG backend**         | `feature/rag-backend`                 | `server/src/modules/chat/`, `voice/`, `rag/`, `tts/`<br>`server/src/lib/geminiClient.ts`, `server/src/lib/cache.ts`<br>`server/src/mocks/query.ts`, `server/scripts/`, `server/test/`<br>`data/schemes/`                                                                                                                                                                                                                                                                                                                  |
+| **3. Eligibility + SMS**   | `feature/eligibility`, `feature/sms`  | `client/src/features/eligibility/`<br>`client/src/features/sms/` (except the two low-bandwidth files below)<br>`server/src/modules/eligibility/`, `server/src/modules/sms/`<br>`server/src/mocks/eligibility.ts`, `client/src/mocks/eligibility.ts`<br>`data/eligibility/`                                                                                                                                                                                                                                                |
+| **4. PWA + Deploy + Demo** | `feature/sms-pwa`, `feature/deploy`   | `client/src/app/`, `client/src/components/ui/`, `client/src/lib/`<br>`client/public/`, `client/index.html`, `client/vite.config.ts`<br>`client/src/features/sms/LowBandwidthToggle.tsx`, `client/src/features/sms/OfflineFaqList.tsx`<br>`server/src/modules/faq/`, `server/src/mocks/faq.ts`, `client/src/mocks/faq.ts`, `data/faq/`<br>`server/src/{index,app}.ts`, `server/src/config/`, `server/src/middleware/`, the rest of `server/src/lib/`<br>root config files, `.github/`, `README.md`, `docs/ARCHITECTURE.md` |
 
 **Shared files** (change together, ping the owners): `shared/src/*` and `docs/API_CONTRACT.md`
 (contract PR only); `client/src/mocks/index.ts` (each workstream edits only its own handlers);
@@ -51,15 +51,18 @@ Work with `USE_MOCKS=eligibility,sms,faq,tts` so only your modules run for real.
 
 Step 2
 
-- [ ] `lib/geminiClient.ts`: implement with `@google/genai` (`generateText`, `transcribeAudio`,
-      `embedTexts`), with timeouts and one retry.
-- [ ] `voice`: speech-to-text + language detection in one Gemini call; pass the detected language on.
-- [ ] `rag`: load `data/schemes/*.md`, chunk by `##` heading, rank chunks (BM25 or in-memory
-      embeddings), relevance threshold. Test with `POST /api/rag/search`.
-- [ ] `chat`: grounded prompt (answer only from the chunks, user's language, short sentences),
-      JSON output `{ answer, smsText, notFound }`, `notFound` when nothing is relevant.
-- [ ] Add 8–10 high-impact schemes to `data/schemes/` (e.g. MGNREGA, PMAY-G, PM Ujjwala,
-      PM Fasal Bima, Sukanya Samriddhi, APY, PMSBY / PMJJBY, ration card / NFSA).
+- [x] `lib/geminiClient.ts` with `@google/genai`: structured JSON (`generateJson`) and batched
+      embeddings (`embedTexts`), timeouts, retries with backoff, typed errors.
+- [x] `voice`: speech-to-text + language detection in one Gemini call; dialects map to hi/mr/ta/en.
+- [x] `rag`: `npm run ingest -w server` (section-first chunking, Gemini embeddings,
+      `server/data/vectorstore.json`), in-memory cosine search, `RAG_MIN_SCORE` threshold.
+- [x] `chat`: grounded prompt, JSON `{ answer, usedChunkIds }` mapped to `sources`, `notFound`
+      when nothing is relevant, answer cache. Try it: `npm run query -w server -- "…"`.
+- [x] Five more schemes in `data/schemes/` (APY, PMSBY, Ujjwala, MGNREGA, PMAY-G), as SAMPLES.
+- [ ] Replace all seven SAMPLE documents with official text (`sample: false`, `verified: true`),
+      then add PM Fasal Bima, Sukanya Samriddhi, PMJJBY and the NFSA ration card.
+- [ ] With the real documents ingested, calibrate `RAG_MIN_SCORE` using the scores that
+      `npm run query` prints (unrelated questions must fall below it).
 - [ ] Optional: `tts` with Gemini or Cloud TTS for languages phones lack (Marathi).
 
 Step 3
@@ -74,16 +77,19 @@ The eligibility wizard end to end and SMS compression.
 
 Step 2
 
-- [ ] Eligibility questions and rules from `data/schemes` front matter (see
-      `data/schemes/README.md`), evaluated by plain code. Unit-test the rules.
+- [x] Eligibility questions and rules as data in `data/eligibility/`, evaluated by plain code
+      with three-valued logic (questions that no longer matter are skipped); unit-tested.
+      Gemini only translates missing texts and reads free-form answers.
+- [ ] Verify the four SAMPLE rule files against the official guidelines (`"verified": true`).
+- [ ] Client: send what the user said as a free-form answer; on `422 UNCLEAR_ANSWER` ask again.
 - [ ] Results screen: "Ask about this scheme" opens the chat with a prefilled question.
-- [ ] `sms/compress` with Gemini: at most 2 segments, keep amounts, dates, URLs and helplines;
-      fall back to truncation. "Rs" instead of "₹" in English (GSM-7).
+- [x] `sms/compress` with Gemini: at most `SMS_MAX_SEGMENTS`, keeps amounts, URLs and helplines;
+      falls back to whole sentences. "Rs" instead of "₹" in English (GSM-7).
 - [ ] SMS screen: copy button, share via the phone's SMS app (`sms:?body=`).
 
 Step 3
 
-- [ ] More schemes in the wizard; skip questions that no longer matter.
+- [ ] More schemes in the wizard (one JSON file each in `data/eligibility/`).
 - [ ] Optional: real SMS sending through a gateway (Indian numbers require DLT registration, so
       demo with a simulator).
 
@@ -96,11 +102,13 @@ Step 2
 - [ ] HTTPS tunnel for phone testing (the mic needs https), e.g.
       `cloudflared tunnel --url http://localhost:5173`; add the tunnel host to `server.allowedHosts`
       in `vite.config.ts`.
-- [ ] Deploy: API on Render / Railway / Fly (build `npm ci && npm run build -w server`, start
-      `npm start`); client on Vercel / Netlify (`npm run build -w client`, output `client/dist`,
-      SPA fallback to `index.html`). Set `VITE_API_URL`, `CLIENT_ORIGIN`, `USE_MOCKS`, the Gemini vars.
+- [ ] Deploy on Vercel: one project, `client` + `server` services from `vercel.json`
+      ([DEPLOYMENT.md](DEPLOYMENT.md)). Set `USE_MOCKS=false` and `GEMINI_API_KEY`, commit
+      `server/data/*.json` after `ingest` + `prewarm`.
 - [ ] A second, frontend-only deploy with `VITE_USE_MOCKS=true` as the demo fallback.
-- [ ] Curate the FAQ (`server/src/modules/faq/`) with the RAG workstream.
+- [x] FAQ: seed questions in `data/faq/questions.json`, answers pre-generated by
+      `npm run prewarm -w server` into `server/data/faq.json`.
+- [ ] Review the FAQ questions with the RAG workstream once real documents are in.
 
 Step 3
 

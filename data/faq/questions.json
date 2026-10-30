@@ -1,0 +1,113 @@
+{
+  "$comment": "Answered ahead of time by `npm run prewarm -w server` (into server/data/faq.json) for GET /api/faq/top and the answer cache. Keep every question answerable from data/schemes.",
+  "items": [
+    {
+      "id": "pm-kisan-amount",
+      "question": {
+        "en": "How much money does PM-KISAN give in a year?",
+        "hi": "पीएम किसान योजना में साल में कितना पैसा मिलता है?",
+        "mr": "पीएम किसान योजनेत वर्षाला किती पैसे मिळतात?",
+        "ta": "பிஎம் கிசான் திட்டத்தில் ஆண்டுக்கு எவ்வளவு பணம் கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "pm-kisan-eligibility",
+      "question": {
+        "en": "Who can get PM-KISAN money?",
+        "hi": "पीएम किसान का पैसा किसे मिल सकता है?",
+        "mr": "पीएम किसानचे पैसे कोणाला मिळू शकतात?",
+        "ta": "பிஎம் கிசான் பணம் யாருக்குக் கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "pm-kisan-register",
+      "question": {
+        "en": "How do I register for PM-KISAN?",
+        "hi": "पीएम किसान में पंजीकरण कैसे करें?",
+        "mr": "पीएम किसानसाठी नोंदणी कशी करायची?",
+        "ta": "பிஎம் கிசானில் எப்படிப் பதிவு செய்வது?"
+      }
+    },
+    {
+      "id": "pmjay-cover",
+      "question": {
+        "en": "How much free treatment does the Ayushman card give?",
+        "hi": "आयुष्मान कार्ड से कितने रुपये तक का मुफ़्त इलाज मिलता है?",
+        "mr": "आयुष्मान कार्डवर किती रुपयांपर्यंत मोफत उपचार मिळतात?",
+        "ta": "ஆயுஷ்மான் அட்டையில் எவ்வளவு ரூபாய் வரை இலவச சிகிச்சை கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "pmjay-card",
+      "question": {
+        "en": "How do I get an Ayushman card?",
+        "hi": "आयुष्मान कार्ड कैसे बनवाएं?",
+        "mr": "आयुष्मान कार्ड कसे काढायचे?",
+        "ta": "ஆயுஷ்மான் அட்டையை எப்படிப் பெறுவது?"
+      }
+    },
+    {
+      "id": "apy-pension",
+      "question": {
+        "en": "How much pension does Atal Pension Yojana give?",
+        "hi": "अटल पेंशन योजना में कितनी पेंशन मिलती है?",
+        "mr": "अटल पेन्शन योजनेत किती पेन्शन मिळते?",
+        "ta": "அடல் ஓய்வூதியத் திட்டத்தில் எவ்வளவு ஓய்வூதியம் கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "apy-who",
+      "question": {
+        "en": "Who can join Atal Pension Yojana?",
+        "hi": "अटल पेंशन योजना में कौन जुड़ सकता है?",
+        "mr": "अटल पेन्शन योजनेत कोण सामील होऊ शकतो?",
+        "ta": "அடல் ஓய்வூதியத் திட்டத்தில் யார் சேரலாம்?"
+      }
+    },
+    {
+      "id": "pmsby-cover",
+      "question": {
+        "en": "What does PM Suraksha Bima Yojana cover and what does it cost?",
+        "hi": "प्रधानमंत्री सुरक्षा बीमा योजना में कितना बीमा मिलता है और कितना पैसा लगता है?",
+        "mr": "प्रधानमंत्री सुरक्षा विमा योजनेत किती विमा मिळतो आणि किती पैसे भरावे लागतात?",
+        "ta": "பிஎம் சுரக்ஷா பீமா யோஜனாவில் எவ்வளவு காப்பீடு கிடைக்கும், கட்டணம் எவ்வளவு?"
+      }
+    },
+    {
+      "id": "ujjwala-who",
+      "question": {
+        "en": "Who can get a free gas connection under Ujjwala Yojana?",
+        "hi": "उज्ज्वला योजना में मुफ़्त गैस कनेक्शन किसे मिलता है?",
+        "mr": "उज्ज्वला योजनेत मोफत गॅस कनेक्शन कोणाला मिळते?",
+        "ta": "உஜ்வாலா திட்டத்தில் இலவச எரிவாயு இணைப்பு யாருக்குக் கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "mgnrega-days",
+      "question": {
+        "en": "How many days of work does MGNREGA give?",
+        "hi": "मनरेगा में कितने दिन का काम मिलता है?",
+        "mr": "मनरेगामध्ये किती दिवसांचे काम मिळते?",
+        "ta": "நூறு நாள் வேலைத் திட்டத்தில் (MGNREGA) எத்தனை நாள் வேலை கிடைக்கும்?"
+      }
+    },
+    {
+      "id": "mgnrega-job-card",
+      "question": {
+        "en": "How do I get a MGNREGA job card?",
+        "hi": "मनरेगा जॉब कार्ड कैसे बनवाएं?",
+        "mr": "मनरेगा जॉब कार्ड कसे काढायचे?",
+        "ta": "MGNREGA வேலை அட்டையை (ஜாப் கார்டு) எப்படிப் பெறுவது?"
+      }
+    },
+    {
+      "id": "pmay-g-amount",
+      "question": {
+        "en": "How much money does PM Awas Yojana Gramin give to build a house?",
+        "hi": "प्रधानमंत्री आवास योजना ग्रामीण में घर बनाने के लिए कितना पैसा मिलता है?",
+        "mr": "प्रधानमंत्री आवास योजना ग्रामीणमध्ये घर बांधण्यासाठी किती पैसे मिळतात?",
+        "ta": "பிரதமர் ஆவாஸ் யோஜனா கிராமீண் திட்டத்தில் வீடு கட்ட எவ்வளவு பணம் கிடைக்கும்?"
+      }
+    }
+  ]
+}

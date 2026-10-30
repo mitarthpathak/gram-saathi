@@ -1,0 +1,32 @@
+{
+  "$comment": "SAMPLE RULE - VERIFY AGAINST OFFICIAL SOURCE (pmjay.gov.in, beneficiary.nha.gov.in) before real use. Most families qualify through the SECC 2011 list, which these questions cannot check, so 'not eligible' here means 'check the list'.",
+  "schemeId": "ayushman-bharat-pmjay",
+  "verified": false,
+  "source": "https://pmjay.gov.in",
+  "schemeName": {
+    "en": "Ayushman Bharat PM-JAY",
+    "hi": "आयुष्मान भारत (पीएम-जय)",
+    "mr": "आयुष्मान भारत (पीएम-जय)",
+    "ta": "ஆயுஷ்மான் பாரத் (பிஎம்-ஜெய்)"
+  },
+  "eligibleIf": {
+    "any": [
+      { "question": "age", "op": ">=", "value": 70 },
+      { "question": "occupation", "op": "in", "value": ["asha"] }
+    ]
+  },
+  "reasons": {
+    "eligible": {
+      "en": "People aged 70 or more and families of ASHA / Anganwadi workers get free treatment up to ₹5 lakh a year. Get your Ayushman card free at a CSC.",
+      "hi": "70 साल या उससे ज़्यादा उम्र के लोग और आशा / आंगनवाड़ी कार्यकर्ताओं के परिवार साल में ₹5 लाख तक का मुफ़्त इलाज पा सकते हैं। CSC पर मुफ़्त आयुष्मान कार्ड बनवाएं।",
+      "mr": "70 वर्षे किंवा त्याहून अधिक वयाचे लोक आणि आशा / अंगणवाडी सेविकांची कुटुंबे वर्षाला ₹5 लाखांपर्यंत मोफत उपचार घेऊ शकतात. CSC मध्ये मोफत आयुष्मान कार्ड काढा.",
+      "ta": "70 வயது அல்லது அதற்கு மேற்பட்டவர்களும் ஆஷா / அங்கன்வாடி பணியாளர் குடும்பங்களும் ஆண்டுக்கு ₹5 லட்சம் வரை இலவச சிகிச்சை பெறலாம். CSC-யில் இலவசமாக ஆயுஷ்மான் அட்டை பெறுங்கள்."
+    },
+    "notEligible": {
+      "en": "Your answers alone do not decide this: PM-JAY depends on the SECC 2011 list. Check your name at beneficiary.nha.gov.in or call 14555.",
+      "hi": "सिर्फ़ इन जवाबों से यह तय नहीं होता: पीएम-जय SECC 2011 सूची पर निर्भर है। beneficiary.nha.gov.in पर अपना नाम देखें या 14555 पर कॉल करें।",
+      "mr": "फक्त या उत्तरांवरून हे ठरत नाही: पीएम-जय SECC 2011 यादीवर अवलंबून आहे. beneficiary.nha.gov.in वर तुमचे नाव तपासा किंवा 14555 वर कॉल करा.",
+      "ta": "இந்தப் பதில்களால் மட்டும் இதை முடிவு செய்ய முடியாது: பிஎம்-ஜெய் SECC 2011 பட்டியலைப் பொறுத்தது. beneficiary.nha.gov.in-ல் உங்கள் பெயரைச் சரிபார்க்கவும் அல்லது 14555-ஐ அழைக்கவும்."
+    }
+  }
+}

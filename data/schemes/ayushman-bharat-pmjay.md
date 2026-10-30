@@ -6,8 +6,11 @@ officialUrl: https://pmjay.gov.in
 helpline: '14555'
 tags: [health, hospital, insurance]
 languages: [en]
-verified: false # sample for development: check every fact on officialUrl before the demo
+sample: true
+verified: false
 ---
+
+<!-- SAMPLE: written for the hackathon from public summaries. Replace with the official scheme text, then set sample: false and verified: true. -->
 
 # Ayushman Bharat PM-JAY
 

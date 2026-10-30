@@ -82,7 +82,7 @@ changelog at the bottom of `docs/API_CONTRACT.md`.
 
 - **Server module:** `server/src/modules/<name>/{routes,controller,service}.ts`. The controller
   validates with zod and types the response with the contract; the service starts with
-  `if (isMocked('<name>')) return mock...`. Mount the router in `server/src/app.ts` and add the
+  `if (isMocked('<name>')) return mock...`. Mount the router in `server/src/createApp.ts` and add the
   name to `MOCKABLE_MODULES` in `server/src/config/env.ts`.
 - **Client feature:** `client/src/features/<name>/` with its components, hooks and `strings.ts`.
   Screens are registered in `client/src/app/router.ts`.
