@@ -1,5 +1,5 @@
 import type { LanguageCode } from '@gram-saathi/shared';
-import { Languages } from 'lucide-react';
+import { ChevronDown, Languages } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useStrings } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
@@ -7,17 +7,22 @@ import { LANGUAGES } from './languages';
 import { languageStrings } from './strings';
 
 interface LanguageSelectorProps {
-  /** "compact": dropdown for the header. "grid": big buttons, e.g. on the empty chat screen. */
+  /** "compact": dropdown for the green header. "grid": big buttons, e.g. on the empty chat screen. */
   variant?: 'compact' | 'grid';
+  className?: string;
 }
 
-export function LanguageSelector({ variant = 'compact' }: LanguageSelectorProps) {
+export function LanguageSelector({ variant = 'compact', className }: LanguageSelectorProps) {
   const { language, setLanguage } = useSettings();
   const t = useStrings(languageStrings);
 
   if (variant === 'grid') {
     return (
-      <div role="radiogroup" aria-label={t.label} className="grid grid-cols-2 gap-3">
+      <div
+        role="radiogroup"
+        aria-label={t.label}
+        className={cn('grid grid-cols-4 gap-2', className)}
+      >
         {LANGUAGES.map((option) => {
           const selected = option.code === language;
           return (
@@ -29,10 +34,10 @@ export function LanguageSelector({ variant = 'compact' }: LanguageSelectorProps)
               lang={option.code}
               onClick={() => setLanguage(option.code)}
               className={cn(
-                'min-h-14 rounded-2xl border-2 px-4 text-xl font-semibold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
+                'min-h-12 rounded-2xl px-1 text-base font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
                 selected
-                  ? 'border-brand-700 bg-brand-700 text-white'
-                  : 'border-slate-300 bg-white text-slate-900 hover:border-brand-600',
+                  ? 'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft'
+                  : 'bg-cream-100 text-slate-800 ring-1 ring-brand-950/10 hover:ring-brand-500',
               )}
             >
               {option.nativeName}
@@ -44,23 +49,32 @@ export function LanguageSelector({ variant = 'compact' }: LanguageSelectorProps)
   }
 
   return (
-    <label className="relative flex items-center">
+    <label className={cn('relative flex shrink-0 items-center', className)}>
       <span className="sr-only">{t.label}</span>
       <Languages
         aria-hidden
-        className="pointer-events-none absolute left-2.5 size-5 text-brand-800"
+        className="pointer-events-none absolute left-2.5 size-[18px] text-white"
       />
       <select
         value={language}
         onChange={(event) => setLanguage(event.target.value as LanguageCode)}
-        className="min-h-11 appearance-none rounded-xl border-2 border-brand-700 bg-white py-1 pr-3 pl-9 text-base font-semibold text-brand-900 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="min-h-10 appearance-none rounded-full bg-white/15 py-1 pr-8 pl-8 text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         {LANGUAGES.map((option) => (
-          <option key={option.code} value={option.code} lang={option.code}>
+          <option
+            key={option.code}
+            value={option.code}
+            lang={option.code}
+            className="text-slate-900"
+          >
             {option.nativeName}
           </option>
         ))}
       </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute right-2.5 size-4 text-white/80"
+      />
     </label>
   );
 }

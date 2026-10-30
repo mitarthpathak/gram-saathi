@@ -19,7 +19,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     (error: unknown): ChatMessage => ({
       id: nextMessageId(),
       role: 'error',
-      text: error instanceof ApiError && error.isNetworkError ? t.errorOffline : t.errorGeneric,
+      text: errorText(error, t),
     }),
     [t],
   );
@@ -84,4 +84,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   );
 
   return <ChatContext value={chat}>{children}</ChatContext>;
+}
+
+/** A short, friendly explanation of an API error, in the user's language. */
+function errorText(error: unknown, t: (typeof chatStrings)['en']): string {
+  if (!(error instanceof ApiError)) return t.errorGeneric;
+  if (error.isNetworkError) return t.errorOffline;
+  switch (error.code) {
+    case 'NO_SPEECH_DETECTED':
+      return t.errorNoSpeech;
+    case 'AI_RATE_LIMITED':
+    case 'AI_UNAVAILABLE':
+    case 'AI_TIMEOUT':
+    case 'AI_ERROR':
+      return t.errorBusy;
+    case 'AI_NOT_CONFIGURED':
+    case 'KNOWLEDGE_BASE_MISSING':
+      return t.errorSetup;
+  }
+  // 413: too long for the server (10 MB) or for the hosting platform's request limit.
+  return error.status === 413 ? t.errorTooLong : t.errorGeneric;
 }

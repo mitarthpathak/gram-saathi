@@ -1,4 +1,5 @@
 import type { SmsCompressResponse } from '@gram-saathi/shared';
+import { MessageSquareText, Wand2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router';
 import { Button } from '@/components/ui/Button';
@@ -46,17 +47,30 @@ export function SmsScreen() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-5">
-      <h1 className="text-2xl font-bold">{t.title}</h1>
+    <div className="flex animate-fade-up flex-col gap-6 px-4 py-5">
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-800 to-brand-950 p-5 text-white shadow-lift">
+        <div aria-hidden className="absolute inset-0 bg-kolam opacity-40" />
+        <span className="relative flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
+          <MessageSquareText aria-hidden className="size-6 text-marigold-300" />
+        </span>
+        <h1 className="relative mt-3 text-2xl font-extrabold tracking-tight">{t.title}</h1>
+        <p className="relative mt-1 text-base text-slate-300">{t.subtitle}</p>
+      </section>
+
       <LowBandwidthToggle />
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-bold">{t.previewTitle}</h2>
+        <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+          {t.previewTitle}
+        </h2>
         <FeaturePhoneMock sms={preview?.sms ?? null} segments={preview?.segments ?? 0} />
       </section>
 
-      <form onSubmit={(event) => void compress(event)} className="flex flex-col gap-2">
-        <label htmlFor="sms-draft" className="text-lg font-bold">
+      <form
+        onSubmit={(event) => void compress(event)}
+        className="flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-soft ring-1 ring-brand-950/5"
+      >
+        <label htmlFor="sms-draft" className="text-base font-extrabold">
           {t.composeLabel}
         </label>
         <textarea
@@ -65,13 +79,14 @@ export function SmsScreen() {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={t.composePlaceholder}
-          className="rounded-xl border-2 border-slate-300 bg-white p-3 text-lg focus:border-brand-600 focus:outline-none"
+          className="rounded-2xl bg-cream-50 p-3 text-base ring-1 ring-brand-950/10 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-3">
-          <span className="text-base text-slate-600">
+          <span className="text-sm font-semibold text-slate-600">
             {draft.trim() && format(t.draftCount, { segments: countSmsSegments(draft.trim()) })}
           </span>
-          <Button type="submit" size="lg" disabled={compressing || !draft.trim()}>
+          <Button type="submit" size="md" disabled={compressing || !draft.trim()}>
+            <Wand2 aria-hidden className="size-5" />
             {t.compress}
           </Button>
         </div>

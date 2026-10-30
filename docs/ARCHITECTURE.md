@@ -186,7 +186,11 @@ client/src/
 ```
 
 - **Screens:** `/` chat (voice + text), `/eligibility` wizard, `/sms` SMS preview, low-bandwidth
-  mode and offline FAQ.
+  mode and offline FAQ. On screens 1024 px and wider (laptops, projectors) the app sits in a phone
+  frame next to a pitch panel (`app/Showcase.tsx`); phones get the app full screen.
+- **Look:** colour tokens (`brand` green, `marigold` accent, `cream` paper) and animations live in
+  `src/index.css` (`@theme`); change them there to re-theme everything. Motion respects
+  `prefers-reduced-motion`.
 - **State:** `SettingsContext` (language, low-bandwidth mode, session id; saved in localStorage),
   `ChatContext` (the conversation; survives switching screens), `ToastContext`.
 - **API:** components never call `fetch`; they use `api` from `lib/api.ts`, which is typed with

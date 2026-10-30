@@ -2,6 +2,7 @@ import type { Strings } from '@/lib/i18n';
 
 const en = {
   title: 'SMS & low data',
+  subtitle: 'Every answer also comes as a short SMS, for keypad phones and weak networks.',
   lowBandwidth: 'Low bandwidth mode',
   lowBandwidthHint: 'Text first, no downloaded audio. Top answers are saved for offline use.',
   previewTitle: 'SMS preview',
@@ -21,6 +22,7 @@ export const smsStrings: Strings<typeof en> = {
   en,
   hi: {
     title: 'SMS और कम डेटा',
+    subtitle: 'हर जवाब छोटे SMS में भी आता है, कीपैड फ़ोन और कमज़ोर नेटवर्क के लिए।',
     lowBandwidth: 'कम डेटा मोड',
     lowBandwidthHint: 'पहले टेक्स्ट, ऑडियो डाउनलोड नहीं। मुख्य जवाब ऑफ़लाइन के लिए सहेजे जाते हैं।',
     previewTitle: 'SMS झलक',
@@ -38,6 +40,7 @@ export const smsStrings: Strings<typeof en> = {
   },
   mr: {
     title: 'SMS आणि कमी डेटा',
+    subtitle: 'प्रत्येक उत्तर छोट्या SMS मध्येही येते, कीपॅड फोन आणि कमकुवत नेटवर्कसाठी.',
     lowBandwidth: 'कमी डेटा मोड',
     lowBandwidthHint: 'आधी मजकूर, ऑडिओ डाउनलोड नाही. मुख्य उत्तरे ऑफलाइन वापरासाठी जतन होतात.',
     previewTitle: 'SMS पूर्वावलोकन',
@@ -55,6 +58,8 @@ export const smsStrings: Strings<typeof en> = {
   },
   ta: {
     title: 'SMS & குறைந்த டேட்டா',
+    subtitle:
+      'ஒவ்வொரு பதிலும் சிறிய SMS ஆகவும் வரும்: கீபேட் போன்களுக்கும் பலவீனமான நெட்வொர்க்குக்கும்.',
     lowBandwidth: 'குறைந்த டேட்டா பயன்முறை',
     lowBandwidthHint:
       'முதலில் உரை, ஒலி பதிவிறக்கம் இல்லை. முக்கிய பதில்கள் ஆஃப்லைனுக்காகச் சேமிக்கப்படும்.',

@@ -6,14 +6,105 @@
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari',
     'Noto Sans Tamil', 'Nirmala UI', sans-serif;
 
-  /* Brand colour (emerald). Change these values to re-theme the whole app. */
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-200: #a7f3d0;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-800: #065f46;
-  --color-brand-900: #064e3b;
+  /* Brand: deep field green (trust, farming). Change these values to re-theme the whole app. */
+  --color-brand-50: #eefbf3;
+  --color-brand-100: #d5f4e1;
+  --color-brand-200: #ade8c6;
+  --color-brand-300: #77d4a3;
+  --color-brand-400: #3fb87d;
+  --color-brand-500: #1d9c63;
+  --color-brand-600: #117d4f;
+  --color-brand-700: #0e6442;
+  --color-brand-800: #0d5037;
+  --color-brand-900: #0b412e;
+  --color-brand-950: #05251a;
+
+  /* Accent: marigold, for highlights and the recording state. */
+  --color-marigold-50: #fff9eb;
+  --color-marigold-100: #ffefc6;
+  --color-marigold-200: #ffdd88;
+  --color-marigold-300: #ffc54a;
+  --color-marigold-400: #ffad20;
+  --color-marigold-500: #f98b07;
+  --color-marigold-600: #dd6602;
+  --color-marigold-700: #b74506;
+  --color-marigold-800: #94350c;
+  --color-marigold-900: #7a2d0d;
+
+  /* Warm paper background. */
+  --color-cream-50: #fffdf8;
+  --color-cream-100: #fbf6ec;
+  --color-cream-200: #f4ecdb;
+
+  --shadow-soft: 0 10px 30px -12px rgb(13 80 55 / 0.28);
+  --shadow-lift: 0 18px 40px -14px rgb(13 80 55 / 0.45);
+
+  --animate-breathe: breathe 3.2s ease-in-out infinite;
+  --animate-ripple: ripple 1.8s cubic-bezier(0, 0.55, 0.45, 1) infinite;
+  --animate-fade-up: fade-up 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-dot: dot 1.2s ease-in-out infinite;
+  --animate-float: float 7s ease-in-out infinite;
+
+  @keyframes breathe {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 0 rgb(29 156 99 / 0.45),
+        var(--shadow-lift);
+    }
+    50% {
+      box-shadow:
+        0 0 0 16px rgb(29 156 99 / 0),
+        var(--shadow-lift);
+    }
+  }
+  @keyframes ripple {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes dot {
+    0%,
+    80%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.35;
+    }
+    40% {
+      transform: translateY(-5px);
+      opacity: 1;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+}
+
+/* Dotted kolam-style texture for coloured surfaces (pure CSS, nothing to download). */
+@utility bg-kolam {
+  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.16) 1px, transparent 0);
+  background-size: 18px 18px;
 }
 
 @layer base {
@@ -22,6 +113,24 @@
   }
 
   body {
-    @apply bg-slate-100 text-slate-900 antialiased;
+    @apply bg-cream-100 text-slate-900 antialiased;
+  }
+
+  /* The desktop showcase sits on a dark green stage. */
+  @media (width >= 64rem) {
+    body {
+      @apply bg-brand-950;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

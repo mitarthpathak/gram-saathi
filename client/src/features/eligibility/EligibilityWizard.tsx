@@ -6,12 +6,24 @@ import type {
   EligibilityResult,
   EligibilityStartResponse,
 } from '@gram-saathi/shared';
-import { ClipboardCheck, RotateCcw } from 'lucide-react';
+import {
+  ArrowRight,
+  Clock,
+  HeartPulse,
+  Info,
+  PartyPopper,
+  PiggyBank,
+  RotateCcw,
+  ShieldPlus,
+  Wheat,
+} from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/useToast';
+import { useChat } from '@/features/chat/useChat';
 import { SpeakButton } from '@/features/voice/SpeakButton';
-import { api } from '@/lib/api';
+import { ApiError, api } from '@/lib/api';
 import { format, useStrings } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 import { QuestionInput } from './QuestionInput';
@@ -28,10 +40,19 @@ type Phase =
     }
   | { name: 'results'; results: EligibilityResult[] };
 
+const INTRO_ICONS = [
+  { Icon: Wheat, tone: 'text-brand-700' },
+  { Icon: HeartPulse, tone: 'text-rose-600' },
+  { Icon: PiggyBank, tone: 'text-marigold-600' },
+  { Icon: ShieldPlus, tone: 'text-sky-700' },
+];
+
 /** Asks a few questions one at a time, then shows which schemes the user may qualify for. */
 export function EligibilityWizard() {
   const t = useStrings(eligibilityStrings);
   const toast = useToast();
+  const navigate = useNavigate();
+  const { askText } = useChat();
   const { language, sessionId } = useSettings();
   const [phase, setPhase] = useState<Phase>({ name: 'intro' });
   const [loading, setLoading] = useState(false);
@@ -53,10 +74,17 @@ export function EligibilityWizard() {
           step,
         });
       }
-    } catch {
-      // Includes "session not found" after a server restart: starting over is the fix.
-      toast.show(t.error, 'error');
-      setPhase({ name: 'intro' });
+    } catch (error) {
+      const code = error instanceof ApiError ? error.code : '';
+      if (code === 'SESSION_NOT_FOUND') {
+        // The server restarted (sessions live in memory): starting over is the fix.
+        toast.show(t.errorExpired, 'error');
+        setPhase({ name: 'intro' });
+      } else {
+        // Stay on the same question so the user can simply answer again.
+        const unclear = code === 'UNCLEAR_ANSWER' || code === 'INVALID_ANSWER';
+        toast.show(unclear ? t.errorUnclear : t.error, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -70,14 +98,23 @@ export function EligibilityWizard() {
       step + 1,
     );
 
+  const askAbout = (schemeName: string) => {
+    void navigate('/');
+    void askText(format(t.askAboutQuestion, { scheme: schemeName }));
+  };
+
   if (phase.name === 'question') {
     const { question, step, progress } = phase;
     return (
-      <div className="flex flex-col gap-6">
+      <div key={question.id} className="flex animate-fade-up flex-col gap-5">
         <ProgressBar current={progress?.current ?? step} total={progress?.total} />
-        <h1 className="text-2xl leading-snug font-bold">{question.text}</h1>
-        <div>
-          <SpeakButton text={question.text} language={language} />
+        <div className="rounded-3xl bg-white p-5 shadow-soft ring-1 ring-brand-950/5">
+          <h1 className="text-2xl leading-snug font-extrabold tracking-tight text-slate-900">
+            {question.text}
+          </h1>
+          <div className="mt-3">
+            <SpeakButton text={question.text} language={language} />
+          </div>
         </div>
         <QuestionInput
           key={question.id}
@@ -90,17 +127,35 @@ export function EligibilityWizard() {
   }
 
   if (phase.name === 'results') {
+    const eligible = phase.results.filter((result) => result.eligible).length;
+    const summary =
+      eligible === 0
+        ? t.summaryNone
+        : eligible === 1
+          ? t.summaryOne
+          : format(t.summaryMany, { count: eligible });
     return (
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">{t.resultsTitle}</h1>
+      <div className="flex animate-fade-up flex-col gap-4">
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-600 to-brand-900 p-5 text-white shadow-lift">
+          <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
+          <PartyPopper aria-hidden className="relative size-9 text-marigold-300" />
+          <h1 className="relative mt-3 text-sm font-extrabold tracking-[0.12em] text-brand-200 uppercase">
+            {t.resultsTitle}
+          </h1>
+          <p className="relative mt-1 text-2xl leading-tight font-extrabold">{summary}</p>
+          <p className="relative mt-2 text-base text-brand-100">{t.resultsHint}</p>
+        </section>
         <ul className="flex flex-col gap-3">
           {phase.results.map((result) => (
             <li key={result.schemeId}>
-              <ResultCard result={result} />
+              <ResultCard result={result} onAsk={askAbout} />
             </li>
           ))}
         </ul>
-        <p className="text-base text-slate-600">{t.disclaimer}</p>
+        <p className="flex gap-2 text-sm text-slate-600">
+          <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+          {t.disclaimer}
+        </p>
         <Button size="lg" variant="secondary" disabled={loading} onClick={() => void start()}>
           <RotateCcw aria-hidden className="size-5" />
           {t.restart}
@@ -110,14 +165,40 @@ export function EligibilityWizard() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-5 py-6 text-center">
-      <ClipboardCheck aria-hidden className="size-16 text-brand-700" />
-      <h1 className="text-2xl font-bold text-balance">{t.title}</h1>
-      <p className="text-lg text-slate-700">{t.intro}</p>
+    <div className="flex animate-fade-up flex-col gap-5">
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-700 to-brand-950 p-6 text-white shadow-lift">
+        <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
+        <div
+          aria-hidden
+          className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-400/25 blur-2xl"
+        />
+        <div aria-hidden className="relative flex -space-x-2.5">
+          {INTRO_ICONS.map(({ Icon, tone }) => (
+            <span
+              key={tone}
+              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-brand-800"
+            >
+              <Icon className={`size-6 ${tone}`} />
+            </span>
+          ))}
+        </div>
+        <h1 className="relative mt-5 text-[1.7rem] leading-tight font-extrabold tracking-tight text-balance">
+          {t.title}
+        </h1>
+        <p className="relative mt-2 text-lg text-brand-100">{t.intro}</p>
+        <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-bold ring-1 ring-white/20">
+          <Clock aria-hidden className="size-4" />
+          {t.duration}
+        </p>
+      </section>
       <Button size="xl" className="w-full" disabled={loading} onClick={() => void start()}>
         {t.start}
+        <ArrowRight aria-hidden className="size-6" />
       </Button>
-      <p className="text-base text-slate-600">{t.disclaimer}</p>
+      <p className="flex gap-2 text-sm text-slate-600">
+        <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+        {t.disclaimer}
+      </p>
     </div>
   );
 }
@@ -126,7 +207,7 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
   const t = useStrings(eligibilityStrings);
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-base font-semibold text-slate-600">
+      <p className="text-sm font-extrabold tracking-wide text-brand-700">
         {total ? format(t.progress, { current, total }) : format(t.progressUnknown, { current })}
       </p>
       {total && (
@@ -135,10 +216,10 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={current}
-          className="h-3 overflow-hidden rounded-full bg-slate-200"
+          className="h-2.5 overflow-hidden rounded-full bg-brand-100"
         >
           <div
-            className="h-full rounded-full bg-brand-600 transition-all"
+            className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-700 transition-all duration-500"
             style={{ width: `${(current / total) * 100}%` }}
           />
         </div>

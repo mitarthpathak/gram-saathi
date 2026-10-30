@@ -1,4 +1,4 @@
-import { Signal } from 'lucide-react';
+import { BatteryMedium, Signal } from 'lucide-react';
 import { format, useStrings } from '@/lib/i18n';
 import { smsStrings } from './strings';
 
@@ -30,27 +30,41 @@ export function FeaturePhoneMock({ sms, segments, sender = 'VM-GSATHI' }: Featur
   const t = useStrings(smsStrings);
 
   return (
-    <figure className="mx-auto w-64 rounded-[2.5rem] bg-slate-800 p-4 pb-6 shadow-2xl ring-4 ring-slate-900">
-      <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-slate-600" aria-hidden />
-      <div className="rounded-lg border-4 border-slate-900 bg-[#c5d8a4] p-2 font-mono text-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-900/30 pb-1 text-xs font-bold">
+    <figure className="relative mx-auto w-64 rounded-[2.75rem] bg-linear-to-b from-slate-700 via-slate-800 to-slate-900 p-4 pb-5 shadow-[0_30px_60px_-20px_rgb(15_23_42/0.7)] ring-1 ring-white/10">
+      <div aria-hidden className="mx-auto mb-3 flex justify-center gap-1">
+        {Array.from({ length: 6 }, (_, index) => (
+          <span key={index} className="size-1 rounded-full bg-slate-950/70" />
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-xl border-4 border-slate-950 bg-[#c7dba5] font-mono text-slate-900 shadow-[inset_0_0_18px_rgb(0_0_0/0.18)]">
+        <div className="flex items-center justify-between bg-slate-900/10 px-2 py-1 text-[11px] font-bold">
           <span>{sender}</span>
-          <Signal aria-hidden className="size-3.5" />
+          <span className="flex items-center gap-1">
+            <Signal aria-hidden className="size-3.5" />
+            <BatteryMedium aria-hidden className="size-4" />
+          </span>
         </div>
-        <p className="mt-1 h-44 overflow-y-auto text-[13px] leading-snug break-words whitespace-pre-wrap">
+        <p className="h-44 overflow-y-auto px-2 py-1.5 text-[13px] leading-snug break-words whitespace-pre-wrap">
           {sms ?? t.noAnswerYet}
         </p>
         {sms && (
-          <figcaption className="mt-1 border-t border-slate-900/30 pt-1 text-right text-[11px] font-bold">
+          <figcaption className="border-t border-slate-900/25 px-2 py-1 text-right text-[11px] font-bold">
             {format(t.smsCount, { segments, chars: sms.length })}
           </figcaption>
         )}
       </div>
-      <div aria-hidden className="mt-4 grid grid-cols-3 gap-2">
+      <div aria-hidden className="mt-3 flex items-center justify-between px-1">
+        <span className="h-2.5 w-12 rounded-full bg-slate-600" />
+        <span className="flex size-10 items-center justify-center rounded-full bg-slate-600 ring-4 ring-slate-700">
+          <span className="size-4 rounded-full bg-slate-500" />
+        </span>
+        <span className="h-2.5 w-12 rounded-full bg-slate-600" />
+      </div>
+      <div aria-hidden className="mt-3 grid grid-cols-3 gap-2">
         {KEYS.map(([digit, letters]) => (
           <div
             key={digit}
-            className="flex h-9 flex-col items-center justify-center rounded-lg bg-slate-700 text-white"
+            className="flex h-9 flex-col items-center justify-center rounded-xl bg-linear-to-b from-slate-600 to-slate-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]"
           >
             <span className="text-sm leading-none font-bold">{digit}</span>
             <span className="text-[8px] leading-none text-slate-300 uppercase">{letters}</span>
