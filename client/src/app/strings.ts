@@ -1,0 +1,58 @@
+import type { Strings } from '@/lib/i18n';
+
+const en = {
+  navLabel: 'Main',
+  navAsk: 'Ask',
+  navEligibility: 'My schemes',
+  navSms: 'SMS',
+  demoData: 'Demo data',
+  offline: 'Offline',
+  lowData: 'Low data',
+  notFoundTitle: 'Page not found',
+  goHome: 'Go to home',
+  errorTitle: 'Something went wrong',
+  reload: 'Reload',
+};
+
+export const appStrings: Strings<typeof en> = {
+  en,
+  hi: {
+    navLabel: 'मुख्य',
+    navAsk: 'पूछें',
+    navEligibility: 'मेरी योजनाएं',
+    navSms: 'SMS',
+    demoData: 'डेमो डेटा',
+    offline: 'ऑफ़लाइन',
+    lowData: 'कम डेटा',
+    notFoundTitle: 'पेज नहीं मिला',
+    goHome: 'होम पर जाएं',
+    errorTitle: 'कुछ गड़बड़ हो गई',
+    reload: 'फिर से लोड करें',
+  },
+  mr: {
+    navLabel: 'मुख्य',
+    navAsk: 'विचारा',
+    navEligibility: 'माझ्या योजना',
+    navSms: 'SMS',
+    demoData: 'डेमो डेटा',
+    offline: 'ऑफलाइन',
+    lowData: 'कमी डेटा',
+    notFoundTitle: 'पान सापडले नाही',
+    goHome: 'मुख्य पानावर जा',
+    errorTitle: 'काहीतरी चूक झाली',
+    reload: 'पुन्हा लोड करा',
+  },
+  ta: {
+    navLabel: 'முதன்மை',
+    navAsk: 'கேள்',
+    navEligibility: 'என் திட்டங்கள்',
+    navSms: 'SMS',
+    demoData: 'டெமோ தரவு',
+    offline: 'ஆஃப்லைன்',
+    lowData: 'குறைந்த டேட்டா',
+    notFoundTitle: 'பக்கம் கிடைக்கவில்லை',
+    goHome: 'முகப்புக்குச் செல்',
+    errorTitle: 'ஏதோ தவறு நடந்தது',
+    reload: 'மீண்டும் ஏற்று',
+  },
+};
