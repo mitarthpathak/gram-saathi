@@ -16,7 +16,7 @@ const sourceSchema = z.object({
 
 /** A full answer without the per-request fields, as produced by the chat pipeline. */
 const cachedAnswerSchema = z.object({
-  detectedLanguage: z.string(),
+  detectedLanguage: languageCodeSchema,
   answer: z.string(),
   sources: z.array(sourceSchema),
   fraudWarning: z.string(),
