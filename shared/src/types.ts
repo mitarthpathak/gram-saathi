@@ -20,14 +20,14 @@ export interface Source {
   schemeName: string;
   /** Heading of the document section, e.g. "Eligibility". */
   section: string;
-  /** Short verbatim excerpt from that section. */
+  /** Short verbatim excerpt from that section (up to ~300 characters). */
   snippet: string;
 }
 
 /** Body of every non-2xx response. */
 export interface ApiErrorBody {
   error: {
-    /** Machine-readable code, e.g. "VALIDATION_ERROR", "NOT_IMPLEMENTED". */
+    /** Machine-readable code, e.g. "VALIDATION_ERROR", "UNCLEAR_ANSWER", "AI_UNAVAILABLE". */
     code: string;
     /** Developer-facing English message. The UI shows its own localized text. */
     message: string;
@@ -66,10 +66,14 @@ export interface QueryResponse {
   sessionId: string;
   /** What the user said. Present for voice queries only. */
   transcript?: string;
-  /** Language of the question: usually a LanguageCode, may be a dialect code such as "bho". */
+  /**
+   * Language of the question, and of the answer, fraud warning and SMS. Always a LanguageCode
+   * since contract v2 (a dialect such as Bhojpuri is reported as its base language, "hi").
+   */
   detectedLanguage: string;
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;
+  /** The passages the answer uses. Empty when `notFound`. */
   sources: Source[];
   /** Anti-fraud reminder shown with every answer, in the user's language. */
   fraudWarning: string;
@@ -92,6 +96,7 @@ export interface QueryResponse {
 export type EligibilityQuestionType = 'number' | 'choice' | 'boolean';
 
 export interface EligibilityQuestion {
+  /** Comes from the rule data (data/eligibility): do not hard-code ids or their order. */
   id: string;
   /** Question in the session language. */
   text: string;
@@ -104,6 +109,7 @@ export interface EligibilityQuestion {
 export interface EligibilityProgress {
   /** 1-based position of the returned question. */
   current: number;
+  /** Upper bound: questions that can no longer change any result are skipped, so it may shrink. */
   total: number;
 }
 
@@ -117,7 +123,11 @@ export interface EligibilityStartResponse {
   progress?: EligibilityProgress;
 }
 
-/** A number for "number" questions, a boolean for "boolean", one of `options` for "choice". */
+/**
+ * A number for "number" questions, a boolean for "boolean", one of `options` for "choice".
+ * Since contract v2 also free-form text for any type (e.g. a voice transcript such as
+ * "do bigha zameen"), which the server reads; unreadable text gets 422 UNCLEAR_ANSWER.
+ */
 export type EligibilityAnswerValue = number | string | boolean;
 
 export interface EligibilityAnswerRequest {
