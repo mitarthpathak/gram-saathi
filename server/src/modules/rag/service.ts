@@ -25,8 +25,9 @@ export function loadKnowledgeBase(filePath: string = PATHS.vectorStore): VectorS
   return knowledgeBase;
 }
 
+/** The loaded store; loads it on first use (serverless instances may skip startup). */
 export function getKnowledgeBase(): VectorStore | undefined {
-  return knowledgeBase;
+  return knowledgeBase ?? loadKnowledgeBase();
 }
 
 /** For tests and scripts. */
@@ -39,11 +40,12 @@ export async function searchSchemes(input: SearchInput): Promise<ScoredChunk[]> 
   const topK = input.topK ?? env.RAG_TOP_K;
   if (isMocked('rag')) return mockSearchSchemes(input.query, topK).map(fromMockChunk);
 
-  if (!knowledgeBase) {
+  const store = getKnowledgeBase();
+  if (!store) {
     throw new HttpError(
       503,
       'KNOWLEDGE_BASE_MISSING',
-      'No knowledge base loaded. Run `npm run ingest -w server`, then restart the server.',
+      'No knowledge base: run `npm run ingest -w server` (server/data/vectorstore.json).',
     );
   }
   const query =
@@ -53,10 +55,10 @@ export async function searchSchemes(input: SearchInput): Promise<ScoredChunk[]> 
   // Query vectors must come from the same model and size as the stored document vectors.
   const [vector] = await embedTexts([query], {
     kind: 'query',
-    model: knowledgeBase.meta.embedModel,
-    dimensions: knowledgeBase.meta.dimensions,
+    model: store.meta.embedModel,
+    dimensions: store.meta.dimensions,
   });
-  return knowledgeBase.search(vector, topK);
+  return store.search(vector, topK);
 }
 
 /** Contract shape for the debug endpoint. */

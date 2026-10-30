@@ -66,6 +66,8 @@ const envSchema = z.object({
   PORT: fromEnv(z.coerce.number().int().min(1).max(65535).default(4000)),
   USE_MOCKS: fromEnv(z.string().default('true').transform(parseMockList)),
   CLIENT_ORIGIN: fromEnv(z.string().default('http://localhost:5173')),
+  /** Read by lib/logger directly; validated here. Default: debug (dev), info (production). */
+  LOG_LEVEL: fromEnv(z.enum(['debug', 'info', 'warn', 'error']).optional()),
 
   // Gemini. Model ids: https://ai.google.dev/gemini-api/docs/models
   GEMINI_API_KEY: fromEnv(z.string().optional()),

@@ -135,8 +135,12 @@ function toSource(chunk: ScoredChunk): Source {
 }
 
 /** Puts a ready answer in the cache, e.g. the pre-generated FAQ answers. */
-export function seedAnswerCache(question: string, answer: CachedAnswer): void {
-  answerCache.set(cacheKey(question, answer.detectedLanguage as LanguageCode), answer);
+export function seedAnswerCache(
+  question: string,
+  language: LanguageCode,
+  answer: CachedAnswer,
+): void {
+  answerCache.set(cacheKey(question, language), answer);
 }
 
 export function clearAnswerCache(): void {
