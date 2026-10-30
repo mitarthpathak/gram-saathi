@@ -1,4 +1,5 @@
 import type { DialectOption, DialectResult } from '@gram-saathi/shared';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { env } from '../../config/env';
 import { generateJson, type GeminiInputPart } from '../../lib/geminiClient';
@@ -7,7 +8,13 @@ import { getDialectSettings } from './calibration';
 import { getDialectExemplars, renderPromptExemplars, type DialectExemplarSet } from './exemplars';
 import { getDialectRegistry, STANDARD_DIALECT_LABELS, type DialectRegistryEntry } from './registry';
 
-export const DIALECT_PROMPT_VERSION = 'dialect-v2-real-exemplars-pairwise';
+export const DIALECT_PROMPT_VERSION = 'dialect-v3-real-exemplars-pairwise';
+
+/** Cache fingerprint changes when active labels, real exemplars, or prompt assembly changes. */
+export function dialectPromptVersion(activeLabels: string[]): string {
+  const promptHash = createHash('sha256').update(buildClassifierPrompt(activeLabels)).digest('hex');
+  return `${DIALECT_PROMPT_VERSION}:${promptHash}`;
+}
 
 export type DialectOutcome = {
   dialect: DialectResult | null;
@@ -25,7 +32,11 @@ export interface DialectEvidence {
   timeoutMs?: number;
   maxRetries?: number;
   /** Internal evaluation hook. It is never added to the API response. */
-  onDecision?: (trace: { votes: string[]; selectedLabel: string | null }) => void;
+  onDecision?: (trace: {
+    votes: string[];
+    selectedLabel: string | null;
+    confidence: 'medium' | 'high' | null;
+  }) => void;
 }
 
 export interface DialectDecisionInput {
@@ -168,7 +179,7 @@ async function classifyDialectInternal(input: DialectEvidence): Promise<DialectO
     input.ensembleSize ?? settings.ensembleSize,
   );
   if (activeLabels.length === 0 || views.length === 0) {
-    input.onDecision?.({ votes: [], selectedLabel: null });
+    input.onDecision?.({ votes: [], selectedLabel: null, confidence: null });
     return { dialect: null, dialectCandidates: [] };
   }
 
@@ -217,7 +228,7 @@ async function classifyDialectInternal(input: DialectEvidence): Promise<DialectO
     logger.warn('dialect classifier: ' + failures + '/' + results.length + ' view(s) failed');
   }
   if (votes.length === 0) {
-    input.onDecision?.({ votes, selectedLabel: null });
+    input.onDecision?.({ votes, selectedLabel: null, confidence: null });
     return { dialect: null, dialectCandidates: [] };
   }
 
@@ -226,9 +237,12 @@ async function classifyDialectInternal(input: DialectEvidence): Promise<DialectO
   );
   logger.debug('dialect vote tally', tally);
   const minimumVotes = input.minimumVotes ?? settings.minimumVotes;
+  const selectedLabel = selectedClassifierLabel(votes, activeLabels, minimumVotes);
+  const selectedVotes = selectedLabel ? votes.filter((vote) => vote === selectedLabel).length : 0;
   input.onDecision?.({
     votes,
-    selectedLabel: selectedClassifierLabel(votes, activeLabels, minimumVotes),
+    selectedLabel,
+    confidence: selectedLabel === null ? null : selectedVotes === views.length ? 'high' : 'medium',
   });
   return decideDialect({
     votes,
@@ -330,7 +344,9 @@ export function buildClassifierPrompt(
           'Real examples (the section is omitted for labels without samples):',
           ...exampleBlocks,
         ]
-      : ['No native-speaker exemplars are available for these labels; classify zero-shot and abstain when evidence is weak.']),
+      : [
+          'No native-speaker exemplars are available for these labels; classify zero-shot and abstain when evidence is weak.',
+        ]),
   ].join('\n');
 }
 
@@ -342,9 +358,11 @@ function recordDialectLatency(durationMs: number): void {
   if (dialectLatencySamples.length > DIALECT_LATENCY_WINDOW) dialectLatencySamples.shift();
   const sorted = [...dialectLatencySamples].sort((a, b) => a - b);
   const percentile = (p: number) => sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)];
-  logger.info(
-    `dialect classify latency (${sorted.length} sample(s)): p50=${percentile(0.5)}ms p95=${percentile(0.95)}ms`,
-  );
+  const message =
+    `dialect classify latency (${sorted.length} sample(s)): ` +
+    `p50=${percentile(0.5)}ms p95=${percentile(0.95)}ms`;
+  if (sorted.length === 1 || sorted.length % 20 === 0) logger.info(message);
+  else logger.debug(message);
 }
 
 function standardLabelMeaning(label: string): string {

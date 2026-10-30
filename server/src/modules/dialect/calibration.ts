@@ -28,7 +28,9 @@ export function chooseCalibration(
   targetPrecision: number,
 ): CalibrationScore | undefined {
   return scores
-    .filter((score) => score.answeredPrecision !== null && score.answeredPrecision >= targetPrecision)
+    .filter(
+      (score) => score.answeredPrecision !== null && score.answeredPrecision >= targetPrecision,
+    )
     .sort(
       (a, b) =>
         b.coverage - a.coverage ||
@@ -46,7 +48,9 @@ export function getDialectCalibration(): DialectCalibration | undefined {
   if (!loaded) {
     loaded = true;
     try {
-      calibration = calibrationSchema.parse(JSON.parse(readFileSync(PATHS.dialectCalibration, 'utf8')));
+      calibration = calibrationSchema.parse(
+        JSON.parse(readFileSync(PATHS.dialectCalibration, 'utf8')),
+      );
     } catch (error) {
       if (isMissingFile(error)) return undefined;
       logger.warn('Ignoring invalid data/dialects/calibration.json; using configured defaults.');
@@ -58,11 +62,21 @@ export function getDialectCalibration(): DialectCalibration | undefined {
 /** Env values explicitly supplied by an operator win over the last offline calibration. */
 export function getDialectSettings(): { ensembleSize: number; minimumVotes: number } {
   const saved = getDialectCalibration();
+  return resolveDialectSettings(
+    { ensembleSize: env.DIALECT_ENSEMBLE_SIZE, minimumVotes: env.DIALECT_MIN_VOTES },
+    saved,
+    dialectEnvOverrides,
+  );
+}
+
+export function resolveDialectSettings(
+  defaults: { ensembleSize: number; minimumVotes: number },
+  saved: Pick<DialectCalibration, 'ensembleSize' | 'minimumVotes'> | undefined,
+  overrides: { ensembleSize: boolean; minimumVotes: boolean },
+): { ensembleSize: number; minimumVotes: number } {
   return {
-    ensembleSize:
-      !dialectEnvOverrides.ensembleSize && saved ? saved.ensembleSize : env.DIALECT_ENSEMBLE_SIZE,
-    minimumVotes:
-      !dialectEnvOverrides.minimumVotes && saved ? saved.minimumVotes : env.DIALECT_MIN_VOTES,
+    ensembleSize: !overrides.ensembleSize && saved ? saved.ensembleSize : defaults.ensembleSize,
+    minimumVotes: !overrides.minimumVotes && saved ? saved.minimumVotes : defaults.minimumVotes,
   };
 }
 

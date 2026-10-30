@@ -98,9 +98,7 @@ const envSchema = z.object({
   DIALECT_TEXT_DETECT: fromEnv(z.stringbool().default(false)),
   DIALECT_ACTIVE: fromEnv(z.string().trim().default('all')),
   DIALECT_EXEMPLARS_PER_LABEL: fromEnv(z.coerce.number().int().min(0).max(20).default(4)),
-  DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(
-    z.coerce.number().int().min(0).max(20_000).default(1800),
-  ),
+  DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(z.coerce.number().int().min(0).max(20_000).default(1800)),
 
   // Retrieval
   RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),
@@ -132,7 +130,8 @@ export const env = parsed.data;
 
 /** Calibration is the fallback; explicitly set env values always take precedence. */
 export const dialectEnvOverrides = {
-  ensembleSize: process.env.DIALECT_ENSEMBLE_SIZE !== undefined && process.env.DIALECT_ENSEMBLE_SIZE !== '',
+  ensembleSize:
+    process.env.DIALECT_ENSEMBLE_SIZE !== undefined && process.env.DIALECT_ENSEMBLE_SIZE !== '',
   minimumVotes: process.env.DIALECT_MIN_VOTES !== undefined && process.env.DIALECT_MIN_VOTES !== '',
 } as const;
 

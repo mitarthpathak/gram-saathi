@@ -112,16 +112,55 @@ produce no confident dialect result unless the user confirms one; the answer lan
 back to the confirmed dialect's parent, selected language hint, or Hindi.
 
 For audio, the classifier uses separate audio-only, transcript-only, and combined views, limited
-by DIALECT_ENSEMBLE_SIZE. The Gemini schema restricts each view to the current active dialect ids
-plus standard-language classes. Geography is not provided as evidence. Ties, mixed speech, weak
-evidence, low vote counts, timeouts, and model errors lead to an abstention. A partial ensemble
-can still decide with the calls that returned. Dialect results are calculated per request and are
-not cached with the grounded answer.
+by the calibrated ensemble size (default 3). The Gemini schema restricts each view to the current
+active dialect ids plus standard-language classes. Geography is not provided as evidence. Ties,
+mixed speech, weak evidence, low vote counts, timeouts, and model errors lead to an abstention. A
+partial ensemble can still decide with the calls that returned. Dialect results are calculated per
+request and are not cached with the grounded answer.
 
 The standard labels are hindi (plain Hindi with no regional markers), marathi, tamil, english,
 gujarati, punjabi, other_language, and mixed_or_uncertain. Only DIALECT_ACTIVE dialect ids are
 eligible; standard labels remain available. A smaller active dialect set reduces competing
 choices and is expected to improve accuracy.
+
+### Real examples and measurement
+
+`data/dialects/exemplars/<label>.jsonl` is empty until the team contributes consented native
+recordings/transcripts. The zod loader validates each JSONL row. Prompt selection is deterministic,
+limited by `DIALECT_EXEMPLARS_PER_LABEL` and a shared conservative token budget; when both labels have
+examples, confusable pairs are rendered side by side. A label without examples remains zero-shot and
+is included in the startup `no exemplars` log. Never generate dialect rows with an LLM or create
+Roman spellings from Devanagari.
+
+`data/eval/dialect/testset.jsonl` is a held-out set. With `USE_MOCKS=false` and `GEMINI_API_KEY` set,
+`npm run eval:dialect` rejects any speaker id
+that also appears in the exemplar files, applies a bounded row concurrency, retries Gemini errors,
+and caches each row by content hash, prompt version, model, ensemble size and vote threshold. It
+writes JSON and Markdown reports under `server/data/eval-report/`, including class metrics,
+confusion matrix, coverage/abstention, wrong high-confidence rows, script/short-text/code-switch/
+duration breakdowns and confusable-pair accuracy.
+
+With `USE_MOCKS=false`, `npm run calibrate:dialect -- --target 0.90` sweeps ensemble size 1–3 and minimum votes 1–3. It
+chooses the highest-coverage setting meeting answered precision, but refuses to write calibration
+until every active label has at least 20 held-out rows. `data/dialects/calibration.json` supplies
+startup defaults; explicit `DIALECT_ENSEMBLE_SIZE` and `DIALECT_MIN_VOTES` env values take priority.
+The command prints per-label `tested` suggestions (20+ native rows and precision at target); registry
+status changes require `--write-status`.
+
+`POST /api/dialect/transcribe` accepts the same in-memory `audio/*` multipart upload (max 10 MB) as
+the voice endpoint and returns a verbatim transcript plus a stable script enum. It supports mocks.
+`npm run merge:contrib -- a.json b.json` validates contributor exports and requires `consent: true`
+before writing anything. Audio is stored in `data/eval/dialect/audio/`; each anonymous speaker is
+assigned wholly to exemplars or testset using a deterministic hash, with balancing to try to give
+labels with multiple speakers both sides. Missing confidence and license metadata stay explicitly
+`unrated` and `not-specified`.
+
+Gemini requests share `GEMINI_MAX_CONCURRENT_CALLS` (default 8). Answer-side work enters a priority
+queue; classifier calls can occupy at most cap minus one slots so one slot remains available for an
+answer during a burst. When all views start together, three parallel classifier calls should take
+roughly one model-call duration; queue saturation, model variance and upload/transcription time add
+latency. A rolling p50/p95 of classifier duration is logged (including queue time). Real audio
+latency and accuracy have not yet been measured.
 
 ## The eligibility wizard
 
@@ -258,36 +297,39 @@ another origin, set `VITE_API_URL` on the client and add the client's URL to `CL
 
 Every variable (validated in `server/src/config/env.ts`; an empty value means "use the default"):
 
-| Variable                  | Default                                       | What it does                                                                                              |
-| ------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                | `development`                                 | `production` lowers the default log level to `info`; `test` skips `.env` files                            |
-| `PORT`                    | `4000`                                        | HTTP port of the API (and the target of the Vite dev proxy)                                               |
-| `USE_MOCKS`               | `true`                                        | `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
-| `CLIENT_ORIGIN`           | `http://localhost:5173`                       | Origins allowed by CORS, comma-separated                                                                  |
-| `LOG_LEVEL`               | `debug` (dev), `info` (prod), `error` (tests) | `debug`, `info`, `warn` or `error`; debug shows each Gemini call with timings and token counts            |
-| `GEMINI_API_KEY`          | none                                          | Google AI Studio key. Needed for every real AI call; server only                                          |
-| `GEMINI_CHAT_MODEL`       | `gemini-3.8-flash`                            | Answers, SMS rewrite, eligibility answer reading and translation, query translation                       |
-| `GEMINI_AUDIO_MODEL`      | `GEMINI_CHAT_MODEL`                           | Speech-to-text and language identification                                                                |
-| `GEMINI_EMBED_MODEL`      | `gemini-embedding-2`                          | Embedding model used by `npm run ingest`; queries always use the model the knowledge base was built with  |
-| `GEMINI_EMBED_DIMENSIONS` | `768`                                         | Embedding size for ingestion (128–3072)                                                                   |
-| `GEMINI_THINKING_LEVEL`   | `low`                                         | `minimal`, `low`, `medium`, `high`, or `default` (let the model decide). Higher = slower, more careful    |
-| `GEMINI_TIMEOUT_MS`       | `30000`                                       | Timeout per Gemini call                                                                                   |
-| `GEMINI_MAX_RETRIES`      | `3`                                           | Retries on rate limits, 5xx, timeouts and network errors (0–8)                                            |
-| `DIALECT_ENSEMBLE_SIZE`   | `3`                                           | Independent audio, transcript, and combined views (1–3)                                                   |
-| `DIALECT_MIN_VOTES`       | `2`                                           | Agreeing votes required to select a label (1–3)                                                           |
-| `DIALECT_TIMEOUT_MS`      | `6000`                                        | Per-view classification deadline; failures never fail the answer                                          |
-| `DIALECT_TEXT_DETECT`     | `false`                                       | Classify typed questions from transcript text (one view; set minimum votes to 1 for a confident result)   |
-| `DIALECT_ACTIVE`          | `all`                                         | `all` or comma-separated dialect ids; a smaller set means higher accuracy                                 |
-| `RAG_TOP_K`               | `4`                                           | Chunks retrieved per question (1–10)                                                                      |
-| `RAG_MIN_SCORE`           | `0.5`                                         | Cosine similarity a chunk needs to be used; none left means `notFound`. Calibrate with `npm run query`    |
-| `RAG_TRANSLATE_QUERY`     | `false`                                       | Translate non-English questions to English before embedding (one extra Gemini call)                       |
-| `CACHE_MAX_ENTRIES`       | `500`                                         | Answers kept in the in-memory cache; `0` disables it                                                      |
-| `CACHE_TTL_MINUTES`       | `360`                                         | How long a cached answer lives; `0` = until evicted                                                       |
-| `SMS_MAX_SEGMENTS`        | `2`                                           | SMS length limit in segments (1–10)                                                                       |
-| `RATE_LIMIT_PER_MINUTE`   | `30`                                          | Requests per minute per IP to the AI endpoints (voice, chat, rag, eligibility, sms); `0` = no limit       |
-| `TRUST_PROXY`             | `1`                                           | Proxy hops in front of the server, so the limit sees the real client IP (1 on Vercel)                     |
-| `VITE_API_URL`            | empty (same origin)                           | Client: API origin, e.g. when the API runs on another domain                                              |
-| `VITE_USE_MOCKS`          | `false`                                       | Client: answer from `client/src/mocks` in the browser and never call the server                           |
+| Variable                        | Default                                       | What it does                                                                                              |
+| ------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                      | `development`                                 | `production` lowers the default log level to `info`; `test` skips `.env` files                            |
+| `PORT`                          | `4000`                                        | HTTP port of the API (and the target of the Vite dev proxy)                                               |
+| `USE_MOCKS`                     | `true`                                        | `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
+| `CLIENT_ORIGIN`                 | `http://localhost:5173`                       | Origins allowed by CORS, comma-separated                                                                  |
+| `LOG_LEVEL`                     | `debug` (dev), `info` (prod), `error` (tests) | `debug`, `info`, `warn` or `error`; debug shows each Gemini call with timings and token counts            |
+| `GEMINI_API_KEY`                | none                                          | Google AI Studio key. Needed for every real AI call; server only                                          |
+| `GEMINI_CHAT_MODEL`             | `gemini-3.8-flash`                            | Answers, SMS rewrite, eligibility answer reading and translation, query translation                       |
+| `GEMINI_AUDIO_MODEL`            | `GEMINI_CHAT_MODEL`                           | Speech-to-text and language identification                                                                |
+| `GEMINI_EMBED_MODEL`            | `gemini-embedding-2`                          | Embedding model used by `npm run ingest`; queries always use the model the knowledge base was built with  |
+| `GEMINI_EMBED_DIMENSIONS`       | `768`                                         | Embedding size for ingestion (128–3072)                                                                   |
+| `GEMINI_THINKING_LEVEL`         | `low`                                         | `minimal`, `low`, `medium`, `high`, or `default` (let the model decide). Higher = slower, more careful    |
+| `GEMINI_TIMEOUT_MS`             | `30000`                                       | Timeout per Gemini call                                                                                   |
+| `GEMINI_MAX_RETRIES`            | `3`                                           | Retries on rate limits, 5xx, timeouts and network errors (0–8)                                            |
+| `GEMINI_MAX_CONCURRENT_CALLS`   | `8`                                           | Shared Gemini call cap; classifier work leaves one slot available for answer-side work (2–64)             |
+| `DIALECT_ENSEMBLE_SIZE`         | `3` (or calibration file)                     | Independent audio, transcript, and combined views (1–3); explicitly set env value overrides calibration   |
+| `DIALECT_MIN_VOTES`             | `2` (or calibration file)                     | Agreeing votes required to select a label (1–3); explicitly set env value overrides calibration           |
+| `DIALECT_TIMEOUT_MS`            | `6000`                                        | Per-view classification deadline; failures never fail the answer                                          |
+| `DIALECT_TEXT_DETECT`           | `false`                                       | Classify typed questions from transcript text (one view; set minimum votes to 1 for a confident result)   |
+| `DIALECT_ACTIVE`                | `all`                                         | `all` or comma-separated dialect ids; a smaller set means higher accuracy                                 |
+| `DIALECT_EXEMPLARS_PER_LABEL`   | `4`                                           | Maximum deterministic real examples injected per label                                                    |
+| `DIALECT_EXEMPLAR_TOKEN_BUDGET` | `1800`                                        | Shared conservative budget for prompt examples; whole examples are omitted when the budget is exhausted   |
+| `RAG_TOP_K`                     | `4`                                           | Chunks retrieved per question (1–10)                                                                      |
+| `RAG_MIN_SCORE`                 | `0.5`                                         | Cosine similarity a chunk needs to be used; none left means `notFound`. Calibrate with `npm run query`    |
+| `RAG_TRANSLATE_QUERY`           | `false`                                       | Translate non-English questions to English before embedding (one extra Gemini call)                       |
+| `CACHE_MAX_ENTRIES`             | `500`                                         | Answers kept in the in-memory cache; `0` disables it                                                      |
+| `CACHE_TTL_MINUTES`             | `360`                                         | How long a cached answer lives; `0` = until evicted                                                       |
+| `SMS_MAX_SEGMENTS`              | `2`                                           | SMS length limit in segments (1–10)                                                                       |
+| `RATE_LIMIT_PER_MINUTE`         | `30`                                          | Requests per minute per IP to the AI endpoints (voice, chat, rag, eligibility, sms); `0` = no limit       |
+| `TRUST_PROXY`                   | `1`                                           | Proxy hops in front of the server, so the limit sees the real client IP (1 on Vercel)                     |
+| `VITE_API_URL`                  | empty (same origin)                           | Client: API origin, e.g. when the API runs on another domain                                              |
+| `VITE_USE_MOCKS`                | `false`                                       | Client: answer from `client/src/mocks` in the browser and never call the server                           |
 
 Model defaults follow the Gemini API docs at the time of writing
 ([models](https://ai.google.dev/gemini-api/docs/models),

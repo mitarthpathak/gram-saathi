@@ -16,6 +16,10 @@ export async function postDialectTranscribe(
   if (!req.file || req.file.size === 0) {
     throw new HttpError(400, 'AUDIO_REQUIRED', 'Send a non-empty audio file in the "audio" field.');
   }
-  const result = await transcribe({ audio: req.file.buffer, mimeType: req.file.mimetype, ...fields });
+  const result = await transcribe({
+    audio: req.file.buffer,
+    mimeType: req.file.mimetype,
+    ...fields,
+  });
   res.json({ transcript: result.transcript, script: contributorScript(result.script) });
 }

@@ -196,7 +196,7 @@ describe('answerQuestion (grounded pipeline)', () => {
       text: 'PM-KISAN amount?',
       dialectEvidence: {
         audio: { data: 'AA==', mimeType: 'audio/wav' },
-        text: 'म्हारो सवाल कछु है',
+        text: 'dialect transcript fixture',
       },
     };
     const first = await answerQuestion({ ...input, sessionId: 'dialect-a' });
@@ -264,7 +264,7 @@ describe('answerQuestion (grounded pipeline)', () => {
       sessionId: 'dialect-error',
       dialectEvidence: {
         audio: { data: 'AA==', mimeType: 'audio/wav' },
-        text: 'म्हारो सवाल कछु है',
+        text: 'dialect transcript fixture',
       },
     });
 

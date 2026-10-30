@@ -208,7 +208,7 @@ describe('classifyDialect Gemini ensemble', () => {
     setGeminiBackend(fake);
     const result = await classifyDialect({
       audio: { data: 'AA==', mimeType: 'audio/wav' },
-      text: 'कछु बताओ',
+      text: 'dialect transcript fixture',
       activeLabels: ALL_LABELS,
     });
 
@@ -217,7 +217,9 @@ describe('classifyDialect Gemini ensemble', () => {
       2,
     );
     expect(
-      fake.calls.filter((call) => JSON.stringify(call.input).includes('कछु बताओ')),
+      fake.calls.filter((call) =>
+        JSON.stringify(call.input).includes('dialect transcript fixture'),
+      ),
     ).toHaveLength(2);
     expect(result).toMatchObject({ dialect: { id: 'braj', confidence: 'high' } });
   });
@@ -232,7 +234,7 @@ describe('classifyDialect Gemini ensemble', () => {
     setGeminiBackend(fake);
     const result = await classifyDialect({
       audio: { data: 'AA==', mimeType: 'audio/wav' },
-      text: 'कछु बताओ',
+      text: 'dialect transcript fixture',
       activeLabels: ALL_LABELS,
       timeoutMs: 100,
     });
@@ -252,7 +254,7 @@ describe('classifyDialect Gemini ensemble', () => {
     });
     const result = await classifyDialect({
       audio: { data: 'AA==', mimeType: 'audio/wav' },
-      text: 'कछु बताओ',
+      text: 'dialect transcript fixture',
       activeLabels: ALL_LABELS,
       timeoutMs: 10,
     });
@@ -291,7 +293,7 @@ describe('classifyDialect Gemini ensemble', () => {
 
 describe('verbatim transcription', () => {
   it('returns dialect transcript text without trimming or normalizing it', async () => {
-    const transcript = '  म्हारो सवाल कछु अलग है।  ';
+    const transcript = '  dialect transcript fixture  ';
     setGeminiBackend(
       fakeGemini(() => ({ transcript, detectedLanguage: 'hi', script: 'Devanagari' })),
     );
@@ -299,7 +301,6 @@ describe('verbatim transcription', () => {
       audio: Buffer.from('audio'),
       mimeType: 'audio/webm',
       language: 'hi',
-      sessionId: 'transcribe-test',
     });
     expect(result).toEqual({ transcript, detectedLanguage: 'hi', script: 'Devanagari' });
   });

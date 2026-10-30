@@ -39,7 +39,7 @@ export interface DialectPrediction {
   predictedLabel: string | null;
   highConfidence: boolean;
   script: string;
-  text?: string;
+  wordCount?: number;
   kind: 'audio' | 'text';
   codeSwitch: boolean;
   durationMs?: number;
@@ -89,7 +89,7 @@ export function parseDialectEvalRows(text: string, fileName = 'testset.jsonl'): 
       if (!ALL_LABELS.has(row.label)) throw new Error(`Unknown label "${row.label}"`);
       rows.push(row);
     } catch (error) {
-      throw new Error(`${fileName}:${index + 1}: ${errorMessage(error)}`);
+      throw new Error(`${fileName}:${index + 1}: ${errorMessage(error)}`, { cause: error });
     }
   }
   const ids = new Set<string>();
@@ -109,7 +109,9 @@ export function assertSpeakerDisjoint(
     .filter((speaker) => exemplarSpeakers.has(speaker))
     .sort();
   if (overlap.length) {
-    throw new Error(`Speaker-disjoint evaluation failed; speakers occur in both splits: ${overlap.join(', ')}`);
+    throw new Error(
+      `Speaker-disjoint evaluation failed; speakers occur in both splits: ${overlap.join(', ')}`,
+    );
   }
 }
 
@@ -117,7 +119,9 @@ export function computeDialectMetrics(
   predictions: readonly DialectPrediction[],
   confusablePairs: readonly [string, string][] = registryConfusablePairs(),
 ): DialectEvaluationMetrics {
-  const labels = [...new Set(predictions.flatMap((row) => [row.goldLabel, row.predictedLabel ?? '<abstain>']))].sort();
+  const labels = [
+    ...new Set(predictions.flatMap((row) => [row.goldLabel, row.predictedLabel ?? '<abstain>'])),
+  ].sort();
   const goldLabels = [...new Set(predictions.map((row) => row.goldLabel))].sort();
   const confusionMatrix: Record<string, Record<string, number>> = {};
   for (const gold of goldLabels) {
@@ -125,11 +129,12 @@ export function computeDialectMetrics(
   }
   for (const row of predictions) {
     const predicted = row.predictedLabel ?? '<abstain>';
-    confusionMatrix[row.goldLabel]![predicted] = (confusionMatrix[row.goldLabel]![predicted] ?? 0) + 1;
+    confusionMatrix[row.goldLabel]![predicted] =
+      (confusionMatrix[row.goldLabel]![predicted] ?? 0) + 1;
   }
 
   const perClass: Record<string, ClassMetrics> = {};
-  for (const label of goldLabels) {
+  for (const label of labels.filter((value) => value !== '<abstain>')) {
     const support = predictions.filter((row) => row.goldLabel === label).length;
     const predicted = predictions.filter((row) => row.predictedLabel === label).length;
     const truePositive = predictions.filter(
@@ -137,7 +142,10 @@ export function computeDialectMetrics(
     ).length;
     const precision = predicted ? truePositive / predicted : null;
     const recall = support ? truePositive / support : 0;
-    const f1 = precision === null || precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
+    const f1 =
+      precision === null || precision + recall === 0
+        ? 0
+        : (2 * precision * recall) / (precision + recall);
     perClass[label] = { support, predicted, precision, recall, f1 };
   }
   const answered = predictions.filter((row) => row.predictedLabel !== null);
@@ -154,8 +162,9 @@ export function computeDialectMetrics(
   };
   for (const row of predictions) {
     addBreakdown(breakdowns.script, row.script, row);
-    const wordCount = (row.text ?? '').trim().split(/\s+/u).filter(Boolean).length;
-    addBreakdown(breakdowns.shortText, row.text && wordCount < 5 ? '<5 words' : '5+ words or no text', row);
+    const shortTextGroup =
+      row.wordCount === undefined ? 'no transcript' : row.wordCount < 5 ? '<5 words' : '5+ words';
+    addBreakdown(breakdowns.shortText, shortTextGroup, row);
     addBreakdown(breakdowns.codeSwitch, row.codeSwitch ? 'code-switch' : 'single-language', row);
     addBreakdown(breakdowns.audioDuration, durationBucket(row), row);
   }
@@ -173,7 +182,9 @@ export function computeDialectMetrics(
     perClass,
     macroF1,
     confusionMatrix,
-    abstentionRate: predictions.length ? (predictions.length - answered.length) / predictions.length : 0,
+    abstentionRate: predictions.length
+      ? (predictions.length - answered.length) / predictions.length
+      : 0,
     answeredPrecision: answered.length ? correct / answered.length : null,
     coverage: predictions.length ? answered.length / predictions.length : 0,
     wrongWithHighConfidence: predictions.filter(
@@ -200,9 +211,11 @@ function addBreakdown(
   if (row.predictedLabel !== null) {
     group.answered++;
     if (row.predictedLabel === row.goldLabel) {
-      group.answeredPrecision = ((group.answeredPrecision ?? 0) * (group.answered - 1) + 1) / group.answered;
+      group.answeredPrecision =
+        ((group.answeredPrecision ?? 0) * (group.answered - 1) + 1) / group.answered;
     } else {
-      group.answeredPrecision = ((group.answeredPrecision ?? 0) * (group.answered - 1)) / group.answered;
+      group.answeredPrecision =
+        ((group.answeredPrecision ?? 0) * (group.answered - 1)) / group.answered;
     }
   }
   group.coverage = group.answered / group.rows;
@@ -252,6 +265,9 @@ export function evalCacheKey(input: {
   model: string;
   ensembleSize: number;
   minimumVotes: number;
+  timeoutMs: number;
+  maxRetries: number;
+  thinkingLevel: string;
 }): string {
   return createHash('sha256')
     .update(
@@ -261,6 +277,9 @@ export function evalCacheKey(input: {
         input.model,
         input.ensembleSize,
         input.minimumVotes,
+        input.timeoutMs,
+        input.maxRetries,
+        input.thinkingLevel,
       ].join('\n'),
     )
     .digest('hex');
@@ -270,8 +289,10 @@ export function evalCacheKey(input: {
 export class DiskEvalCache {
   private readonly entries = new Map<string, unknown>();
   private readonly inFlight = new Map<string, Promise<unknown>>();
+  private readonly filePath: string;
 
-  constructor(private readonly filePath: string) {
+  constructor(filePath: string) {
+    this.filePath = filePath;
     if (!existsSync(filePath)) return;
     try {
       const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as Record<string, unknown>;
@@ -328,7 +349,8 @@ export function safeAudioPath(audioRoot: string, audioFile: string): string {
   const normalized = audioFile.replace(/^audio[\\/]/, '');
   const resolvedRoot = path.resolve(audioRoot);
   const resolved = path.resolve(resolvedRoot, normalized);
-  if (!resolved.startsWith(resolvedRoot + path.sep)) throw new Error('audioFile must stay under data/eval/dialect/audio');
+  if (!resolved.startsWith(resolvedRoot + path.sep))
+    throw new Error('audioFile must stay under data/eval/dialect/audio');
   return resolved;
 }
 
