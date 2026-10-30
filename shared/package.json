@@ -1,0 +1,19 @@
+{
+  "name": "@gram-saathi/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API contract types shared by client and server. Types only: no runtime code, no build step.",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}

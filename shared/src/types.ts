@@ -1,0 +1,210 @@
+/**
+ * Gram Saathi API contract: the single source of truth for client <-> server traffic.
+ *
+ * Rules (see CONTRIBUTING.md):
+ * - Types only. No runtime code in this package (ESLint enforces it).
+ * - Change this file only in a PR that also updates docs/API_CONTRACT.md.
+ */
+
+// ---------------------------------------------------------------------------
+// Common
+// ---------------------------------------------------------------------------
+
+/** Languages the UI supports and the API accepts as input. Adding one is a contract change. */
+export type LanguageCode = 'hi' | 'mr' | 'ta' | 'en';
+
+/** Citation for the scheme-document chunk an answer is grounded on. */
+export interface Source {
+  /** Stable id: the file name in data/schemes without `.md`, e.g. "pm-kisan". */
+  schemeId: string;
+  schemeName: string;
+  /** Heading of the document section, e.g. "Eligibility". */
+  section: string;
+  /** Short verbatim excerpt from that section. */
+  snippet: string;
+}
+
+/** Body of every non-2xx response. */
+export interface ApiErrorBody {
+  error: {
+    /** Machine-readable code, e.g. "VALIDATION_ERROR", "NOT_IMPLEMENTED". */
+    code: string;
+    /** Developer-facing English message. The UI shows its own localized text. */
+    message: string;
+    details?: unknown;
+  };
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/health
+// ---------------------------------------------------------------------------
+
+export interface HealthResponse {
+  status: 'ok';
+  /** true when the server runs with USE_MOCKS=true. */
+  mocks: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/chat/query (JSON) and POST /api/voice/query (multipart)
+// ---------------------------------------------------------------------------
+
+export interface ChatQueryRequest {
+  text: string;
+  /** Hint from the language selector. Omit to let the server detect the language. */
+  language?: LanguageCode;
+  sessionId: string;
+}
+
+/** Text fields of the multipart voice request. The recording goes in a file part named `audio`. */
+export interface VoiceQueryFields {
+  language?: LanguageCode;
+  sessionId: string;
+}
+
+export interface QueryResponse {
+  sessionId: string;
+  /** What the user said. Present for voice queries only. */
+  transcript?: string;
+  /** Language of the question: usually a LanguageCode, may be a dialect code such as "bho". */
+  detectedLanguage: string;
+  /** Answer in the user's language, grounded only in `sources`. */
+  answer: string;
+  sources: Source[];
+  /** Anti-fraud reminder shown with every answer, in the user's language. */
+  fraudWarning: string;
+  /** SMS-length version of the answer. */
+  smsText: string;
+  /** SMS segments needed for `smsText` (GSM-7: 160 chars, or 153 per part; Unicode: 70, or 67 per part). */
+  smsSegments: number;
+  /** Server-generated speech. null means the client should use the browser's speech synthesis. */
+  audioUrl: string | null;
+  /** true when the answer came from the server's answer cache. */
+  usedCache: boolean;
+  /** true when the documents do not answer the question; `answer` then says where to ask instead. */
+  notFound: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/eligibility/start and POST /api/eligibility/answer
+// ---------------------------------------------------------------------------
+
+export type EligibilityQuestionType = 'number' | 'choice' | 'boolean';
+
+export interface EligibilityQuestion {
+  id: string;
+  /** Question in the session language. */
+  text: string;
+  type: EligibilityQuestionType;
+  /** Only for "choice": labels in the session language. Answer with one of them verbatim. */
+  options?: string[];
+}
+
+/** Lets the wizard show "question 2 of 4". Optional: clients must cope without it. */
+export interface EligibilityProgress {
+  /** 1-based position of the returned question. */
+  current: number;
+  total: number;
+}
+
+export interface EligibilityStartRequest {
+  sessionId: string;
+  language: LanguageCode;
+}
+
+export interface EligibilityStartResponse {
+  question: EligibilityQuestion;
+  progress?: EligibilityProgress;
+}
+
+/** A number for "number" questions, a boolean for "boolean", one of `options` for "choice". */
+export type EligibilityAnswerValue = number | string | boolean;
+
+export interface EligibilityAnswerRequest {
+  sessionId: string;
+  questionId: string;
+  answer: EligibilityAnswerValue;
+}
+
+export interface EligibilityResult {
+  schemeId: string;
+  schemeName: string;
+  eligible: boolean;
+  /** One short sentence in the session language. */
+  reason: string;
+}
+
+export type EligibilityAnswerResponse =
+  | { done: false; question: EligibilityQuestion; progress?: EligibilityProgress }
+  | { done: true; results: EligibilityResult[] };
+
+// ---------------------------------------------------------------------------
+// POST /api/sms/compress
+// ---------------------------------------------------------------------------
+
+export interface SmsCompressRequest {
+  text: string;
+  language: LanguageCode;
+}
+
+export interface SmsCompressResponse {
+  sms: string;
+  segments: number;
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/faq/top?lang=hi (offline / low-bandwidth mode)
+// ---------------------------------------------------------------------------
+
+export interface FaqTopQuery {
+  /** Defaults to "hi". */
+  lang?: LanguageCode;
+}
+
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  sources: Source[];
+}
+
+export interface FaqTopResponse {
+  items: FaqItem[];
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/tts (optional: browser speech synthesis is the default)
+// ---------------------------------------------------------------------------
+
+export interface TtsRequest {
+  text: string;
+  language: LanguageCode;
+}
+
+export interface TtsResponse {
+  audioUrl: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/rag/search: internal debug endpoint for the RAG workstream, not used by the UI
+// ---------------------------------------------------------------------------
+
+export interface RagSearchRequest {
+  query: string;
+  language?: LanguageCode;
+  /** Defaults to 4, max 10. */
+  topK?: number;
+}
+
+export interface RetrievedChunk {
+  schemeId: string;
+  schemeName: string;
+  section: string;
+  text: string;
+  /** Relevance in [0, 1]; higher is better. */
+  score: number;
+}
+
+export interface RagSearchResponse {
+  chunks: RetrievedChunk[];
+}

@@ -22,6 +22,31 @@ export default defineConfig([
     },
   },
 
+  // shared/ is never built or bundled, so it may only contain types. Runtime code there would
+  // compile fine and then crash the server build at startup.
+  {
+    files: ['shared/src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            ':matches(VariableDeclaration, FunctionDeclaration, ClassDeclaration, TSEnumDeclaration, TSModuleDeclaration, ExpressionStatement)',
+          message: 'shared/ is types-only. Put runtime code in client/ or server/.',
+        },
+        {
+          selector:
+            ':matches(ExportAllDeclaration, ExportNamedDeclaration)[exportKind="value"][source]',
+          message: 'Re-export with `export type` in shared/.',
+        },
+        {
+          selector: 'ImportDeclaration[importKind="value"]',
+          message: 'Use `import type` in shared/.',
+        },
+      ],
+    },
+  },
+
   // Root-level config files run in Node.
   {
     files: ['*.{js,mjs,cjs}'],

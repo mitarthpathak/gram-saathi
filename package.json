@@ -4,11 +4,15 @@
   "private": true,
   "description": "Voice-first, multilingual assistant that answers questions about government schemes for rural citizens.",
   "type": "module",
-  "workspaces": [],
+  "workspaces": [
+    "shared"
+  ],
   "engines": {
     "node": ">=22.12"
   },
   "scripts": {
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
