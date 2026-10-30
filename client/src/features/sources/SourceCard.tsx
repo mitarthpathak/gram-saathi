@@ -1,6 +1,6 @@
 import type { Source } from '@gram-saathi/shared';
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/cn';
 import { useStrings } from '@/lib/i18n';
 import { sourceStrings } from './strings';
@@ -17,27 +17,35 @@ export function SourceCard({ source, index }: SourceCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="rounded-2xl bg-cream-100 px-3 py-2.5 ring-1 ring-brand-950/5">
+      <div className="flex items-center gap-2">
         <span
           aria-hidden
-          className="flex size-6 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-extrabold text-white"
         >
           {index}
         </span>
-        <span className="font-semibold">{source.schemeName}</span>
-        <Badge>{source.section}</Badge>
+        <span className="min-w-0 text-sm leading-tight font-bold text-slate-800">
+          {source.schemeName}
+          <span className="font-semibold text-slate-500"> · {source.section}</span>
+        </span>
       </div>
-      <blockquote className={cn('mt-2 text-sm text-slate-700', !expanded && 'line-clamp-2')}>
+      <blockquote
+        className={cn(
+          'mt-1.5 border-l-2 border-brand-300 pl-2.5 text-sm leading-snug text-slate-600',
+          !expanded && 'line-clamp-2',
+        )}
+      >
         “{source.snippet}”
       </blockquote>
       <button
         type="button"
         onClick={() => setExpanded((open) => !open)}
         aria-expanded={expanded}
-        className="mt-1 min-h-8 text-sm font-semibold text-brand-800 underline underline-offset-2"
+        className="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-bold text-brand-700"
       >
         {expanded ? t.showLess : t.showMore}
+        <ChevronDown aria-hidden className={cn('size-4 transition', expanded && 'rotate-180')} />
       </button>
     </div>
   );

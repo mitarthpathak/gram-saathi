@@ -1,33 +1,59 @@
 import type { EligibilityResult } from '@gram-saathi/shared';
-import { CircleCheck, CircleX } from 'lucide-react';
+import { CircleCheck, CircleX, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
 import { useStrings } from '@/lib/i18n';
 import { eligibilityStrings } from './strings';
 
-export function ResultCard({ result }: { result: EligibilityResult }) {
+interface ResultCardProps {
+  result: EligibilityResult;
+  /** Opens the chat with a question about this scheme. */
+  onAsk?: (schemeName: string) => void;
+}
+
+export function ResultCard({ result, onAsk }: ResultCardProps) {
   const t = useStrings(eligibilityStrings);
 
   return (
-    <Card
+    <div
       className={cn(
-        'flex gap-3 border-2',
-        result.eligible ? 'border-brand-600 bg-brand-50' : 'border-slate-200',
+        'relative flex gap-3 overflow-hidden rounded-3xl p-4',
+        result.eligible
+          ? 'bg-white shadow-soft ring-2 ring-brand-400'
+          : 'bg-white/60 ring-1 ring-brand-950/10',
       )}
     >
       {result.eligible ? (
-        <CircleCheck aria-hidden className="size-9 shrink-0 text-brand-700" />
+        <CircleCheck aria-hidden className="size-9 shrink-0 fill-brand-100 text-brand-600" />
       ) : (
         <CircleX aria-hidden className="size-9 shrink-0 text-slate-400" />
       )}
-      <div className="flex flex-col items-start gap-1.5">
-        <h3 className="text-lg font-bold">{result.schemeName}</h3>
+      <div className="flex min-w-0 flex-col items-start gap-1.5">
+        <h3
+          className={cn(
+            'text-lg leading-snug font-extrabold',
+            !result.eligible && 'text-slate-700',
+          )}
+        >
+          {result.schemeName}
+        </h3>
         <Badge tone={result.eligible ? 'success' : 'neutral'}>
           {result.eligible ? t.eligible : t.notEligible}
         </Badge>
-        <p className="text-base text-slate-700">{result.reason}</p>
+        <p className="text-base leading-snug text-slate-700">{result.reason}</p>
+        {result.eligible && onAsk && (
+          <Button
+            variant="soft"
+            size="sm"
+            className="mt-1"
+            onClick={() => onAsk(result.schemeName)}
+          >
+            <MessageCircle aria-hidden className="size-4" />
+            {t.askAbout}
+          </Button>
+        )}
       </div>
-    </Card>
+    </div>
   );
 }

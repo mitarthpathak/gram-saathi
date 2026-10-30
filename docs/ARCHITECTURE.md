@@ -186,7 +186,11 @@ client/src/
 ```
 
 - **Screens:** `/` chat (voice + text), `/eligibility` wizard, `/sms` SMS preview, low-bandwidth
-  mode and offline FAQ.
+  mode and offline FAQ. On screens 1024 px and wider (laptops, projectors) the app sits in a phone
+  frame next to a pitch panel (`app/Showcase.tsx`); phones get the app full screen.
+- **Look:** colour tokens (`brand` green, `marigold` accent, `cream` paper) and animations live in
+  `src/index.css` (`@theme`); change them there to re-theme everything. Motion respects
+  `prefers-reduced-motion`.
 - **State:** `SettingsContext` (language, low-bandwidth mode, session id; saved in localStorage),
   `ChatContext` (the conversation; survives switching screens), `ToastContext`.
 - **API:** components never call `fetch`; they use `api` from `lib/api.ts`, which is typed with
@@ -232,6 +236,8 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | `CACHE_MAX_ENTRIES`       | `500`                                         | Answers kept in the in-memory cache; `0` disables it                                                     |
 | `CACHE_TTL_MINUTES`       | `360`                                         | How long a cached answer lives; `0` = until evicted                                                      |
 | `SMS_MAX_SEGMENTS`        | `2`                                           | SMS length limit in segments (1–10)                                                                      |
+| `RATE_LIMIT_PER_MINUTE`   | `30`                                          | Requests per minute per IP to the AI endpoints (voice, chat, rag, eligibility, sms); `0` = no limit      |
+| `TRUST_PROXY`             | `1`                                           | Proxy hops in front of the server, so the limit sees the real client IP (1 on Vercel)                    |
 | `VITE_API_URL`            | empty (same origin)                           | Client: API origin, e.g. when the API runs on another domain                                             |
 | `VITE_USE_MOCKS`          | `false`                                       | Client: answer from `client/src/mocks` in the browser and never call the server                          |
 

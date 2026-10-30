@@ -74,6 +74,9 @@ the cloud build exactly, link the project (`vercel link`) and run `vercel build`
   Vercel Marketplace) or make the wizard stateless (a contract change).
 - **Request bodies are limited to 4.5 MB** on Vercel Functions (the server itself accepts audio up
   to 10 MB). Short voice questions are far below that: 30 s of Opus is about 100–300 kB.
+- **Rate limit**: the AI endpoints allow `RATE_LIMIT_PER_MINUTE` (default 30) requests per IP
+  per minute, counted per instance, so a public URL cannot burn your Gemini quota. For a
+  stricter, global limit add a Vercel Firewall rate-limit rule on `/api/*`.
 - **Read-only filesystem**: `ingest` and `prewarm` run on your machine, never on Vercel.
 - **Logs**: Project → Logs. `NODE_ENV=production` logs at `info`; set `LOG_LEVEL=debug` to see
   each Gemini call with timings and token counts.

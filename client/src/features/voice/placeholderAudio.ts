@@ -1,6 +1,6 @@
 /**
- * A silent 8 kHz mono 16-bit WAV (0.2 to 1 s long) that stands in for a real recording until
- * useRecorder records from the microphone.
+ * A silent 8 kHz mono 16-bit WAV (0.2 to 1 s long) that stands in for a recording when the
+ * browser mocks run on a device without a usable microphone.
  */
 export function createPlaceholderAudio(durationMs: number): Blob {
   const sampleRate = 8000;

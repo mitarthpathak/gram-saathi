@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-and-build:
+  lint-test-build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -21,4 +21,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test -w server
       - run: npm run build

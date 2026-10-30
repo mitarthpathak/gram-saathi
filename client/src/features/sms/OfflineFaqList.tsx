@@ -43,20 +43,22 @@ export function OfflineFaqList() {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-bold">{t.faqTitle}</h2>
+      <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+        {t.faqTitle}
+      </h2>
       {items === null && !failed && <Spinner label={t.loading} className="text-slate-700" />}
       {items === null && failed && <p className="text-base text-slate-700">{t.faqUnavailable}</p>}
       {items?.map((item) => (
         <details
           key={item.id}
-          className="rounded-xl border border-slate-200 bg-white p-3 open:bg-brand-50"
+          className="rounded-2xl bg-white p-4 shadow-soft ring-1 ring-brand-950/5 open:ring-brand-300"
         >
-          <summary className="min-h-8 cursor-pointer text-lg font-semibold">
+          <summary className="min-h-8 cursor-pointer text-base font-bold text-slate-800 marker:text-brand-600">
             {item.question}
           </summary>
-          <p className="mt-2 text-base">{item.answer}</p>
+          <p className="mt-2 text-base leading-relaxed text-slate-700">{item.answer}</p>
           {item.sources.length > 0 && (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-2 text-sm font-semibold text-brand-700">
               {item.sources.map((source) => `${source.schemeName} · ${source.section}`).join(', ')}
             </p>
           )}

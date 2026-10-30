@@ -15,8 +15,8 @@ interface SpeakButtonProps {
 export function SpeakButton({ text, language, audioUrl }: SpeakButtonProps) {
   const t = useStrings(voiceStrings);
   return (
-    <Button variant="secondary" onClick={() => speak(text, language, audioUrl)}>
-      <Volume2 aria-hidden className="size-5" />
+    <Button variant="soft" size="sm" onClick={() => speak(text, language, audioUrl)}>
+      <Volume2 aria-hidden className="size-4" />
       {t.listen}
     </Button>
   );

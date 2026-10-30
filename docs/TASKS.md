@@ -31,10 +31,11 @@ The main screen: push-to-talk, transcript, answers with sources, fraud warning, 
 
 Step 2
 
-- [ ] `useRecorder`: record for real with `getUserMedia` + `MediaRecorder` (`audio/webm;codecs=opus`,
-      `audio/mp4` on Safari), handle a denied permission, auto-stop after ~30 s, release the mic.
-      Keep the hook's interface so `MicButton` does not change.
-- [ ] Recording feedback: timer or level meter, vibration on start/stop (`navigator.vibrate`).
+- [x] `useRecorder`: real recording with `getUserMedia` + `MediaRecorder` (`audio/webm;codecs=opus`,
+      `audio/mp4` on Safari), clear messages for a blocked or missing mic, auto-send after 30 s,
+      the mic is released after each question.
+- [x] Recording feedback: timer and live level meter. Still open: vibration on start/stop.
+- [x] Friendly messages for `NO_SPEECH_DETECTED`, `AI_*` and setup errors (`ChatProvider`).
 - [ ] Play `audioUrl` when the server sends one; setting to auto-read answers on or off.
 - [ ] Retry button on error bubbles; disable input while offline.
 - [ ] Native speakers check every `strings.ts` in hi / mr / ta.
@@ -81,8 +82,9 @@ Step 2
       with three-valued logic (questions that no longer matter are skipped); unit-tested.
       Gemini only translates missing texts and reads free-form answers.
 - [ ] Verify the four SAMPLE rule files against the official guidelines (`"verified": true`).
-- [ ] Client: send what the user said as a free-form answer; on `422 UNCLEAR_ANSWER` ask again.
-- [ ] Results screen: "Ask about this scheme" opens the chat with a prefilled question.
+- [x] Client: on `422 UNCLEAR_ANSWER` the wizard stays on the question and asks again.
+- [ ] Client: answer wizard questions by voice and send the words as a free-form answer.
+- [x] Results screen: "Ask about it" opens the chat with a question about that scheme.
 - [x] `sms/compress` with Gemini: at most `SMS_MAX_SEGMENTS`, keeps amounts, URLs and helplines;
       falls back to whole sentences. "Rs" instead of "₹" in English (GSM-7).
 - [ ] SMS screen: copy button, share via the phone's SMS app (`sms:?body=`).

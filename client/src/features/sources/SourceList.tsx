@@ -1,5 +1,5 @@
 import type { Source } from '@gram-saathi/shared';
-import { FileText } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 import { useStrings } from '@/lib/i18n';
 import { SourceCard } from './SourceCard';
 import { sourceStrings } from './strings';
@@ -11,8 +11,8 @@ export function SourceList({ sources }: { sources: Source[] }) {
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="flex items-center gap-1.5 text-sm font-bold tracking-wide text-slate-600 uppercase">
-        <FileText aria-hidden className="size-4" />
+      <h3 className="flex items-center gap-1.5 text-xs font-extrabold tracking-[0.12em] text-brand-700 uppercase">
+        <BadgeCheck aria-hidden className="size-4" />
         {t.title}
       </h3>
       <ol className="flex flex-col gap-2">

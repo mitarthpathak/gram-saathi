@@ -3,17 +3,19 @@ import { cn } from '@/lib/cn';
 
 const VARIANTS = {
   primary:
-    'bg-brand-700 text-white hover:bg-brand-800 disabled:bg-slate-300 disabled:text-slate-600',
+    'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft hover:brightness-110 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-600 disabled:shadow-none',
   secondary:
-    'border-2 border-brand-700 bg-white text-brand-800 hover:bg-brand-50 disabled:border-slate-300 disabled:text-slate-500',
+    'bg-white text-brand-800 ring-2 ring-brand-600/25 hover:bg-brand-50 hover:ring-brand-600 disabled:text-slate-500 disabled:ring-slate-200',
+  soft: 'bg-brand-50 text-brand-800 hover:bg-brand-100 disabled:text-slate-500',
   ghost: 'text-brand-800 hover:bg-brand-50 disabled:text-slate-500',
   danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-600',
 };
 
 const SIZES = {
-  md: 'min-h-11 px-4 text-base',
-  lg: 'min-h-14 px-5 text-lg',
-  xl: 'min-h-16 px-6 text-xl',
+  sm: 'min-h-10 rounded-full px-3.5 text-sm',
+  md: 'min-h-11 rounded-2xl px-4 text-base',
+  lg: 'min-h-14 rounded-2xl px-5 text-lg',
+  xl: 'min-h-16 rounded-2xl px-6 text-xl',
 };
 
 export interface ButtonProps extends ComponentProps<'button'> {
@@ -33,7 +35,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center gap-2 font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
         VARIANTS[variant],
         SIZES[size],
         className,

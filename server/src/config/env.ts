@@ -95,6 +95,12 @@ const envSchema = z.object({
   /** 0 = entries never expire (they are still evicted when the cache is full). */
   CACHE_TTL_MINUTES: fromEnv(z.coerce.number().min(0).default(360)),
   SMS_MAX_SEGMENTS: fromEnv(z.coerce.number().int().min(1).max(10).default(2)),
+
+  // Abuse protection
+  /** Requests per minute per IP to the AI endpoints; 0 = no limit. */
+  RATE_LIMIT_PER_MINUTE: fromEnv(z.coerce.number().int().min(0).default(30)),
+  /** Express `trust proxy`: hops of proxies in front of the server (1 on Vercel). */
+  TRUST_PROXY: fromEnv(z.coerce.number().int().min(0).max(10).default(1)),
 });
 
 const parsed = envSchema.safeParse(process.env);

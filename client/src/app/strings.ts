@@ -2,6 +2,7 @@ import type { Strings } from '@/lib/i18n';
 
 const en = {
   navLabel: 'Main',
+  tagline: 'Your scheme helper',
   navAsk: 'Ask',
   navEligibility: 'My schemes',
   navSms: 'SMS',
@@ -18,6 +19,7 @@ export const appStrings: Strings<typeof en> = {
   en,
   hi: {
     navLabel: 'मुख्य',
+    tagline: 'योजनाओं का साथी',
     navAsk: 'पूछें',
     navEligibility: 'मेरी योजनाएं',
     navSms: 'SMS',
@@ -31,6 +33,7 @@ export const appStrings: Strings<typeof en> = {
   },
   mr: {
     navLabel: 'मुख्य',
+    tagline: 'योजनांचा साथी',
     navAsk: 'विचारा',
     navEligibility: 'माझ्या योजना',
     navSms: 'SMS',
@@ -44,6 +47,7 @@ export const appStrings: Strings<typeof en> = {
   },
   ta: {
     navLabel: 'முதன்மை',
+    tagline: 'திட்டங்களின் துணை',
     navAsk: 'கேள்',
     navEligibility: 'என் திட்டங்கள்',
     navSms: 'SMS',

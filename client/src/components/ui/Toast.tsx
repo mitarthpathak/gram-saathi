@@ -1,6 +1,13 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { CircleAlert, CircleCheck, Info } from 'lucide-react';
+import { use, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
-import { ToastContext, type ToastApi, type ToastTone } from './useToast';
+import {
+  ToastContext,
+  ToastListContext,
+  type ToastApi,
+  type ToastItem,
+  type ToastTone,
+} from './useToast';
 
 const TONES: Record<ToastTone, string> = {
   info: 'bg-slate-900 text-white',
@@ -8,18 +15,14 @@ const TONES: Record<ToastTone, string> = {
   error: 'bg-red-700 text-white',
 };
 
-const DURATION_MS = 4000;
+const ICONS = { info: Info, success: CircleCheck, error: CircleAlert };
 
-interface ToastItem {
-  id: number;
-  message: string;
-  tone: ToastTone;
-}
+const DURATION_MS = 4000;
 
 let lastToastId = 0;
 const nextToastId = () => ++lastToastId;
 
-/** Provides `useToast()` and renders the toasts above the bottom navigation. */
+/** Provides `useToast()`. The toasts themselves render in <ToastViewport>. */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -35,21 +38,32 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext value={toastApi}>
-      {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-24 z-50 mx-auto flex max-w-md flex-col gap-2 px-4">
-        {toasts.map((toast) => (
+      <ToastListContext value={toasts}>{children}</ToastListContext>
+    </ToastContext>
+  );
+}
+
+/** Toasts above the bottom navigation, positioned in the nearest positioned ancestor (the app). */
+export function ToastViewport() {
+  const toasts = use(ToastListContext);
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-50 flex flex-col gap-2 px-4">
+      {toasts.map((toast) => {
+        const Icon = ICONS[toast.tone];
+        return (
           <div
             key={toast.id}
             role={toast.tone === 'error' ? 'alert' : 'status'}
             className={cn(
-              'pointer-events-auto rounded-xl px-4 py-3 text-base font-semibold shadow-lg',
+              'pointer-events-auto flex animate-fade-up items-start gap-2 rounded-2xl px-4 py-3 text-base font-semibold shadow-lift',
               TONES[toast.tone],
             )}
           >
+            <Icon aria-hidden className="mt-0.5 size-5 shrink-0" />
             {toast.message}
           </div>
-        ))}
-      </div>
-    </ToastContext>
+        );
+      })}
+    </div>
   );
 }

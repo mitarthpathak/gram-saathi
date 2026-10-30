@@ -50,6 +50,7 @@ Every non-2xx response has the same body (`ApiErrorBody`):
 | 415    | `UNSUPPORTED_MEDIA_TYPE`                | Uploaded file is not `audio/*`                                          |
 | 422    | `NO_SPEECH_DETECTED`                    | Voice query: no speech recognised in the recording                      |
 | 422    | `UNCLEAR_ANSWER`                        | Eligibility: a free-form answer could not be understood                 |
+| 429    | `RATE_LIMITED`                          | Too many requests from this IP (`Retry-After` header)                   |
 | 429    | `AI_RATE_LIMITED`                       | Gemini quota or rate limit, still hit after retries                     |
 | 500    | `INTERNAL_ERROR`                        | Bug on the server                                                       |
 | 501    | `NOT_IMPLEMENTED`                       | Reserved for features not built yet (none since v2)                     |
@@ -62,7 +63,7 @@ Every non-2xx response has the same body (`ApiErrorBody`):
 
 The `message` is for developers (English). The UI shows its own translated text. Suggested
 handling: `NO_SPEECH_DETECTED` and `UNCLEAR_ANSWER` → ask the user to say it again; `AI_*` → "please
-try again"; `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and `AI_NOT_CONFIGURED` are setup problems
+try again" (also `RATE_LIMITED`); `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and `AI_NOT_CONFIGURED` are setup problems
 (the message names the fix).
 
 ## Endpoints
@@ -339,7 +340,7 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 
 ## Changelog
 
-| Version | Change                                                                                                                                                                                                                                                                                                                                   |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1       | Initial contract. Additions to the original brief: optional eligibility `progress`, the standard error body, `/api/rag/search` (internal).                                                                                                                                                                                               |
-| 2       | No type changes. Eligibility answers may be free-form text (`422 UNCLEAR_ANSWER` if unreadable); questions come from data and may be skipped, so `progress.total` can shrink. `detectedLanguage` is always a `LanguageCode`. New error codes: `NO_SPEECH_DETECTED`, `UNCLEAR_ANSWER`, `AI_*`, `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY`. |
+| Version | Change                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | Initial contract. Additions to the original brief: optional eligibility `progress`, the standard error body, `/api/rag/search` (internal).                                                                                                                                                                                                                                                  |
+| 2       | No type changes. Eligibility answers may be free-form text (`422 UNCLEAR_ANSWER` if unreadable); questions come from data and may be skipped, so `progress.total` can shrink. `detectedLanguage` is always a `LanguageCode`. New error codes: `NO_SPEECH_DETECTED`, `UNCLEAR_ANSWER`, `AI_*`, `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY`, `RATE_LIMITED` (per-IP limit on the AI endpoints). |
