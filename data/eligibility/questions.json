@@ -1,0 +1,117 @@
+{
+  "$comment": "Questions for the eligibility wizard, asked in this order; a question that can no longer change any scheme's result is skipped. Reviewed translations are given; a missing language is machine-translated at runtime. See README.md.",
+  "questions": [
+    {
+      "id": "age",
+      "type": "number",
+      "min": 0,
+      "max": 120,
+      "unit": "years",
+      "unitWords": [
+        "year",
+        "years",
+        "yrs",
+        "saal",
+        "sal",
+        "varsh",
+        "साल",
+        "वर्ष",
+        "वर्षे",
+        "ஆண்டு",
+        "ஆண்டுகள்",
+        "வருடம்",
+        "வயது"
+      ],
+      "text": {
+        "en": "How old are you? (in years)",
+        "hi": "आपकी उम्र कितनी है? (साल में)",
+        "mr": "तुमचे वय किती आहे? (वर्षांमध्ये)",
+        "ta": "உங்கள் வயது என்ன? (ஆண்டுகளில்)"
+      }
+    },
+    {
+      "id": "occupation",
+      "type": "choice",
+      "text": {
+        "en": "What work do you mainly do?",
+        "hi": "आप मुख्य रूप से क्या काम करते हैं?",
+        "mr": "तुम्ही मुख्यतः कोणते काम करता?",
+        "ta": "நீங்கள் முக்கியமாக என்ன வேலை செய்கிறீர்கள்?"
+      },
+      "options": [
+        {
+          "value": "farmer",
+          "label": { "en": "Farmer", "hi": "किसान", "mr": "शेतकरी", "ta": "விவசாயி" }
+        },
+        {
+          "value": "labourer",
+          "label": {
+            "en": "Daily-wage labourer",
+            "hi": "दिहाड़ी मज़दूर",
+            "mr": "रोजंदारी मजूर",
+            "ta": "தினக்கூலித் தொழிலாளி"
+          }
+        },
+        {
+          "value": "asha",
+          "label": {
+            "en": "ASHA / Anganwadi worker",
+            "hi": "आशा / आंगनवाड़ी कार्यकर्ता",
+            "mr": "आशा / अंगणवाडी सेविका",
+            "ta": "ஆஷா / அங்கன்வாடி பணியாளர்"
+          }
+        },
+        {
+          "value": "other",
+          "label": { "en": "Other", "hi": "अन्य", "mr": "इतर", "ta": "மற்றவை" }
+        }
+      ]
+    },
+    {
+      "$comment": "VERIFY the unit conversions in parseHint for the states you serve: a bigha differs a lot between states.",
+      "id": "landAcres",
+      "type": "number",
+      "min": 0,
+      "max": 10000,
+      "unit": "acres",
+      "unitWords": ["acre", "acres", "ekad", "ekar", "एकड़", "एकड", "एकर", "ஏக்கர்"],
+      "parseHint": "Convert to acres: 1 hectare = 2.47 acres, 1 guntha = 0.025 acre, 1 cent = 0.01 acre, 1 kanal = 0.125 acre. A bigha differs by state: about 0.6 acre in UP, Bihar, MP and Rajasthan, 0.4 in Gujarat, 0.33 in West Bengal and Assam, 0.2 in Himachal Pradesh and Uttarakhand; if the state is not known, use 0.5. No land = 0.",
+      "text": {
+        "en": "How much farmland is in your family's name? (in acres, 0 if none)",
+        "hi": "आपके परिवार के नाम पर कितनी खेती की ज़मीन है? (एकड़ में, न हो तो 0)",
+        "mr": "तुमच्या कुटुंबाच्या नावावर किती शेतजमीन आहे? (एकरमध्ये, नसेल तर 0)",
+        "ta": "உங்கள் குடும்பத்தின் பெயரில் எவ்வளவு விவசாய நிலம் உள்ளது? (ஏக்கரில், இல்லையெனில் 0)"
+      }
+    },
+    {
+      "id": "paysIncomeTax",
+      "type": "boolean",
+      "text": {
+        "en": "Do you pay income tax?",
+        "hi": "क्या आप आयकर (इनकम टैक्स) भरते हैं?",
+        "mr": "तुम्ही आयकर (इन्कम टॅक्स) भरता का?",
+        "ta": "நீங்கள் வருமான வரி செலுத்துகிறீர்களா?"
+      }
+    },
+    {
+      "id": "familyPaysIncomeTax",
+      "type": "boolean",
+      "text": {
+        "en": "Does anyone else in your family pay income tax?",
+        "hi": "क्या आपके परिवार में कोई और आयकर भरता है?",
+        "mr": "तुमच्या कुटुंबातील दुसरे कोणी आयकर भरते का?",
+        "ta": "உங்கள் குடும்பத்தில் வேறு யாராவது வருமான வரி செலுத்துகிறார்களா?"
+      }
+    },
+    {
+      "id": "hasBankAccount",
+      "type": "boolean",
+      "text": {
+        "en": "Do you have a savings account in a bank or post office?",
+        "hi": "क्या आपका किसी बैंक या डाकघर में बचत खाता है?",
+        "mr": "तुमचे बँकेत किंवा पोस्ट ऑफिसमध्ये बचत खाते आहे का?",
+        "ta": "உங்களுக்கு வங்கியிலோ அஞ்சலகத்திலோ சேமிப்புக் கணக்கு உள்ளதா?"
+      }
+    }
+  ]
+}

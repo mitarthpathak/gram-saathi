@@ -1,70 +1,110 @@
 import type {
   EligibilityAnswerRequest,
   EligibilityAnswerResponse,
-  EligibilityAnswerValue,
+  EligibilityProgress,
   EligibilityQuestion,
-  EligibilityQuestionType,
   EligibilityResult,
   EligibilityStartRequest,
   EligibilityStartResponse,
   LanguageCode,
 } from '@gram-saathi/shared';
-import { isMocked } from '../../config/env';
-import { HttpError, NotImplementedError } from '../../lib/httpError';
+import { isMocked, PATHS } from '../../config/env';
+import { LruCache } from '../../lib/cache';
+import { HttpError } from '../../lib/httpError';
 import { MOCK_ELIGIBILITY_QUESTIONS, evaluateMockEligibility } from '../../mocks';
+import { parseAnswer } from './answers';
+import { type Answers, evaluateSchemes, nextQuestion } from './engine';
+import { localize } from './localize';
+import {
+  type EligibilityRules,
+  type FlowQuestion,
+  type LocalizedText,
+  loadEligibilityRules,
+} from './rules';
 
-type Localized = Record<LanguageCode, string>;
-
-interface FlowQuestion {
-  id: string;
-  type: EligibilityQuestionType;
-  text: Localized;
-  /** "choice" only: canonical values with a label per language. */
-  options?: { value: string; label: Localized }[];
-  /** "number" only: inclusive range. */
-  min?: number;
-  max?: number;
+/** A wizard: which question comes next, and the results once nothing is left to ask. */
+interface Flow {
+  /** Accept free-form answers (e.g. voice transcripts) and interpret them. */
+  freeForm: boolean;
+  question(id: string): FlowQuestion | undefined;
+  next(answers: Answers): { question: FlowQuestion; progress: EligibilityProgress } | undefined;
+  results(answers: Answers, language: LanguageCode): Promise<EligibilityResult[]>;
 }
 
-/** Canonical answers by question id (choice answers stored as values, not labels). */
-type Answers = Record<string, number | boolean | string>;
-
-/** A wizard: localized questions plus deterministic rules. */
-interface EligibilityFlow {
-  questions: FlowQuestion[];
-  evaluate: (answers: Answers, language: LanguageCode) => EligibilityResult[];
-}
-
-const MOCK_FLOW: EligibilityFlow = {
-  questions: MOCK_ELIGIBILITY_QUESTIONS,
-  evaluate: evaluateMockEligibility,
+/** Step-1 demo flow: four fixed questions, exact answers only. */
+const MOCK_FLOW: Flow = {
+  freeForm: false,
+  question: (id) => MOCK_ELIGIBILITY_QUESTIONS.find((question) => question.id === id),
+  next: (answers) => {
+    const index = MOCK_ELIGIBILITY_QUESTIONS.findIndex((question) => !(question.id in answers));
+    if (index === -1) return undefined;
+    return {
+      question: MOCK_ELIGIBILITY_QUESTIONS[index],
+      progress: { current: index + 1, total: MOCK_ELIGIBILITY_QUESTIONS.length },
+    };
+  },
+  results: async (answers, language) => evaluateMockEligibility(answers, language),
 };
+
+/** When a scheme fails and neither the condition nor the scheme gives a reason. */
+const DEFAULT_NOT_ELIGIBLE: Required<LocalizedText> = {
+  en: 'Based on your answers this scheme does not seem to fit. Please confirm at your nearest CSC or gram panchayat office.',
+  hi: 'आपके जवाबों के हिसाब से यह योजना आप पर लागू नहीं लगती। कृपया नज़दीकी CSC केंद्र या ग्राम पंचायत कार्यालय में पुष्टि करें।',
+  mr: 'तुमच्या उत्तरांनुसार ही योजना तुम्हाला लागू होत नाही असे दिसते. कृपया जवळच्या CSC केंद्रात किंवा ग्रामपंचायत कार्यालयात खात्री करा.',
+  ta: 'உங்கள் பதில்களின்படி இந்தத் திட்டம் உங்களுக்குப் பொருந்தாது போல் தெரிகிறது. அருகிலுள்ள CSC அல்லது கிராம பஞ்சாயத்து அலுவலகத்தில் உறுதிப்படுத்துங்கள்.',
+};
+
+let rules: EligibilityRules | undefined;
+
+/** Loads and validates data/eligibility. Throws a readable error for a broken rule file. */
+export function loadRules(dir: string = PATHS.eligibility): EligibilityRules {
+  rules = loadEligibilityRules(dir);
+  return rules;
+}
+
+function rulesFlow(loaded: EligibilityRules): Flow {
+  return {
+    freeForm: true,
+    question: (id) => loaded.questions.find((question) => question.id === id),
+    next: (answers) => nextQuestion(loaded, answers),
+    results: async (answers, language) => {
+      const outcomes = evaluateSchemes(loaded, answers, DEFAULT_NOT_ELIGIBLE);
+      const texts = await localize(
+        outcomes.flatMap(({ scheme, reason }) => [scheme.schemeName, reason]),
+        language,
+      );
+      return outcomes.map(({ scheme, eligible }, index) => ({
+        schemeId: scheme.schemeId,
+        schemeName: texts[index * 2],
+        eligible,
+        reason: texts[index * 2 + 1],
+      }));
+    },
+  };
+}
+
+function getFlow(): Flow {
+  return isMocked('eligibility') ? MOCK_FLOW : rulesFlow(rules ?? loadRules());
+}
 
 interface Session {
   language: LanguageCode;
-  /** Index of the question we are waiting for. */
-  step: number;
   answers: Answers;
+  /** The question we are waiting for. */
+  questionId: string;
 }
 
-/** Wizard state per sessionId. In memory: lost on restart, and the client then starts over. */
-const sessions = new Map<string, Session>();
-
-function getFlow(): EligibilityFlow {
-  if (isMocked('eligibility')) return MOCK_FLOW;
-  // TODO(step-2): build the flow from the eligibility criteria in data/schemes/*.md (questions,
-  //   allowed answers, one rule per scheme). Keep the rules deterministic code, never an LLM:
-  //   the same answers must always give the same result. Gemini may only phrase the reasons.
-  throw new NotImplementedError('eligibility.getFlow');
-}
+/** Wizard state per sessionId, in memory: lost on restart (the client then starts over). */
+const sessions = new LruCache<Session>({ maxEntries: 10_000, ttlMs: 60 * 60_000 });
 
 export async function startEligibility({
   sessionId,
   language,
 }: EligibilityStartRequest): Promise<EligibilityStartResponse> {
-  const flow = getFlow();
-  sessions.set(sessionId, { language, step: 0, answers: {} });
-  return questionAt(flow, 0, language);
+  const step = getFlow().next({});
+  if (!step) throw new Error('The eligibility rules have no questions');
+  sessions.set(sessionId, { language, answers: {}, questionId: step.question.id });
+  return { question: await present(step.question, language), progress: step.progress };
 }
 
 export async function answerEligibility({
@@ -74,15 +114,14 @@ export async function answerEligibility({
 }: EligibilityAnswerRequest): Promise<EligibilityAnswerResponse> {
   const flow = getFlow();
   const session = sessions.get(sessionId);
-  if (!session) {
+  const question = session && flow.question(session.questionId);
+  if (!session || !question) {
     throw new HttpError(
       404,
       'SESSION_NOT_FOUND',
       'No eligibility session for this sessionId. Call /api/eligibility/start first.',
     );
   }
-
-  const question = flow.questions[session.step];
   if (question.id !== questionId) {
     throw new HttpError(
       409,
@@ -90,52 +129,44 @@ export async function answerEligibility({
       `Expected an answer to "${question.id}", got "${questionId}".`,
     );
   }
-  session.answers[question.id] = toCanonicalAnswer(question, answer, session.language);
-  session.step += 1;
 
-  if (session.step < flow.questions.length) {
-    return { done: false, ...questionAt(flow, session.step, session.language) };
+  const shownLabels =
+    question.options &&
+    (await localize(
+      question.options.map((o) => o.label),
+      session.language,
+    ));
+  // A bad or unclear answer throws here and the session stays on the same question.
+  session.answers[question.id] = await parseAnswer(question, answer, {
+    freeForm: flow.freeForm,
+    shownLabels,
+  });
+
+  const step = flow.next(session.answers);
+  if (step) {
+    session.questionId = step.question.id;
+    sessions.set(sessionId, session); // also restarts the expiry clock
+    return {
+      done: false,
+      question: await present(step.question, session.language),
+      progress: step.progress,
+    };
   }
   sessions.delete(sessionId);
-  return { done: true, results: flow.evaluate(session.answers, session.language) };
+  return { done: true, results: await flow.results(session.answers, session.language) };
 }
 
-function questionAt(
-  flow: EligibilityFlow,
-  step: number,
-  language: LanguageCode,
-): EligibilityStartResponse {
-  const { id, type, text, options } = flow.questions[step];
-  const question: EligibilityQuestion = { id, type, text: text[language] };
-  if (options) question.options = options.map((option) => option.label[language]);
-  return { question, progress: { current: step + 1, total: flow.questions.length } };
-}
-
-/** Checks the answer against the question type; a choice label becomes its canonical value. */
-function toCanonicalAnswer(
+/** Contract shape of a question, in the session language. */
+async function present(
   question: FlowQuestion,
-  answer: EligibilityAnswerValue,
   language: LanguageCode,
-): number | boolean | string {
-  const invalid = (expected: string) =>
-    new HttpError(400, 'INVALID_ANSWER', `Question "${question.id}" expects ${expected}.`);
-
-  switch (question.type) {
-    case 'number': {
-      const { min = 0, max = Number.MAX_SAFE_INTEGER } = question;
-      if (typeof answer !== 'number' || !Number.isFinite(answer) || answer < min || answer > max) {
-        throw invalid(`a number from ${min} to ${max}`);
-      }
-      return answer;
-    }
-    case 'boolean':
-      if (typeof answer !== 'boolean') throw invalid('true or false');
-      return answer;
-    case 'choice': {
-      const options = question.options ?? [];
-      const match = options.find((o) => o.label[language] === answer || o.value === answer);
-      if (!match) throw invalid(`one of: ${options.map((o) => o.label[language]).join(', ')}`);
-      return match.value;
-    }
-  }
+): Promise<EligibilityQuestion> {
+  const labels = question.options?.map((option) => option.label) ?? [];
+  const [text, ...options] = await localize([question.text, ...labels], language);
+  return {
+    id: question.id,
+    type: question.type,
+    text,
+    ...(question.options && { options }),
+  };
 }

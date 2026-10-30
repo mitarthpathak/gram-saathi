@@ -1,0 +1,46 @@
+{
+  "$comment": "SAMPLE RULE - VERIFY AGAINST OFFICIAL SOURCE (PMSBY rules, jansuraksha.gov.in) before real use.",
+  "schemeId": "pm-suraksha-bima-yojana",
+  "verified": false,
+  "source": "https://www.jansuraksha.gov.in",
+  "schemeName": {
+    "en": "PM Suraksha Bima Yojana",
+    "hi": "प्रधानमंत्री सुरक्षा बीमा योजना",
+    "mr": "प्रधानमंत्री सुरक्षा विमा योजना",
+    "ta": "பிஎம் சுரக்ஷா பீமா யோஜனா"
+  },
+  "eligibleIf": {
+    "all": [
+      {
+        "question": "age",
+        "op": "between",
+        "value": [18, 70],
+        "reason": {
+          "en": "PM Suraksha Bima Yojana is only for people aged 18 to 70.",
+          "hi": "प्रधानमंत्री सुरक्षा बीमा योजना केवल 18 से 70 साल के लोगों के लिए है।",
+          "mr": "प्रधानमंत्री सुरक्षा विमा योजना फक्त 18 ते 70 वयोगटातील लोकांसाठी आहे.",
+          "ta": "பிஎம் சுரக்ஷா பீமா யோஜனா 18 முதல் 70 வயதுடையவர்களுக்கு மட்டுமே."
+        }
+      },
+      {
+        "question": "hasBankAccount",
+        "op": "==",
+        "value": true,
+        "reason": {
+          "en": "You need a savings account in a bank or post office; the ₹20 premium is taken from it each year.",
+          "hi": "बैंक या डाकघर में बचत खाता ज़रूरी है; ₹20 का प्रीमियम हर साल उसी से कटता है।",
+          "mr": "बँकेत किंवा पोस्ट ऑफिसमध्ये बचत खाते आवश्यक आहे; ₹20 चा हप्ता दरवर्षी त्यातूनच कापला जातो.",
+          "ta": "வங்கி அல்லது அஞ்சலகத்தில் சேமிப்புக் கணக்கு தேவை; ₹20 கட்டணம் ஒவ்வொரு ஆண்டும் அதிலிருந்து எடுக்கப்படும்."
+        }
+      }
+    ]
+  },
+  "reasons": {
+    "eligible": {
+      "en": "For ₹20 a year you can get accident insurance of up to ₹2 lakh. Join at your bank or post office.",
+      "hi": "साल में सिर्फ़ ₹20 में ₹2 लाख तक का दुर्घटना बीमा मिल सकता है। अपने बैंक या डाकघर में जुड़ें।",
+      "mr": "वर्षाला फक्त ₹20 मध्ये ₹2 लाखांपर्यंतचा अपघात विमा मिळू शकतो. तुमच्या बँकेत किंवा पोस्ट ऑफिसमध्ये सामील व्हा.",
+      "ta": "ஆண்டுக்கு ₹20 செலுத்தி ₹2 லட்சம் வரை விபத்துக் காப்பீடு பெறலாம். உங்கள் வங்கி அல்லது அஞ்சலகத்தில் சேருங்கள்."
+    }
+  }
+}

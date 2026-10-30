@@ -1,0 +1,57 @@
+{
+  "$comment": "SAMPLE RULE - VERIFY AGAINST OFFICIAL SOURCE (PM-KISAN operational guidelines, pmkisan.gov.in) before real use. Simplified: the other exclusions (institutional landholders; serving or retired government employees except MTS / Group D; doctors, engineers, lawyers and other registered professionals; pensioners with Rs 10,000 or more a month; constitutional post holders) are not asked.",
+  "schemeId": "pm-kisan",
+  "verified": false,
+  "source": "https://pmkisan.gov.in",
+  "schemeName": {
+    "en": "PM-KISAN Samman Nidhi",
+    "hi": "पीएम-किसान सम्मान निधि",
+    "mr": "पीएम-किसान सन्मान निधी",
+    "ta": "பிஎம்-கிசான் சம்மான் நிதி"
+  },
+  "eligibleIf": {
+    "all": [
+      {
+        "question": "landAcres",
+        "op": ">",
+        "value": 0,
+        "reason": {
+          "en": "PM-KISAN is only for families with farmland in their own name.",
+          "hi": "पीएम-किसान केवल उन परिवारों के लिए है जिनके नाम पर खेती की ज़मीन है।",
+          "mr": "पीएम-किसान फक्त ज्या कुटुंबांच्या नावावर शेतजमीन आहे त्यांच्यासाठी आहे.",
+          "ta": "பிஎம்-கிசான் தங்கள் பெயரில் விவசாய நிலம் உள்ள குடும்பங்களுக்கு மட்டுமே."
+        }
+      },
+      {
+        "question": "paysIncomeTax",
+        "op": "==",
+        "value": false,
+        "reason": {
+          "en": "Families where someone pays income tax cannot get PM-KISAN.",
+          "hi": "जिस परिवार में कोई आयकर भरता है, उसे पीएम-किसान नहीं मिलता।",
+          "mr": "ज्या कुटुंबात कोणी आयकर भरतो, त्यांना पीएम-किसान मिळत नाही.",
+          "ta": "குடும்பத்தில் யாராவது வருமான வரி செலுத்தினால் பிஎம்-கிசான் கிடைக்காது."
+        }
+      },
+      {
+        "question": "familyPaysIncomeTax",
+        "op": "==",
+        "value": false,
+        "reason": {
+          "en": "Families where someone pays income tax cannot get PM-KISAN.",
+          "hi": "जिस परिवार में कोई आयकर भरता है, उसे पीएम-किसान नहीं मिलता।",
+          "mr": "ज्या कुटुंबात कोणी आयकर भरतो, त्यांना पीएम-किसान मिळत नाही.",
+          "ta": "குடும்பத்தில் யாராவது வருமான வரி செலுத்தினால் பிஎம்-கிசான் கிடைக்காது."
+        }
+      }
+    ]
+  },
+  "reasons": {
+    "eligible": {
+      "en": "Your family has farmland in its name and no income-tax payer, so you can likely get ₹6,000 a year. Register free at pmkisan.gov.in or a CSC.",
+      "hi": "आपके परिवार के नाम पर ज़मीन है और कोई आयकर नहीं भरता, इसलिए आपको साल में ₹6,000 मिल सकते हैं। pmkisan.gov.in या CSC पर मुफ़्त पंजीकरण करें।",
+      "mr": "तुमच्या कुटुंबाच्या नावावर जमीन आहे आणि कोणी आयकर भरत नाही, म्हणून तुम्हाला वर्षाला ₹6,000 मिळू शकतात. pmkisan.gov.in वर किंवा CSC मध्ये मोफत नोंदणी करा.",
+      "ta": "உங்கள் குடும்பத்தின் பெயரில் நிலம் உள்ளது, யாரும் வருமான வரி செலுத்தவில்லை; எனவே ஆண்டுக்கு ₹6,000 பெறலாம். pmkisan.gov.in அல்லது CSC-யில் இலவசமாகப் பதிவு செய்யுங்கள்."
+    }
+  }
+}
