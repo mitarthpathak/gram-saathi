@@ -7,6 +7,7 @@ import { answerVoiceQuery } from './service';
 
 const voiceQueryFields = z.object({
   language: optionalFormField(languageCodeSchema),
+  dialectHint: optionalFormField(z.string().trim().min(1).max(64)),
   sessionId: sessionIdSchema,
 });
 

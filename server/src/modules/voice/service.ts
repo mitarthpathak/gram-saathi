@@ -18,6 +18,7 @@ export interface VoiceQueryInput {
   mimeType: string;
   /** Hint from the client's language selector. */
   language?: LanguageCode;
+  dialectHint?: string;
   sessionId: string;
 }
 
@@ -33,6 +34,7 @@ export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryRes
   return answerQuestion({
     text: transcript,
     language: input.language,
+    dialectHint: input.dialectHint,
     detectedLanguage: language,
     sessionId: input.sessionId,
     transcript,

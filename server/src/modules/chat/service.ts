@@ -3,7 +3,7 @@ import { env, isMocked } from '../../config/env';
 import { LruCache } from '../../lib/cache';
 import { generateJson } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
-import { mockGenerateAnswer } from '../../mocks';
+import { mockDialectFields, mockGenerateAnswer } from '../../mocks';
 import { ANSWER_SYSTEM_PROMPT, answerSchema, buildAnswerInput } from '../rag/prompts';
 import { searchSchemes } from '../rag/service';
 import type { ScoredChunk } from '../rag/vectorStore';
@@ -15,6 +15,8 @@ export interface AnswerInput {
   text: string;
   /** Hint from the client's language selector. */
   language?: LanguageCode;
+  /** Registry id confirmed or selected by the user. */
+  dialectHint?: string;
   /** Language already known from speech recognition; skips text-based detection. */
   detectedLanguage?: LanguageCode;
   sessionId: string;
@@ -122,7 +124,13 @@ function notFoundAnswer(language: LanguageCode): CachedAnswer {
 }
 
 function toResponse(answer: CachedAnswer, input: AnswerInput, usedCache: boolean): QueryResponse {
-  return { sessionId: input.sessionId, transcript: input.transcript, ...answer, usedCache };
+  return {
+    sessionId: input.sessionId,
+    transcript: input.transcript,
+    ...answer,
+    ...(isMocked('dialect') ? mockDialectFields(input.dialectHint) : {}),
+    usedCache,
+  };
 }
 
 function toSource(chunk: ScoredChunk): Source {

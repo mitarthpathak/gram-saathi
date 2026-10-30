@@ -28,6 +28,7 @@ export const PATHS = {
 export const MOCKABLE_MODULES = [
   'voice',
   'chat',
+  'dialect',
   'rag',
   'eligibility',
   'sms',

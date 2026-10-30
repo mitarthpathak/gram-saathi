@@ -7,6 +7,7 @@ import { answerQuestion } from './service';
 const chatQueryBody = z.object({
   text: z.string().trim().min(1).max(1000),
   language: languageCodeSchema.optional(),
+  dialectHint: z.string().trim().min(1).max(64).optional(),
   sessionId: sessionIdSchema,
 });
 

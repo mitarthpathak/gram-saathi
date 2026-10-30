@@ -13,6 +13,30 @@
 /** Languages the UI supports and the API accepts as input. Adding one is a contract change. */
 export type LanguageCode = 'hi' | 'mr' | 'ta' | 'en';
 
+/** A selectable or suggested regional variety. */
+export interface DialectOption {
+  id: string;
+  name: string;
+  nativeName: string;
+}
+
+/** A dialect result returned only when the server has enough evidence to identify it. */
+export interface DialectResult extends DialectOption {
+  confidence: 'medium' | 'high';
+}
+
+/** A dialect available for confirmation by the user. */
+export interface DialectInfo extends DialectOption {
+  parentLanguage: LanguageCode;
+  states: string[];
+  testStatus: 'experimental' | 'tested';
+}
+
+/** GET /api/dialects */
+export interface DialectsResponse {
+  items: DialectInfo[];
+}
+
 /** Citation for the scheme-document chunk an answer is grounded on. */
 export interface Source {
   /** Stable id: the file name in data/schemes without `.md`, e.g. "pm-kisan". */
@@ -53,12 +77,16 @@ export interface ChatQueryRequest {
   text: string;
   /** Hint from the language selector. Omit to let the server detect the language. */
   language?: LanguageCode;
+  /** Registry id the user confirmed or selected; skips dialect detection. */
+  dialectHint?: string;
   sessionId: string;
 }
 
 /** Text fields of the multipart voice request. The recording goes in a file part named `audio`. */
 export interface VoiceQueryFields {
   language?: LanguageCode;
+  /** Registry id the user confirmed or selected; skips dialect detection. */
+  dialectHint?: string;
   sessionId: string;
 }
 
@@ -70,7 +98,11 @@ export interface QueryResponse {
    * Language of the question, and of the answer, fraud warning and SMS. Always a LanguageCode
    * since contract v2 (a dialect such as Bhojpuri is reported as its base language, "hi").
    */
-  detectedLanguage: string;
+  detectedLanguage: LanguageCode;
+  /** Confident dialect identification; null means abstained or not applicable. */
+  dialect?: DialectResult | null;
+  /** Up to three suggestions, sent for abstentions and medium confidence. */
+  dialectCandidates?: DialectOption[];
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;
   /** The passages the answer uses. Empty when `notFound`. */
