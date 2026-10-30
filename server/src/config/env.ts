@@ -3,13 +3,26 @@ import { config as loadDotenv } from 'dotenv';
 import { z } from 'zod';
 import { logger } from '../lib/logger';
 
+const serverRoot = path.resolve(__dirname, '../..');
+
 // One .env at the repo root serves both apps (see .env.example). An optional server/.env
 // overrides it, and real environment variables (e.g. set by the host) override both.
-const serverRoot = path.resolve(__dirname, '../..');
-loadDotenv({
-  path: [path.join(serverRoot, '.env'), path.join(serverRoot, '../.env')],
-  quiet: true,
-});
+// Tests set their own variables and must not pick up a developer's .env.
+if (process.env.NODE_ENV !== 'test') {
+  loadDotenv({
+    path: [path.join(serverRoot, '.env'), path.join(serverRoot, '../.env')],
+    quiet: true,
+  });
+}
+
+/** Files and folders the server reads, resolved from this file so any working directory works. */
+export const PATHS = {
+  schemes: path.resolve(serverRoot, '../data/schemes'),
+  eligibility: path.resolve(serverRoot, '../data/eligibility'),
+  faqSeeds: path.resolve(serverRoot, '../data/faq/questions.json'),
+  vectorStore: path.join(serverRoot, 'data/vectorstore.json'),
+  faq: path.join(serverRoot, 'data/faq.json'),
+};
 
 /** Modules that can serve mock data. */
 export const MOCKABLE_MODULES = [
@@ -53,9 +66,33 @@ const envSchema = z.object({
   PORT: fromEnv(z.coerce.number().int().min(1).max(65535).default(4000)),
   USE_MOCKS: fromEnv(z.string().default('true').transform(parseMockList)),
   CLIENT_ORIGIN: fromEnv(z.string().default('http://localhost:5173')),
+
+  // Gemini. Model ids: https://ai.google.dev/gemini-api/docs/models
   GEMINI_API_KEY: fromEnv(z.string().optional()),
-  GEMINI_CHAT_MODEL: fromEnv(z.string().default('gemini-flash-latest')),
-  GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-001')),
+  GEMINI_CHAT_MODEL: fromEnv(z.string().default('gemini-3.8-flash')),
+  /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
+  GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
+  GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
+  GEMINI_EMBED_DIMENSIONS: fromEnv(z.coerce.number().int().min(128).max(3072).default(768)),
+  /** `default` sends no thinking level and lets the model decide. */
+  GEMINI_THINKING_LEVEL: fromEnv(
+    z.enum(['minimal', 'low', 'medium', 'high', 'default']).default('low'),
+  ),
+  GEMINI_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(300_000).default(30_000)),
+  GEMINI_MAX_RETRIES: fromEnv(z.coerce.number().int().min(0).max(8).default(3)),
+
+  // Retrieval
+  RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),
+  /** Cosine similarity below which a chunk is ignored; no chunk left means "not found". */
+  RAG_MIN_SCORE: fromEnv(z.coerce.number().min(0).max(1).default(0.5)),
+  /** Translate non-English questions to English before embedding them. */
+  RAG_TRANSLATE_QUERY: fromEnv(z.stringbool().default(false)),
+
+  // Answer cache and SMS
+  CACHE_MAX_ENTRIES: fromEnv(z.coerce.number().int().min(0).max(100_000).default(500)),
+  /** 0 = entries never expire (they are still evicted when the cache is full). */
+  CACHE_TTL_MINUTES: fromEnv(z.coerce.number().min(0).default(360)),
+  SMS_MAX_SEGMENTS: fromEnv(z.coerce.number().int().min(1).max(10).default(2)),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -74,11 +111,4 @@ export function isMocked(module: MockableModule): boolean {
 export function describeMocks(): string {
   if (env.USE_MOCKS.size === MOCKABLE_MODULES.length) return 'all modules';
   return env.USE_MOCKS.size === 0 ? 'off' : [...env.USE_MOCKS].join(', ');
-}
-
-if (env.USE_MOCKS.size < MOCKABLE_MODULES.length && !env.GEMINI_API_KEY) {
-  // TODO(step-2): make this a startup error once the real Gemini calls exist.
-  logger.warn(
-    'Some modules run without mocks but GEMINI_API_KEY is empty: their AI calls will fail.',
-  );
 }
