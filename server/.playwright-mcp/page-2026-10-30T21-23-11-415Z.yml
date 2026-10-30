@@ -1,0 +1,45 @@
+- generic [ref=f3e77]:
+  - banner [ref=f3e79]:
+    - generic [ref=f3e82]:
+      - link "Gram Saathi Your scheme helper" [ref=f3e83] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e89]:
+          - generic [ref=f3e90]: Gram Saathi
+          - generic [ref=f3e91]: Your scheme helper
+      - generic [ref=f3e92]:
+        - generic [ref=f3e93]: Language
+        - combobox "Language" [ref=f3e94]:
+          - option "Auto detect" [selected]
+          - option "हिन्दी"
+          - option "मराठी"
+          - option "தமிழ்"
+          - option "English"
+    - generic [ref=f3e240]: Demo data
+  - main [ref=f3e95]:
+    - generic [ref=f3e96]:
+      - generic [ref=f3e97]:
+        - list [ref=f3e270]:
+          - listitem [ref=f3e271]:
+            - paragraph [ref=f3e273]: You said
+        - status [ref=f3e281]:
+          - generic [ref=f3e287]: Finding the answer…
+      - generic [ref=f3e200]:
+        - generic [ref=f3e201]:
+          - button "Hold to speak" [disabled] [ref=f3e293]:
+            - status [ref=f3e294]:
+              - generic [ref=f3e297]: Loading
+          - status [ref=f3e211]: Sending your question…
+        - generic [ref=f3e212]:
+          - generic [ref=f3e213]: Your question
+          - textbox "Your question" [ref=f3e214]:
+            - /placeholder: Type your question…
+          - button "Send" [disabled] [ref=f3e215]
+  - navigation "Main" [ref=f3e219]:
+    - link [ref=f3e220] [cursor=pointer]:
+      - /url: /
+    - link [ref=f3e224] [cursor=pointer]:
+      - /url: /eligibility
+    - link [ref=f3e230] [cursor=pointer]:
+      - /url: /sms
+    - link [ref=f3e234] [cursor=pointer]:
+      - /url: /dialects

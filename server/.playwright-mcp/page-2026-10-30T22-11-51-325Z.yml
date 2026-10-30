@@ -1,0 +1,115 @@
+- generic [ref=f33e3]:
+  - region "About Gram Saathi" [ref=f33e4]:
+    - generic [ref=f33e11]:
+      - paragraph [ref=f33e12]: Gram Saathi
+      - paragraph [ref=f33e13]: ग्राम साथी · Your village helper
+    - heading "Ask in your own boli. Get a clear, trusted answer." [level=1] [ref=f33e14]:
+      - text: Ask in your own boli.
+      - generic [ref=f33e15]: Get a clear, trusted answer.
+    - paragraph [ref=f33e16]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f33e17]:
+      - listitem [ref=f33e18]: हिन्दी
+      - listitem [ref=f33e19]: मराठी
+      - listitem [ref=f33e20]: தமிழ்
+      - listitem [ref=f33e21]: English
+    - list [ref=f33e22]:
+      - listitem [ref=f33e23]:
+        - generic [ref=f33e24]: You ask by voice
+      - listitem [ref=f33e28]:
+        - generic [ref=f33e31]: Official documents are searched
+      - listitem [ref=f33e37]:
+        - generic [ref=f33e40]: Short answer, read aloud + SMS
+    - list [ref=f33e43]:
+      - listitem [ref=f33e44]:
+        - paragraph [ref=f33e49]: Only official answers
+        - paragraph [ref=f33e50]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f33e51]:
+        - paragraph [ref=f33e55]: Works on any phone
+        - paragraph [ref=f33e56]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f33e57]:
+        - paragraph [ref=f33e63]: Eligibility in a minute
+        - paragraph [ref=f33e64]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f33e65]:
+        - paragraph [ref=f33e69]: Fraud shield
+        - paragraph [ref=f33e70]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f33e71]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f33e78]:
+    - banner [ref=f33e80]:
+      - generic [ref=f33e83]:
+        - link "Gram Saathi Your scheme helper" [ref=f33e84] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f33e90]:
+            - generic [ref=f33e91]: Gram Saathi
+            - generic [ref=f33e92]: Your scheme helper
+        - generic [ref=f33e93]:
+          - generic [ref=f33e94]: Language
+          - combobox "Language" [ref=f33e95]:
+            - option "Auto detect" [selected]
+            - option "हिन्दी"
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+      - generic [ref=f33e96]: Demo data
+    - main [ref=f33e99]:
+      - generic [ref=f33e100]:
+        - generic [ref=f33e101]:
+          - heading "SMS & low data" [level=1] [ref=f33e106]
+          - paragraph [ref=f33e107]: Every answer also comes as a short SMS, for keypad phones and weak networks.
+        - generic [ref=f33e108] [cursor=pointer]:
+          - generic [ref=f33e117]:
+            - generic [ref=f33e118]: Low bandwidth mode
+            - generic [ref=f33e119]: Text first, no downloaded audio. Top answers are saved for offline use.
+          - switch "Low bandwidth mode Text first, no downloaded audio. Top answers are saved for offline use." [ref=f33e120]
+        - generic [ref=f33e122]:
+          - heading "SMS preview" [level=2] [ref=f33e123]
+          - figure [ref=f33e124]:
+            - generic [ref=f33e132]:
+              - generic [ref=f33e133]: VM-GSATHI
+              - paragraph [ref=f33e139]: Ask a question first. Its SMS version will appear here.
+            - generic [aria-hidden] [ref=f33e145]:
+              - generic [ref=f33e146]: "1"
+              - generic [ref=f33e148]:
+                - generic [ref=f33e149]: "2"
+                - generic [ref=f33e150]: abc
+              - generic [ref=f33e151]:
+                - generic [ref=f33e152]: "3"
+                - generic [ref=f33e153]: def
+              - generic [ref=f33e154]:
+                - generic [ref=f33e155]: "4"
+                - generic [ref=f33e156]: ghi
+              - generic [ref=f33e157]:
+                - generic [ref=f33e158]: "5"
+                - generic [ref=f33e159]: jkl
+              - generic [ref=f33e160]:
+                - generic [ref=f33e161]: "6"
+                - generic [ref=f33e162]: mno
+              - generic [ref=f33e163]:
+                - generic [ref=f33e164]: "7"
+                - generic [ref=f33e165]: pqrs
+              - generic [ref=f33e166]:
+                - generic [ref=f33e167]: "8"
+                - generic [ref=f33e168]: tuv
+              - generic [ref=f33e169]:
+                - generic [ref=f33e170]: "9"
+                - generic [ref=f33e171]: wxyz
+              - generic [ref=f33e172]: "*"
+              - generic [ref=f33e174]:
+                - generic [ref=f33e175]: "0"
+                - generic [ref=f33e176]: +
+              - generic [ref=f33e177]: "#"
+        - generic [ref=f33e179]:
+          - generic [ref=f33e180]: Turn any text into an SMS
+          - textbox "Turn any text into an SMS" [ref=f33e181]:
+            - /placeholder: Paste or type text here
+          - button "Make SMS" [disabled] [ref=f33e183]
+      - link "Contribute a dialect recording" [ref=f33e188] [cursor=pointer]:
+        - /url: /contribute
+    - navigation "Main" [ref=f33e189]:
+      - link [ref=f33e190] [cursor=pointer]:
+        - /url: /
+      - link [ref=f33e194] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f33e200] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f33e204] [cursor=pointer]:
+        - /url: /dialects

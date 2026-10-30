@@ -1,0 +1,98 @@
+- generic [ref=f8e3]:
+  - region "About Gram Saathi" [ref=f8e4]:
+    - generic [ref=f8e11]:
+      - paragraph [ref=f8e12]: Gram Saathi
+      - paragraph [ref=f8e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f8e14]
+    - paragraph [ref=f8e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f8e16]:
+      - listitem [ref=f8e17]: हिन्दी
+      - listitem [ref=f8e18]: मराठी
+      - listitem [ref=f8e19]: தமிழ்
+      - listitem [ref=f8e20]: English
+    - list [ref=f8e21]:
+      - listitem [ref=f8e22]:
+        - generic [ref=f8e23]: You ask by voice
+      - listitem [ref=f8e27]:
+        - generic [ref=f8e30]: Official documents are searched
+      - listitem [ref=f8e36]:
+        - generic [ref=f8e39]: Short answer, read aloud + SMS
+    - list [ref=f8e42]:
+      - listitem [ref=f8e43]:
+        - paragraph [ref=f8e48]: Only official answers
+        - paragraph [ref=f8e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f8e50]:
+        - paragraph [ref=f8e54]: Works on any phone
+        - paragraph [ref=f8e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f8e56]:
+        - paragraph [ref=f8e62]: Eligibility in a minute
+        - paragraph [ref=f8e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f8e64]:
+        - paragraph [ref=f8e68]: Fraud shield
+        - paragraph [ref=f8e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f8e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f8e77]:
+    - banner [ref=f8e79]:
+      - generic [ref=f8e82]:
+        - link "Gram Saathi योजनाओं का साथी" [ref=f8e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f8e89]:
+            - generic [ref=f8e90]: Gram Saathi
+            - generic [ref=f8e91]: योजनाओं का साथी
+        - generic [ref=f8e92]:
+          - generic [ref=f8e93]: भाषा
+          - combobox "भाषा" [ref=f8e94]:
+            - option "अपने आप पहचानें"
+            - option "हिन्दी" [selected]
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+    - main [ref=f8e95]:
+      - generic [ref=f8e96]:
+        - generic [ref=f8e98]:
+          - generic [ref=f8e99]:
+            - paragraph [ref=f8e101]: नमस्ते 🙏
+            - heading "किसी भी सरकारी योजना के बारे में पूछें" [level=1] [ref=f8e102]
+            - paragraph [ref=f8e103]: हरा बटन दबाकर बोलें, या नीचे लिखें।
+            - radiogroup "भाषा" [ref=f8e104]:
+              - radio "हिन्दी" [checked] [ref=f8e105]
+              - radio "मराठी" [ref=f8e106]
+              - radio "தமிழ்" [ref=f8e107]
+              - radio "English" [ref=f8e108]
+            - link "हमारी बोलियाँ" [ref=f8e109] [cursor=pointer]:
+              - /url: /dialects
+          - generic [ref=f8e114]:
+            - heading "लोकप्रिय योजनाएं" [level=2] [ref=f8e115]
+            - generic [ref=f8e116]:
+              - button "पीएम किसान में कितना पैसा मिलता है?" [ref=f8e117]
+              - button "आयुष्मान कार्ड कैसे बनवाएं?" [ref=f8e129]
+              - button "अटल पेंशन योजना में कितनी पेंशन मिलती है?" [ref=f8e135]
+          - generic [ref=f8e141]:
+            - heading "यह कैसे काम करता है" [level=2] [ref=f8e142]
+            - list [ref=f8e143]:
+              - listitem [ref=f8e144]:
+                - generic [ref=f8e145]: अपना सवाल बोलें
+              - listitem [ref=f8e153]:
+                - generic [ref=f8e154]: हम आधिकारिक दस्तावेज़ देखते हैं
+              - listitem [ref=f8e164]:
+                - generic [ref=f8e165]: छोटा जवाब + SMS
+        - generic [ref=f8e170]:
+          - generic [ref=f8e171]:
+            - button "दबाकर बोलें" [ref=f8e176]
+            - status [ref=f8e181]: दबाकर बोलें
+          - generic [ref=f8e182]:
+            - generic [ref=f8e183]: आपका सवाल
+            - textbox "आपका सवाल" [ref=f8e184]:
+              - /placeholder: अपना सवाल लिखें…
+            - button "भेजें" [disabled] [ref=f8e185]
+      - link "Contribute a dialect recording" [ref=f8e190] [cursor=pointer]:
+        - /url: /contribute
+    - navigation "मुख्य" [ref=f8e191]:
+      - link [ref=f8e192] [cursor=pointer]:
+        - /url: /
+      - link [ref=f8e196] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f8e202] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f8e206] [cursor=pointer]:
+        - /url: /dialects

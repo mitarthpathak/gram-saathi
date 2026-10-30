@@ -1,0 +1,84 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e9]:
+      - link "Gram Saathi योजनाओं का साथी" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e16]:
+          - generic [ref=e17]: Gram Saathi
+          - generic [ref=e18]: योजनाओं का साथी
+      - generic [ref=e19]:
+        - generic [ref=e20]: भाषा
+        - combobox "भाषा" [ref=e21]:
+          - option "अपने आप पहचानें"
+          - option "हिन्दी" [selected]
+          - option "मराठी"
+          - option "தமிழ்"
+          - option "English"
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - paragraph [ref=e28]: नमस्ते 🙏
+          - heading "किसी भी सरकारी योजना के बारे में पूछें" [level=1] [ref=e29]
+          - paragraph [ref=e30]: हरा बटन दबाकर बोलें, या नीचे लिखें।
+          - radiogroup "भाषा" [ref=e31]:
+            - radio "हिन्दी" [checked] [ref=e32]
+            - radio "मराठी" [ref=e33]
+            - radio "தமிழ்" [ref=e34]
+            - radio "English" [ref=e35]
+          - link "हमारी बोलियाँ" [ref=e36] [cursor=pointer]:
+            - /url: /dialects
+        - generic [ref=e41]:
+          - heading "लोकप्रिय योजनाएं" [level=2] [ref=e42]
+          - generic [ref=e43]:
+            - button "पीएम-किसान किसान" [ref=e44]:
+              - generic [ref=e55]:
+                - generic [ref=e56]: पीएम-किसान
+                - generic [ref=e57]: किसान
+            - button "आयुष्मान कार्ड स्वास्थ्य" [ref=e58]:
+              - generic [ref=e63]:
+                - generic [ref=e64]: आयुष्मान कार्ड
+                - generic [ref=e65]: स्वास्थ्य
+            - button "अटल पेंशन पेंशन" [ref=e66]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: अटल पेंशन
+                - generic [ref=e73]: पेंशन
+            - button "उज्ज्वला गैस रसोई गैस" [ref=e74]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: उज्ज्वला गैस
+                - generic [ref=e80]: रसोई गैस
+            - button "आवास योजना घर" [ref=e81]:
+              - generic [ref=e86]:
+                - generic [ref=e87]: आवास योजना
+                - generic [ref=e88]: घर
+            - button "मनरेगा काम रोज़गार" [ref=e89]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: मनरेगा काम
+                - generic [ref=e97]: रोज़गार
+        - generic [ref=e98]:
+          - heading "यह कैसे काम करता है" [level=2] [ref=e99]
+          - list [ref=e100]:
+            - listitem [ref=e101]:
+              - generic [ref=e102]: अपना सवाल बोलें
+            - listitem [ref=e110]:
+              - generic [ref=e111]: हम आधिकारिक दस्तावेज़ देखते हैं
+            - listitem [ref=e121]:
+              - generic [ref=e122]: छोटा जवाब + SMS
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - button "दबाकर बोलें" [ref=e133]
+          - status [ref=e138]: दबाकर बोलें
+        - generic [ref=e139]:
+          - generic [ref=e140]: आपका सवाल
+          - textbox "आपका सवाल" [ref=e141]:
+            - /placeholder: अपना सवाल लिखें…
+          - button "भेजें" [disabled] [ref=e142]
+  - navigation "मुख्य" [ref=e146]:
+    - link [ref=e147] [cursor=pointer]:
+      - /url: /
+    - link [ref=e151] [cursor=pointer]:
+      - /url: /eligibility
+    - link [ref=e157] [cursor=pointer]:
+      - /url: /sms
+    - link [ref=e161] [cursor=pointer]:
+      - /url: /dialects
