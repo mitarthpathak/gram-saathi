@@ -1,0 +1,13 @@
+{
+  // Shared compiler options. Each workspace extends this and adds its own module/target settings.
+  // Strict typing is on, but unused locals/params are ESLint *warnings* (not compile errors)
+  // so half-finished code still builds during the hackathon.
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

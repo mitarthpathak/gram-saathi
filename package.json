@@ -1,0 +1,26 @@
+{
+  "name": "gram-saathi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-first, multilingual assistant that answers questions about government schemes for rural citizens.",
+  "type": "module",
+  "workspaces": [],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

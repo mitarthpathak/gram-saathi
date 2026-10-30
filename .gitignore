@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# env files hold secrets: only the template is committed
+.env
+.env.*
+!.env.example
+
+# logs, OS and editor noise
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
