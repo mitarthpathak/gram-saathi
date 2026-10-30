@@ -1,16 +1,5 @@
-import type { LanguageCode } from '@gram-saathi/shared';
 import { z } from 'zod';
-
-// shared/ is types-only, so the runtime list of language codes lives here. Typing it as a
-// Record<LanguageCode, ...> makes the build fail if the contract gains a code we forgot.
-const LANGUAGE_NAMES: Record<LanguageCode, string> = {
-  hi: 'Hindi',
-  mr: 'Marathi',
-  ta: 'Tamil',
-  en: 'English',
-};
-
-export const LANGUAGE_CODES = Object.keys(LANGUAGE_NAMES) as LanguageCode[];
+import { LANGUAGE_CODES } from './languages';
 
 export const languageCodeSchema = z.enum(LANGUAGE_CODES);
 

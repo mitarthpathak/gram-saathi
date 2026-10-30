@@ -1,6 +1,6 @@
 import type { LanguageCode, QueryResponse, RetrievedChunk } from '@gram-saathi/shared';
-import { isMocked } from '../../config/env';
-import { TtlCache } from '../../lib/cache';
+import { env, isMocked } from '../../config/env';
+import { LruCache } from '../../lib/cache';
 import { NotImplementedError } from '../../lib/httpError';
 import { mockDetectLanguage, mockGenerateAnswer } from '../../mocks';
 import { searchSchemes } from '../rag/service';
@@ -22,7 +22,10 @@ interface GeneratedAnswer {
   notFound: boolean;
 }
 
-const answerCache = new TtlCache<QueryResponse>(30 * 60 * 1000);
+const answerCache = new LruCache<QueryResponse>({
+  maxEntries: env.CACHE_MAX_ENTRIES,
+  ttlMs: env.CACHE_TTL_MINUTES * 60_000,
+});
 
 /**
  * The answer pipeline shared by text and voice queries:
