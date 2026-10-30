@@ -21,14 +21,17 @@ export type DialectExemplarSet = ReadonlyMap<string, readonly DialectExemplar[]>
 let cached: DialectExemplarSet | undefined;
 
 /** Parses JSONL without accepting comments or fabricated placeholders as data rows. */
-export function loadDialectExemplars(directory: string = PATHS.dialectExemplars): Map<string, DialectExemplar[]> {
-  const labels = [
-    ...getDialectRegistry().map(({ id }) => id),
-    ...STANDARD_DIALECT_LABELS,
-  ];
+export function loadDialectExemplars(
+  directory: string = PATHS.dialectExemplars,
+): Map<string, DialectExemplar[]> {
+  const labels = [...getDialectRegistry().map(({ id }) => id), ...STANDARD_DIALECT_LABELS];
   const allowed = new Set(labels);
-  const files = existsSync(directory) ? readdirSync(directory).filter((file) => file.endsWith('.jsonl')) : [];
-  const unknown = files.map((file) => path.basename(file, '.jsonl')).filter((id) => !allowed.has(id));
+  const files = existsSync(directory)
+    ? readdirSync(directory).filter((file) => file.endsWith('.jsonl'))
+    : [];
+  const unknown = files
+    .map((file) => path.basename(file, '.jsonl'))
+    .filter((id) => !allowed.has(id));
   if (unknown.length) throw new Error(`Unknown dialect exemplar file(s): ${unknown.join(', ')}`);
 
   const result = new Map<string, DialectExemplar[]>();
@@ -43,7 +46,9 @@ export function loadDialectExemplars(directory: string = PATHS.dialectExemplars)
         try {
           rows.push(dialectExemplarSchema.parse(JSON.parse(line)));
         } catch (error) {
-          throw new Error(`Invalid exemplar ${file}:${index + 1}: ${errorMessage(error)}`);
+          throw new Error(`Invalid exemplar ${file}:${index + 1}: ${errorMessage(error)}`, {
+            cause: error,
+          });
         }
       }
     }
@@ -112,10 +117,9 @@ export function renderPromptExemplars(
         formatExample(entry.id, left),
         formatExample(otherId, right),
       ];
-      const cost = estimateTokens(block.join('\n'));
+      const cost = estimatePromptTokenUnits(block.join('\n'));
       if (usedTokens + cost > tokenBudget) {
-        decrement(usedByLabel, entry.id);
-        decrement(usedByLabel, otherId);
+        // Keep this pair out of standalone rendering too; never separate a hard-negative pair.
         continue;
       }
       usedTokens += cost;
@@ -132,7 +136,7 @@ export function renderPromptExemplars(
       const example = selected.get(label)?.[round];
       if (!example || (usedByLabel.get(label) ?? 0) > round) continue;
       const block = formatExample(label, example);
-      const cost = estimateTokens(block);
+      const cost = estimatePromptTokenUnits(block);
       if (usedTokens + cost > tokenBudget) continue;
       usedTokens += cost;
       usedByLabel.set(label, round + 1);
@@ -165,14 +169,14 @@ function formatExample(label: string, row: DialectExemplar): string {
   return `- ${label} [${row.script}]: “${row.text}” → Hindi meaning: “${row.hindiMeaning}”`;
 }
 
-/** Conservative budget units: half of UTF-8 bytes (Indic scripts often tokenize above char count). */
-function estimateTokens(value: string): number {
-  return Math.ceil(Buffer.byteLength(value, 'utf8') / 2);
+/** UTF-8 byte count is a conservative upper bound for tokenizer output on valid text. */
+export function estimatePromptTokenUnits(value: string): number {
+  return Buffer.byteLength(value, 'utf8');
 }
 
 function compareExemplars(a: DialectExemplar, b: DialectExemplar): number {
   const key = (row: DialectExemplar) =>
-    createHash('sha256').update(`${row.speakerAnonId}\n${row.text}`).digest('hex');
+    createHash('sha256').update(JSON.stringify(row)).digest('hex');
   return key(a).localeCompare(key(b));
 }
 

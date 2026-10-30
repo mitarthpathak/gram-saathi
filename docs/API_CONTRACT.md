@@ -13,7 +13,7 @@ The single source of truth for how the client and the server talk. The TypeScrip
 - **Base URL:** `/api` on the server (default `http://localhost:4000`). In dev the client calls
   `/api` on the Vite server, which proxies to Express.
 - **Format:** JSON request and response bodies (`Content-Type: application/json`), except
-  `POST /api/voice/query`, which is `multipart/form-data`.
+  `POST /api/voice/query` and `POST /api/dialect/transcribe`, which use `multipart/form-data`.
 - **Languages:** `LanguageCode` = `"hi" | "mr" | "ta" | "en"`. Requests accept only these codes.
   `detectedLanguage` in responses is always one of these answer languages. Regional varieties are
   reported separately in the optional dialect fields.
@@ -37,29 +37,29 @@ Every non-2xx response has the same body (`ApiErrorBody`):
 }
 ```
 
-| Status | `code`                                  | When                                                                    |
-| ------ | --------------------------------------- | ----------------------------------------------------------------------- |
-| 400    | `VALIDATION_ERROR`                      | Body or query does not match the schema (`details`)                     |
-| 400    | `INVALID_JSON`                          | Malformed JSON body                                                     |
-| 400    | `AUDIO_REQUIRED`                        | Voice query without a non-empty `audio` file                            |
-| 400    | `INVALID_ANSWER`                        | Eligibility answer of the wrong type, out of range or an unknown option |
-| 404    | `NOT_FOUND`                             | Unknown `/api` route                                                    |
-| 404    | `SESSION_NOT_FOUND`                     | Eligibility answer without an active wizard session                     |
-| 409    | `QUESTION_MISMATCH`                     | Answer to a question other than the current one                         |
-| 413    | `LIMIT_FILE_SIZE` / `PAYLOAD_TOO_LARGE` | Audio over 10 MB / JSON body over 100 kB                                |
-| 415    | `UNSUPPORTED_MEDIA_TYPE`                | Uploaded file is not `audio/*`                                          |
-| 422    | `NO_SPEECH_DETECTED`                    | Voice query: no speech recognised in the recording                      |
-| 422    | `UNCLEAR_ANSWER`                        | Eligibility: a free-form answer could not be understood                 |
-| 429    | `RATE_LIMITED`                          | Too many requests from this IP (`Retry-After` header)                   |
-| 429    | `AI_RATE_LIMITED`                       | Gemini quota or rate limit, still hit after retries                     |
-| 500    | `INTERNAL_ERROR`                        | Bug on the server                                                       |
-| 501    | `NOT_IMPLEMENTED`                       | Reserved for features not built yet (none since v2)                     |
-| 502    | `AI_ERROR`                              | Gemini rejected the request or returned unusable output                 |
-| 503    | `AI_NOT_CONFIGURED`                     | `GEMINI_API_KEY` missing or rejected                                    |
-| 503    | `AI_UNAVAILABLE`                        | Gemini unreachable or overloaded, after retries                         |
-| 503    | `KNOWLEDGE_BASE_MISSING`                | No knowledge base: run `npm run ingest -w server`                       |
-| 503    | `FAQ_NOT_READY`                         | No pre-generated FAQ: run `npm run prewarm -w server`                   |
-| 504    | `AI_TIMEOUT`                            | Gemini did not answer in time                                           |
+| Status | `code`                                  | When                                                                      |
+| ------ | --------------------------------------- | ------------------------------------------------------------------------- |
+| 400    | `VALIDATION_ERROR`                      | Body or query does not match the schema (`details`)                       |
+| 400    | `INVALID_JSON`                          | Malformed JSON body                                                       |
+| 400    | `AUDIO_REQUIRED`                        | Voice query or contributor transcription without a non-empty `audio` file |
+| 400    | `INVALID_ANSWER`                        | Eligibility answer of the wrong type, out of range or an unknown option   |
+| 404    | `NOT_FOUND`                             | Unknown `/api` route                                                      |
+| 404    | `SESSION_NOT_FOUND`                     | Eligibility answer without an active wizard session                       |
+| 409    | `QUESTION_MISMATCH`                     | Answer to a question other than the current one                           |
+| 413    | `LIMIT_FILE_SIZE` / `PAYLOAD_TOO_LARGE` | Audio over 10 MB / JSON body over 100 kB                                  |
+| 415    | `UNSUPPORTED_MEDIA_TYPE`                | Uploaded file is not `audio/*`                                            |
+| 422    | `NO_SPEECH_DETECTED`                    | Voice query or contributor transcription: no speech recognised            |
+| 422    | `UNCLEAR_ANSWER`                        | Eligibility: a free-form answer could not be understood                   |
+| 429    | `RATE_LIMITED`                          | Too many requests from this IP (`Retry-After` header)                     |
+| 429    | `AI_RATE_LIMITED`                       | Gemini quota or rate limit, still hit after retries                       |
+| 500    | `INTERNAL_ERROR`                        | Bug on the server                                                         |
+| 501    | `NOT_IMPLEMENTED`                       | Reserved for features not built yet (none since v2)                       |
+| 502    | `AI_ERROR`                              | Gemini rejected the request or returned unusable output                   |
+| 503    | `AI_NOT_CONFIGURED`                     | `GEMINI_API_KEY` missing or rejected                                      |
+| 503    | `AI_UNAVAILABLE`                        | Gemini unreachable or overloaded, after retries                           |
+| 503    | `KNOWLEDGE_BASE_MISSING`                | No knowledge base: run `npm run ingest -w server`                         |
+| 503    | `FAQ_NOT_READY`                         | No pre-generated FAQ: run `npm run prewarm -w server`                     |
+| 504    | `AI_TIMEOUT`                            | Gemini did not answer in time                                             |
 
 The `message` is for developers (English). The UI shows its own translated text. Suggested
 handling: `NO_SPEECH_DETECTED` and `UNCLEAR_ANSWER` → ask the user to say it again; `AI_*` → "please
@@ -72,6 +72,7 @@ try again" (also `RATE_LIMITED`); `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and 
 | ------ | ------------------------- | ---------------------------------------------- | -------------------------------------------------------- |
 | GET    | `/api/health`             | Liveness and mock flag                         | `HealthResponse`                                         |
 | GET    | `/api/dialects`           | Regional varieties available for confirmation  | `DialectsResponse`                                       |
+| POST   | `/api/dialect/transcribe` | Contributor recording → verbatim transcript    | multipart → `DialectTranscribeResponse`                  |
 | POST   | `/api/voice/query`        | Spoken question → answer                       | `VoiceQueryFields` → `QueryResponse`                     |
 | POST   | `/api/chat/query`         | Typed question → answer                        | `ChatQueryRequest` → `QueryResponse`                     |
 | POST   | `/api/eligibility/start`  | Start the eligibility wizard                   | `EligibilityStartRequest` → `EligibilityStartResponse`   |
@@ -230,6 +231,27 @@ transcripts preserve the speaker's dialect words and spellings; they are not tra
 normalised to standard Hindi. Mock dialect values are rotating wire examples, not measured
 classifications. Confidence reflects agreement across the configured classifier views; it is not a
 calibrated probability or measured real-audio accuracy.
+
+### `POST /api/dialect/transcribe` (contributor recording)
+
+This additive endpoint uses the same 10 MB `audio/*` multipart upload limits, media-type checks,
+verbatim transcription prompt, mock support, and audio error codes as `POST /api/voice/query`. It
+does not require a session or create an answer. `language` may be supplied as an optional answer
+language hint; it never changes the speaker's words. Empty audio returns `400 AUDIO_REQUIRED`,
+unsupported media returns `415 UNSUPPORTED_MEDIA_TYPE`, oversized audio returns `413 LIMIT_FILE_SIZE`,
+and no recognized speech returns `422 NO_SPEECH_DETECTED`.
+
+```bash
+curl -F "audio=@sample.webm;type=audio/webm" http://localhost:4000/api/dialect/transcribe
+```
+
+```json
+{ "transcript": "<verbatim transcript in the speaker's script>", "script": "devanagari" }
+```
+
+`script` is one of `devanagari`, `roman`, `mixed`, or `other`. The transcript retains the words,
+spellings, and script the speaker used; the endpoint does not translate or normalize it. Mock mode
+returns a representative transcript without calling Gemini.
 
 ---
 

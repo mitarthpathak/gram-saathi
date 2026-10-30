@@ -98,8 +98,11 @@ export async function transcribe(input: TranscribeInput): Promise<Transcription>
 export function contributorScript(script: string): 'devanagari' | 'roman' | 'mixed' | 'other' {
   const value = script.trim().toLowerCase();
   if (value.includes('mixed')) return 'mixed';
-  if (value.includes('devanagari') || value.includes('nagari')) return 'devanagari';
-  if (value.includes('latin') || value.includes('roman')) return 'roman';
+  const devanagari = value.includes('devanagari') || value.includes('nagari');
+  const roman = value.includes('latin') || value.includes('roman');
+  if (devanagari && roman) return 'mixed';
+  if (devanagari) return 'devanagari';
+  if (roman) return 'roman';
   return 'other';
 }
 

@@ -37,6 +37,15 @@ export interface DialectsResponse {
   items: DialectInfo[];
 }
 
+/** Script classification for verbatim contributor transcriptions. */
+export type TranscriptScript = 'devanagari' | 'roman' | 'mixed' | 'other';
+
+/** POST /api/dialect/transcribe */
+export interface DialectTranscribeResponse {
+  transcript: string;
+  script: TranscriptScript;
+}
+
 /** Citation for the scheme-document chunk an answer is grounded on. */
 export interface Source {
   /** Stable id: the file name in data/schemes without `.md`, e.g. "pm-kisan". */

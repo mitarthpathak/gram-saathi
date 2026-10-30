@@ -124,7 +124,7 @@ describe('generateJson', () => {
   });
 
   it('does not include malformed model output in error messages', async () => {
-    const transcript = 'म्हारो निजी सवाल';
+    const transcript = 'private transcript fixture';
     setGeminiBackend(fakeGemini(() => transcript));
     try {
       await generateJson({ label: 't', input: 'q', schema });
