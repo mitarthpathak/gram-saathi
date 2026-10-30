@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['**/dist/', '**/node_modules/', '**/coverage/']),
+  globalIgnores(['**/dist/', '**/dev-dist/', '**/node_modules/', '**/coverage/']),
 
   // Base rules for every JS/TS file in the repo.
   {

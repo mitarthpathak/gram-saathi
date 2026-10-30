@@ -18,6 +18,7 @@ import {
   type MockAnswers,
 } from './eligibility';
 import { mockTopFaq } from './faq';
+import { mockDialectFields, mockDialectInfo } from './dialects';
 import { mockDetectLanguage, mockGenerateAnswer, mockSearchSchemes, mockTranscribe } from './query';
 
 // Same text as server/src/modules/chat/fraudWarning.ts.
@@ -38,6 +39,8 @@ function answer(
   hint: LanguageCode | undefined,
   sessionId: string,
   transcript?: string,
+  dialectHint?: string,
+  signal?: AbortSignal,
 ) {
   const language = mockDetectLanguage(text, hint);
   const cacheKey = `${language}:${text.toLowerCase().trim()}`;
@@ -65,8 +68,56 @@ function answer(
     audioUrl: null,
     usedCache,
     notFound: generated.notFound,
+    ...dialectForQuery(dialectHint),
   };
-  return delay(response);
+  return delayWithSignal(response, signal);
+}
+
+function dialectForQuery(dialectHint?: string): Pick<QueryResponse, 'dialect' | 'dialectCandidates'> {
+  if (!config.useMocks || !import.meta.env.DEV) return mockDialectFields(dialectHint);
+  const forced = new URLSearchParams(window.location.search).get('mockDialect');
+  if (!forced) return mockDialectFields(dialectHint);
+  if (forced === 'high') return mockDialectFields('wagdi');
+  if (forced === 'medium') {
+    const high = mockDialectFields('wagdi').dialect;
+    const registryOptions = mockDialectInfo()
+      .filter(({ id }) => id !== high?.id)
+      .slice(0, 2)
+      .map(({ id, name, nativeName }) => ({ id, name, nativeName }));
+    const options = [...(high ? [{ id: high.id, name: high.name, nativeName: high.nativeName }] : []), ...registryOptions];
+    return {
+      dialect: high ? { ...high, confidence: 'medium' } : null,
+      dialectCandidates: options,
+    };
+  }
+  if (forced === 'abstain') {
+    return {
+      dialect: null,
+      dialectCandidates: mockDialectInfo().slice(0, 3).map(({ id, name, nativeName }) => ({
+        id,
+        name,
+        nativeName,
+      })),
+    };
+  }
+  if (forced === 'none') return { dialect: null, dialectCandidates: [] };
+  return mockDialectFields(dialectHint);
+}
+
+function delayWithSignal<T>(value: T, signal?: AbortSignal): Promise<T> {
+  if (!signal) return delay(value);
+  if (signal.aborted) return Promise.reject(new DOMException('Aborted', 'AbortError'));
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve(value);
+    }, config.mockLatencyMs);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
 }
 
 interface WizardSession {
@@ -87,12 +138,18 @@ function questionAt(step: number, language: LanguageCode): EligibilityStartRespo
 export const mockApi: Api = {
   health: () => delay({ status: 'ok', mocks: true }),
 
-  chatQuery: ({ text, language, sessionId }) => answer(text, language, sessionId),
+  chatQuery: ({ text, language, sessionId, dialectHint }) =>
+    answer(text, language, sessionId, undefined, dialectHint),
 
-  voiceQuery: ({ language, sessionId }) => {
+  voiceQuery: ({ language, sessionId, dialectHint, signal }) => {
     const transcript = mockTranscribe(language);
-    return answer(transcript, language, sessionId, transcript);
+    return answer(transcript, language, sessionId, transcript, dialectHint, signal);
   },
+
+  getDialects: () => delay({ items: mockDialectInfo() }),
+
+  dialectTranscribe: ({ language }) =>
+    delay({ transcript: mockTranscribe(language ?? 'hi'), script: 'devanagari' }),
 
   eligibilityStart: ({ sessionId, language }) => {
     wizards.set(sessionId, { language, step: 0, answers: {} });

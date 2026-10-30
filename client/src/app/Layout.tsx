@@ -1,4 +1,4 @@
-import { ClipboardCheck, MessageCircle, Smartphone } from 'lucide-react';
+import { ClipboardCheck, Languages, MessageCircle, Smartphone } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
@@ -10,6 +10,7 @@ import { config } from '@/lib/config';
 import { useStrings } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 import { Showcase } from './Showcase';
+import { useDemo } from '@/features/demo/useDemo';
 import { appStrings } from './strings';
 import { useServerStatus } from './useServerStatus';
 
@@ -17,6 +18,7 @@ const TABS = [
   { to: '/', label: 'navAsk', Icon: MessageCircle },
   { to: '/eligibility', label: 'navEligibility', Icon: ClipboardCheck },
   { to: '/sms', label: 'navSms', Icon: Smartphone },
+  { to: '/dialects', label: 'navDialects', Icon: Languages },
 ] as const;
 
 /**
@@ -47,6 +49,11 @@ export function Layout() {
           <AppHeader />
           <main ref={mainRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <Outlet />
+            <footer className="px-4 text-center">
+              <Link to="/contribute" className="inline-flex min-h-12 items-center rounded-xl px-3 text-sm font-semibold text-brand-800 underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-brand-600">
+                Contribute a dialect recording
+              </Link>
+            </footer>
           </main>
           <BottomNav />
           <ToastViewport />
@@ -60,11 +67,12 @@ function AppHeader() {
   const t = useStrings(appStrings);
   const { lowBandwidth } = useSettings();
   const server = useServerStatus();
+  const demo = useDemo();
   const showStatus = server.mocks || server.offline || lowBandwidth;
 
   return (
-    <header className="relative z-10 shrink-0 overflow-hidden bg-linear-to-br from-brand-800 via-brand-700 to-brand-600 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 text-white lg:pt-12">
-      <div aria-hidden className="absolute inset-0 bg-kolam opacity-70" />
+    <header className="relative z-10 shrink-0 overflow-hidden bg-brand-950 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 text-white lg:pt-12">
+      <div aria-hidden className="absolute inset-0 bg-kolam opacity-20" />
       <div
         aria-hidden
         className="absolute -top-16 -right-10 size-44 rounded-full bg-marigold-400/25 blur-2xl"
@@ -106,6 +114,16 @@ function AppHeader() {
           )}
         </div>
       )}
+      {demo.enabled && (
+        <button type="button" onClick={demo.toggle} className="relative mt-2 inline-flex min-h-12 items-center rounded-full bg-marigold-300 px-4 text-sm font-extrabold text-brand-950 focus-visible:outline-3 focus-visible:outline-white">
+          Demo ready · D to hide
+        </button>
+      )}
+      {server.offline && (
+        <p role="status" aria-live="polite" className="relative mt-3 rounded-2xl bg-marigold-50 px-3 py-2 text-base font-bold text-marigold-950 ring-1 ring-marigold-200">
+          {t.offlineMessage}
+        </p>
+      )}
     </header>
   );
 }
@@ -115,7 +133,7 @@ function BottomNav() {
   return (
     <nav
       aria-label={t.navLabel}
-      className="relative z-10 grid shrink-0 grid-cols-3 border-t border-brand-950/5 bg-white/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
+      className="relative z-10 grid shrink-0 grid-cols-4 border-t border-brand-950/5 bg-white/95 px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
     >
       {TABS.map(({ to, label, Icon }) => (
         <NavLink
@@ -148,14 +166,14 @@ function BottomNav() {
   );
 }
 
-/** Dark green stage with soft glows behind the desktop showcase. */
+/** Warm paper stage with a quiet local pattern behind the desktop showcase. */
 function StageBackdrop() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,var(--color-brand-700),transparent_55%),radial-gradient(ellipse_at_bottom_right,var(--color-brand-800),transparent_50%)]" />
-      <div className="absolute inset-0 bg-kolam opacity-30" />
-      <div className="absolute top-1/4 -left-24 size-96 animate-float rounded-full bg-brand-500/25 blur-3xl" />
-      <div className="absolute right-[6%] -bottom-24 size-[28rem] rounded-full bg-marigold-500/15 blur-3xl" />
+    <div aria-hidden className="pointer-events-none absolute inset-0 hidden bg-cream-100 lg:block">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,#fffdf8,transparent_62%),radial-gradient(ellipse_at_bottom_right,#f4ecdb,transparent_55%)]" />
+      <div className="absolute inset-0 bg-kolam opacity-10" />
+      <div className="absolute top-[18%] left-[8%] size-56 rounded-full bg-marigold-200/25 blur-3xl" />
+      <div className="absolute right-[8%] bottom-[8%] size-64 rounded-full bg-brand-200/25 blur-3xl" />
     </div>
   );
 }

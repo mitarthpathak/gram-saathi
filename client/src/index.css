@@ -1,23 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
   /* System fonts only: phones already ship Devanagari and Tamil glyphs, so nothing to download. */
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari',
     'Noto Sans Tamil', 'Nirmala UI', sans-serif;
 
-  /* Brand: deep field green (trust, farming). Change these values to re-theme the whole app. */
-  --color-brand-50: #eefbf3;
-  --color-brand-100: #d5f4e1;
-  --color-brand-200: #ade8c6;
-  --color-brand-300: #77d4a3;
-  --color-brand-400: #3fb87d;
-  --color-brand-500: #1d9c63;
-  --color-brand-600: #117d4f;
-  --color-brand-700: #0e6442;
-  --color-brand-800: #0d5037;
-  --color-brand-900: #0b412e;
-  --color-brand-950: #05251a;
+  /* Brand: deep indigo ink for trust and focus. */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #6662d8;
+  --color-brand-500: #5b5bd6;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-950: #1e1b4b;
 
   /* Accent: marigold, for highlights and the recording state. */
   --color-marigold-50: #fff9eb;
@@ -36,8 +39,8 @@
   --color-cream-100: #fbf6ec;
   --color-cream-200: #f4ecdb;
 
-  --shadow-soft: 0 10px 30px -12px rgb(13 80 55 / 0.28);
-  --shadow-lift: 0 18px 40px -14px rgb(13 80 55 / 0.45);
+  --shadow-soft: 0 10px 30px -12px rgb(30 27 75 / 0.16);
+  --shadow-lift: 0 18px 40px -14px rgb(30 27 75 / 0.24);
 
   --animate-breathe: breathe 3.2s ease-in-out infinite;
   --animate-ripple: ripple 1.8s cubic-bezier(0, 0.55, 0.45, 1) infinite;
@@ -49,12 +52,12 @@
     0%,
     100% {
       box-shadow:
-        0 0 0 0 rgb(29 156 99 / 0.45),
+        0 0 0 0 rgb(79 70 229 / 0.32),
         var(--shadow-lift);
     }
     50% {
       box-shadow:
-        0 0 0 16px rgb(29 156 99 / 0),
+        0 0 0 16px rgb(79 70 229 / 0),
         var(--shadow-lift);
     }
   }
@@ -114,14 +117,22 @@
 
   body {
     @apply bg-cream-100 text-slate-900 antialiased;
+    font-size: 18px;
   }
 
-  /* The desktop showcase sits on a dark green stage. */
+  /* The desktop showcase uses the same warm paper as the phone UI. */
   @media (width >= 64rem) {
-    body {
-      @apply bg-brand-950;
-    }
+    body { @apply bg-cream-100; }
   }
+}
+
+@keyframes dialect-reveal {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dialect-reveal {
+  animation: dialect-reveal 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

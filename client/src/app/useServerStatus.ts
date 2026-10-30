@@ -13,7 +13,10 @@ const MAX_RETRIES = 5;
 
 /** Pings /api/health on start (retrying while the API boots) and whenever the browser reconnects. */
 export function useServerStatus(): ServerStatus {
-  const [status, setStatus] = useState<ServerStatus>({ mocks: false, offline: false });
+  const [status, setStatus] = useState<ServerStatus>({
+    mocks: false,
+    offline: typeof navigator !== 'undefined' && !navigator.onLine,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -37,11 +40,14 @@ export function useServerStatus(): ServerStatus {
 
     check(0);
     const onOnline = () => check(MAX_RETRIES);
+    const onOffline = () => setStatus((current) => ({ ...current, offline: true }));
     window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
     return () => {
       cancelled = true;
       window.clearTimeout(retryTimer);
       window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
     };
   }, []);
 

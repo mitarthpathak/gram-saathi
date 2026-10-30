@@ -3,15 +3,19 @@ import { createContext, useContext } from 'react';
 
 export type ChatMessage =
   | { id: string; role: 'user'; text: string; via: 'text' | 'voice'; pending?: boolean }
-  | { id: string; role: 'assistant'; response: QueryResponse }
+  | { id: string; role: 'assistant'; response: QueryResponse; via: 'text' | 'voice' }
   | { id: string; role: 'error'; text: string };
 
 export interface ChatState {
   messages: ChatMessage[];
   /** True while a question is being answered. */
   busy: boolean;
+  speaking: boolean;
   askText: (text: string) => Promise<void>;
   askVoice: (audio: Blob) => Promise<void>;
+  askDemo: (sampleId: string) => void;
+  /** Cancel a voice request when a new recording begins. */
+  cancelVoiceRequest: () => void;
   /** The most recent answer (the SMS screen previews it). */
   lastAnswer: QueryResponse | null;
 }
