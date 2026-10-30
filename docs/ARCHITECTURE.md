@@ -118,9 +118,10 @@ it never decides eligibility.
 
 ```
 server/src/
-  index.ts            loads data (startup.ts), then starts the HTTP server
+  index.ts            loads data (startup.ts), then starts the HTTP server (dev, npm start)
+  app.ts              the app as a default export, without listen(): the entry on Vercel
+  createApp.ts        middleware + one router per module, mounted under /api
   startup.ts          loads the knowledge base, FAQ and rules; warns about missing / stale data
-  app.ts              middleware + one router per module, mounted under /api
   config/env.ts       .env loading and zod validation (fails fast on bad values)
   modules/<name>/     routes.ts -> controller.ts -> service.ts (+ prompts.ts for AI modules)
     rag/              documents, chunking, vectorStore, prompts, service

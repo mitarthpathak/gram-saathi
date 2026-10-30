@@ -14,7 +14,7 @@ const relative = (file: string) => path.relative(process.cwd(), file) || file;
  * warning (the endpoint then answers 503 with the command to run); a broken eligibility rule
  * file throws, so a bad edit cannot reach users.
  */
-export async function initServices(): Promise<void> {
+export async function initServices({ checkSources = true } = {}): Promise<void> {
   const usesGemini = MOCKABLE_MODULES.filter((m) => !isMocked(m) && m !== 'faq' && m !== 'tts');
   if (usesGemini.length > 0 && !isGeminiConfigured()) {
     logger.warn(
@@ -23,12 +23,13 @@ export async function initServices(): Promise<void> {
     );
   }
 
-  const sourceFingerprint = isMocked('rag') ? undefined : await checkKnowledgeBase();
+  const sourceFingerprint = isMocked('rag') ? undefined : await checkKnowledgeBase(checkSources);
   if (!isMocked('faq')) checkFaq(sourceFingerprint);
   if (!isMocked('eligibility')) checkEligibilityRules();
 }
 
-async function checkKnowledgeBase(): Promise<string | undefined> {
+/** `checkSources`: compare with data/schemes (not deployed on serverless hosts). */
+async function checkKnowledgeBase(checkSources: boolean): Promise<string | undefined> {
   const store = loadKnowledgeBase();
   if (!store) {
     logger.warn(
@@ -58,6 +59,7 @@ async function checkKnowledgeBase(): Promise<string | undefined> {
         'run `npm run ingest -w server` to switch to GEMINI_EMBED_MODEL / GEMINI_EMBED_DIMENSIONS.',
     );
   }
+  if (!checkSources) return meta.sourceFingerprint;
   try {
     const current = fingerprintDocuments(await loadSchemeDocuments(PATHS.schemes));
     if (current !== meta.sourceFingerprint) {

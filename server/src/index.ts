@@ -1,6 +1,6 @@
 // Must be the first import: it loads .env and validates the environment.
 import { describeMocks, env } from './config/env';
-import { createApp } from './app';
+import { createApp } from './createApp';
 import { logger } from './lib/logger';
 import { initServices } from './startup';
 

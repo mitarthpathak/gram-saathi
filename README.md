@@ -83,15 +83,15 @@ gram-saathi/
 │       └── mocks/          in-browser API for VITE_USE_MOCKS=true
 ├── server/                 Node + Express + TypeScript (tsx in dev), zod, multer
 │   └── src/
-│       ├── index.ts, app.ts, config/env.ts
+│       ├── index.ts, app.ts, createApp.ts, config/env.ts
 │       ├── modules/        health, voice, chat, rag, eligibility, sms, tts, faq
 │       │                   (each: routes.ts, controller.ts, service.ts)
 │       ├── middleware/     errorHandler, requestLogger, upload
-│       ├── lib/            geminiClient (stub), cache, logger
+│       ├── lib/            geminiClient, cache, languages, vectors, logger
 │       └── mocks/          multilingual mock payloads
 ├── shared/src/             API contract types (types.ts, index.ts)
 ├── data/schemes/           scheme documents for retrieval (+ how to add one)
-├── docs/                   API_CONTRACT.md, ARCHITECTURE.md, TASKS.md
+├── docs/                   API_CONTRACT.md, ARCHITECTURE.md, TASKS.md, DEPLOYMENT.md
 └── .github/                PR template, CI (lint + build)
 ```
 
@@ -112,6 +112,7 @@ naming, PR rules and the API contract rule are in [CONTRIBUTING.md](CONTRIBUTING
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md): every endpoint with examples (types in `shared/src/types.ts`)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it fits together, mock mode, roadmap
 - [docs/TASKS.md](docs/TASKS.md): workstreams, folder ownership, 24-hour plan, demo checklist
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): one Vercel project with `client` and `server` services (`vercel.json`)
 - [data/schemes/README.md](data/schemes/README.md): adding scheme documents
 
 ## Testing on a phone
