@@ -7,7 +7,22 @@ ground truth. Keep speakers disjoint from `data/dialects/exemplars/`.
 One JSON object per line:
 
 ```json
-{"id":"<stable-row-id>","kind":"audio","audioFile":"audio/<file>","text":"<verbatim transcript>","script":"devanagari","label":"braj","district":"Mathura","area":"<optional area>","speakerAnonId":"<stable anonymous speaker id>","consent":true,"codeSwitch":false,"hindiMeaning":"<Hindi meaning>","annotatorConfidence":"unrated","licence":"not-specified"}
+{
+  "id": "<stable-row-id>",
+  "kind": "audio",
+  "audioFile": "audio/<file>",
+  "text": "<verbatim transcript>",
+  "script": "devanagari",
+  "label": "braj",
+  "district": "Mathura",
+  "area": "<optional area>",
+  "speakerAnonId": "<stable anonymous speaker id>",
+  "consent": true,
+  "codeSwitch": false,
+  "hindiMeaning": "<Hindi meaning>",
+  "annotatorConfidence": "unrated",
+  "licence": "not-specified"
+}
 ```
 
 `kind` is `audio` or `text`; audio rows require an `audioFile`, while text rows require `text`.
