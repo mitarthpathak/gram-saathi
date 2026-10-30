@@ -7,9 +7,13 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch --clear-screen=false --include ../.env --include .env src/index.ts",
-    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "start": "node --enable-source-maps dist/index.js"
+    "start": "node --enable-source-maps dist/index.js",
+    "test": "vitest run",
+    "ingest": "tsx scripts/ingest.ts",
+    "prewarm": "tsx scripts/prewarm.ts",
+    "query": "tsx scripts/query.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",

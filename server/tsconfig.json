@@ -7,9 +7,8 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "types": ["node"],
-    "rootDir": "src",
-    "outDir": "dist",
-    "sourceMap": true
+    "noEmit": true
   },
-  "include": ["src"]
+  // Type-checks app code, scripts and tests. `npm run build` uses tsconfig.build.json (src only).
+  "include": ["src", "scripts", "test", "vitest.config.mts"]
 }
