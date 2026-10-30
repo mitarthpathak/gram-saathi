@@ -12,8 +12,8 @@ const VARIANTS = {
 };
 
 const SIZES = {
-  sm: 'min-h-10 rounded-full px-3.5 text-sm',
-  md: 'min-h-11 rounded-2xl px-4 text-base',
+  sm: 'min-h-12 rounded-full px-4 text-base',
+  md: 'min-h-12 rounded-2xl px-4 text-base',
   lg: 'min-h-14 rounded-2xl px-5 text-lg',
   xl: 'min-h-16 rounded-2xl px-6 text-xl',
 };

@@ -152,8 +152,8 @@ export function EligibilityWizard() {
             </li>
           ))}
         </ul>
-        <p className="flex gap-2 text-sm text-slate-600">
-          <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+        <p className="flex gap-3 text-base leading-relaxed text-slate-700">
+          <Info aria-hidden className="mt-1 size-5 shrink-0" />
           {t.disclaimer}
         </p>
         <Button size="lg" variant="secondary" disabled={loading} onClick={() => void start()}>
@@ -166,28 +166,28 @@ export function EligibilityWizard() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-5">
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-700 to-brand-950 p-6 text-white shadow-lift">
+      <section className="relative overflow-hidden rounded-[2rem] bg-white p-6 text-slate-950 shadow-soft ring-1 ring-brand-200">
         <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
         <div
           aria-hidden
-          className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-400/25 blur-2xl"
+          className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-200/60 blur-2xl"
         />
         <div aria-hidden className="relative flex -space-x-2.5">
           {INTRO_ICONS.map(({ Icon, tone }) => (
             <span
               key={tone}
-              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-brand-800"
+              className="flex size-12 items-center justify-center rounded-full bg-brand-50 shadow-soft ring-4 ring-white"
             >
               <Icon className={`size-6 ${tone}`} />
             </span>
           ))}
         </div>
-        <h1 className="relative mt-5 text-[1.7rem] leading-tight font-extrabold tracking-tight text-balance">
+        <h1 className="relative mt-5 text-3xl leading-tight font-extrabold tracking-tight text-balance text-brand-950">
           {t.title}
         </h1>
-        <p className="relative mt-2 text-lg text-brand-100">{t.intro}</p>
-        <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-bold ring-1 ring-white/20">
-          <Clock aria-hidden className="size-4" />
+        <p className="relative mt-3 text-lg leading-relaxed text-slate-700">{t.intro}</p>
+        <p className="relative mt-4 inline-flex min-h-12 items-center gap-2 rounded-full bg-marigold-50 px-4 py-2 text-base font-bold text-marigold-900 ring-1 ring-marigold-200">
+          <Clock aria-hidden className="size-5" />
           {t.duration}
         </p>
       </section>
@@ -195,8 +195,8 @@ export function EligibilityWizard() {
         {t.start}
         <ArrowRight aria-hidden className="size-6" />
       </Button>
-      <p className="flex gap-2 text-sm text-slate-600">
-        <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <p className="flex gap-3 text-base leading-relaxed text-slate-700">
+        <Info aria-hidden className="mt-1 size-5 shrink-0" />
         {t.disclaimer}
       </p>
     </div>
@@ -207,7 +207,7 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
   const t = useStrings(eligibilityStrings);
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-extrabold tracking-wide text-brand-700">
+      <p className="text-base font-extrabold tracking-wide text-brand-800">
         {total ? format(t.progress, { current, total }) : format(t.progressUnknown, { current })}
       </p>
       {total && (

@@ -16,6 +16,14 @@ export const storage = {
     }
   },
 
+  remove(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Not critical: the app works without persistence.
+    }
+  },
+
   getJson<T>(key: string): T | null {
     const raw = storage.get(key);
     if (raw === null) return null;

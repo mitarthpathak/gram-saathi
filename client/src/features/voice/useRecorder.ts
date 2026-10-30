@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { config } from '@/lib/config';
 import { createPlaceholderAudio } from './placeholderAudio';
 
-export type RecorderStatus = 'idle' | 'recording';
+export type RecorderStatus = 'idle' | 'requesting-permission' | 'recording';
 
 /** Why recording could not start: shown to the user as a hint. */
 export type RecorderErrorKind = 'denied' | 'unavailable' | 'insecure';
@@ -30,7 +30,7 @@ export interface Recorder {
 }
 
 /** Opus in WebM where supported (Chrome, Firefox, Android), MP4/AAC on Safari. */
-const MIME_TYPES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+const MIME_TYPES = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg'];
 
 interface Session {
   startedAt: number;
@@ -49,6 +49,7 @@ interface Session {
 export function useRecorder(): Recorder {
   const [status, setStatus] = useState<RecorderStatus>('idle');
   const session = useRef<Session | null>(null);
+  const requesting = useRef(false);
   const samples = useRef<Uint8Array<ArrayBuffer> | null>(null);
 
   /** Turns the mic off (the browser's recording indicator goes away). */
@@ -62,7 +63,7 @@ export function useRecorder(): Recorder {
   useEffect(() => release, [release]);
 
   const start = useCallback(async () => {
-    if (session.current) return;
+    if (session.current || requesting.current) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
       if (config.useMocks) {
         session.current = { startedAt: Date.now(), chunks: [] };
@@ -76,6 +77,11 @@ export function useRecorder(): Recorder {
     }
 
     let stream: MediaStream;
+    if (!window.isSecureContext) {
+      throw new RecorderError('insecure', 'Microphone access needs a secure connection');
+    }
+    requesting.current = true;
+    setStatus('requesting-permission');
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 },
@@ -83,11 +89,24 @@ export function useRecorder(): Recorder {
     } catch (error) {
       const name = error instanceof DOMException ? error.name : '';
       const denied = name === 'NotAllowedError' || name === 'SecurityError';
-      throw new RecorderError(denied ? 'denied' : 'unavailable', String(error));
+      setStatus('idle');
+      throw new RecorderError(
+        !window.isSecureContext ? 'insecure' : denied ? 'denied' : 'unavailable',
+        String(error),
+      );
+    } finally {
+      requesting.current = false;
     }
 
     const mimeType = MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
-    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    } catch (error) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStatus('idle');
+      throw new RecorderError('unavailable', String(error));
+    }
     const chunks: Blob[] = [];
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunks.push(event.data);
@@ -105,7 +124,14 @@ export function useRecorder(): Recorder {
       analyser = undefined;
     }
 
-    recorder.start();
+    try {
+      recorder.start();
+    } catch (error) {
+      stream.getTracks().forEach((track) => track.stop());
+      context?.close().catch(() => undefined);
+      setStatus('idle');
+      throw new RecorderError('unavailable', String(error));
+    }
     session.current = { startedAt: Date.now(), chunks, recorder, stream, context, analyser };
     setStatus('recording');
   }, []);
@@ -119,13 +145,16 @@ export function useRecorder(): Recorder {
       session.current = null;
       return createPlaceholderAudio(Date.now() - current.startedAt);
     }
-    const audio = await new Promise<Blob>((resolve) => {
-      recorder.onstop = () =>
-        resolve(new Blob(current.chunks, { type: recorder.mimeType || 'audio/webm' }));
-      recorder.stop();
-    });
-    release();
-    return audio;
+    try {
+      return await new Promise<Blob>((resolve, reject) => {
+        recorder.onstop = () =>
+          resolve(new Blob(current.chunks, { type: recorder.mimeType || 'audio/webm' }));
+        recorder.onerror = (event) => reject(event.error);
+        recorder.stop();
+      });
+    } finally {
+      release();
+    }
   }, [release]);
 
   const cancel = useCallback(() => {

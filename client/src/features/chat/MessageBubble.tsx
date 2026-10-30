@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
 import { Badge } from '@/components/ui/Badge';
 import { SourceList } from '@/features/sources/SourceList';
+import { DialectPrompt } from '@/features/dialect/DialectPrompt';
 import type { SmsScreenState } from '@/features/sms/navigation';
 import { SpeakButton } from '@/features/voice/SpeakButton';
 import { useStrings } from '@/lib/i18n';
@@ -23,7 +24,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         />
       );
     case 'assistant':
-      return <AnswerBubble response={message.response} />;
+      return <AnswerBubble response={message.response} viaVoice={message.via === 'voice'} />;
     case 'error':
       return (
         <div
@@ -48,7 +49,10 @@ function QuestionBubble({
 }) {
   const t = useStrings(chatStrings);
   return (
-    <div className="ml-auto w-fit max-w-[85%] animate-fade-up rounded-3xl rounded-br-md bg-linear-to-br from-brand-600 to-brand-800 px-4 py-3 text-[17px] leading-snug text-white shadow-soft">
+    <div
+      data-voice-transcript={viaVoice ? '' : undefined}
+      className="ml-auto w-fit max-w-[85%] animate-fade-up rounded-3xl rounded-br-md bg-linear-to-br from-brand-700 to-brand-900 px-4 py-3 text-lg leading-snug text-white shadow-soft"
+    >
       {viaVoice && (
         <p className="mb-1 flex items-center gap-1 text-[13px] font-bold text-brand-100">
           <Mic aria-hidden className="size-3.5" />
@@ -72,7 +76,7 @@ function QuestionBubble({
   );
 }
 
-function AnswerBubble({ response }: { response: QueryResponse }) {
+function AnswerBubble({ response, viaVoice }: { response: QueryResponse; viaVoice: boolean }) {
   const t = useStrings(chatStrings);
   const { lowBandwidth } = useSettings();
   const smsState: SmsScreenState = { sms: response.smsText, segments: response.smsSegments };
@@ -99,7 +103,8 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
             )}
           </div>
         )}
-        <p className="text-[17px] leading-relaxed text-slate-800">{response.answer}</p>
+        {viaVoice && <DialectPrompt response={response} />}
+        <p className="text-lg leading-relaxed text-slate-800">{response.answer}</p>
         <div className="flex flex-wrap gap-2">
           <SpeakButton
             text={response.answer}
@@ -109,7 +114,7 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
           <Link
             to="/sms"
             state={smsState}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-cream-100 px-3.5 text-sm font-bold text-slate-700 ring-1 ring-brand-950/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            className="inline-flex min-h-12 items-center gap-1.5 rounded-full bg-cream-100 px-4 text-base font-bold text-slate-700 ring-1 ring-brand-950/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
             <MessageSquareText aria-hidden className="size-4" />
             {t.viewSms} · {response.smsSegments}
