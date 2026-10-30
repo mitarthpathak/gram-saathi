@@ -93,6 +93,7 @@ function errorText(error: unknown, t: (typeof chatStrings)['en']): string {
   switch (error.code) {
     case 'NO_SPEECH_DETECTED':
       return t.errorNoSpeech;
+    case 'RATE_LIMITED':
     case 'AI_RATE_LIMITED':
     case 'AI_UNAVAILABLE':
     case 'AI_TIMEOUT':

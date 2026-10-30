@@ -236,6 +236,8 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | `CACHE_MAX_ENTRIES`       | `500`                                         | Answers kept in the in-memory cache; `0` disables it                                                     |
 | `CACHE_TTL_MINUTES`       | `360`                                         | How long a cached answer lives; `0` = until evicted                                                      |
 | `SMS_MAX_SEGMENTS`        | `2`                                           | SMS length limit in segments (1–10)                                                                      |
+| `RATE_LIMIT_PER_MINUTE`   | `30`                                          | Requests per minute per IP to the AI endpoints (voice, chat, rag, eligibility, sms); `0` = no limit      |
+| `TRUST_PROXY`             | `1`                                           | Proxy hops in front of the server, so the limit sees the real client IP (1 on Vercel)                    |
 | `VITE_API_URL`            | empty (same origin)                           | Client: API origin, e.g. when the API runs on another domain                                             |
 | `VITE_USE_MOCKS`          | `false`                                       | Client: answer from `client/src/mocks` in the browser and never call the server                          |
 
