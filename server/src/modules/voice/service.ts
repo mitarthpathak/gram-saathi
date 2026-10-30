@@ -21,6 +21,8 @@ export interface VoiceQueryInput {
   sessionId: string;
 }
 
+export type TranscribeInput = Pick<VoiceQueryInput, 'audio' | 'mimeType' | 'language'>;
+
 export interface Transcription {
   transcript: string;
   detectedLanguage: string;
@@ -53,7 +55,7 @@ export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryRes
 }
 
 /** Transcript + language in a single Gemini call (audio in, structured JSON out). */
-export async function transcribe(input: VoiceQueryInput): Promise<Transcription> {
+export async function transcribe(input: TranscribeInput): Promise<Transcription> {
   if (isMocked('voice')) {
     const transcript = mockTranscribe(input.language);
     const detectedLanguage = mockDetectLanguage(transcript, input.language);
@@ -90,6 +92,15 @@ export async function transcribe(input: VoiceQueryInput): Promise<Transcription>
   }
   logger.debug('transcribed voice: ' + result.detectedLanguage + ' (' + result.script + ' script)');
   return result;
+}
+
+/** Maps model script descriptions onto the contributor API's small stable script enum. */
+export function contributorScript(script: string): 'devanagari' | 'roman' | 'mixed' | 'other' {
+  const value = script.trim().toLowerCase();
+  if (value.includes('mixed')) return 'mixed';
+  if (value.includes('devanagari') || value.includes('nagari')) return 'devanagari';
+  if (value.includes('latin') || value.includes('roman')) return 'roman';
+  return 'other';
 }
 
 const MIME_ALIASES: Record<string, string> = {

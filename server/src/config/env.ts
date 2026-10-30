@@ -20,6 +20,10 @@ export const PATHS = {
   schemes: path.resolve(serverRoot, '../data/schemes'),
   eligibility: path.resolve(serverRoot, '../data/eligibility'),
   dialects: path.resolve(serverRoot, '../data/dialects/registry.json'),
+  dialectExemplars: path.resolve(serverRoot, '../data/dialects/exemplars'),
+  dialectTestset: path.resolve(serverRoot, '../data/eval/dialect/testset.jsonl'),
+  dialectAudio: path.resolve(serverRoot, '../data/eval/dialect/audio'),
+  dialectCalibration: path.resolve(serverRoot, '../data/dialects/calibration.json'),
   faqSeeds: path.resolve(serverRoot, '../data/faq/questions.json'),
   vectorStore: path.join(serverRoot, 'data/vectorstore.json'),
   faq: path.join(serverRoot, 'data/faq.json'),
@@ -84,6 +88,8 @@ const envSchema = z.object({
   ),
   GEMINI_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(300_000).default(30_000)),
   GEMINI_MAX_RETRIES: fromEnv(z.coerce.number().int().min(0).max(8).default(3)),
+  /** Shared cap for Gemini generation and embedding calls; one slot stays available to answers. */
+  GEMINI_MAX_CONCURRENT_CALLS: fromEnv(z.coerce.number().int().min(2).max(64).default(8)),
 
   // Dialect classification. A smaller dialect active set means higher accuracy.
   DIALECT_ENSEMBLE_SIZE: fromEnv(z.coerce.number().int().min(1).max(3).default(3)),
@@ -91,6 +97,10 @@ const envSchema = z.object({
   DIALECT_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(100).max(300_000).default(6000)),
   DIALECT_TEXT_DETECT: fromEnv(z.stringbool().default(false)),
   DIALECT_ACTIVE: fromEnv(z.string().trim().default('all')),
+  DIALECT_EXEMPLARS_PER_LABEL: fromEnv(z.coerce.number().int().min(0).max(20).default(4)),
+  DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(
+    z.coerce.number().int().min(0).max(20_000).default(1800),
+  ),
 
   // Retrieval
   RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),
@@ -119,6 +129,12 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+/** Calibration is the fallback; explicitly set env values always take precedence. */
+export const dialectEnvOverrides = {
+  ensembleSize: process.env.DIALECT_ENSEMBLE_SIZE !== undefined && process.env.DIALECT_ENSEMBLE_SIZE !== '',
+  minimumVotes: process.env.DIALECT_MIN_VOTES !== undefined && process.env.DIALECT_MIN_VOTES !== '',
+} as const;
 
 /** True when `module` should serve mock data instead of calling AI services. */
 export function isMocked(module: MockableModule): boolean {

@@ -25,7 +25,7 @@ const dialectEntrySchema = z.object({
   states: z.array(z.string().min(1)),
   suggestedDistricts: z.array(z.string().min(1)),
   confusableWith: z.array(z.string().min(1)),
-  testStatus: z.literal('experimental'),
+  testStatus: z.enum(['experimental', 'tested']),
 });
 
 export type DialectRegistryEntry = z.infer<typeof dialectEntrySchema>;

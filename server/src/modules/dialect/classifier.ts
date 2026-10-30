@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { env } from '../../config/env';
 import { generateJson, type GeminiInputPart } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
+import { getDialectSettings } from './calibration';
+import { getDialectExemplars, renderPromptExemplars, type DialectExemplarSet } from './exemplars';
 import { getDialectRegistry, STANDARD_DIALECT_LABELS, type DialectRegistryEntry } from './registry';
+
+export const DIALECT_PROMPT_VERSION = 'dialect-v2-real-exemplars-pairwise';
 
 export type DialectOutcome = {
   dialect: DialectResult | null;
@@ -19,6 +23,9 @@ export interface DialectEvidence {
   ensembleSize?: number;
   minimumVotes?: number;
   timeoutMs?: number;
+  maxRetries?: number;
+  /** Internal evaluation hook. It is never added to the API response. */
+  onDecision?: (trace: { votes: string[]; selectedLabel: string | null }) => void;
 }
 
 export interface DialectDecisionInput {
@@ -91,6 +98,32 @@ export function decideDialect(input: DialectDecisionInput): DialectOutcome {
   return { dialect: null, dialectCandidates: options(dialectVotes.slice(0, 3)) };
 }
 
+/** The winning closed-set label before it is mapped to the public dialect-only response. */
+export function selectedClassifierLabel(
+  votes: string[],
+  activeLabels: string[],
+  minimumVotes: number,
+): string | null {
+  const counts = new Map<string, number>();
+  for (const vote of votes) {
+    if (activeLabels.includes(vote)) counts.set(vote, (counts.get(vote) ?? 0) + 1);
+  }
+  const ranked = activeLabels
+    .map((label, order) => ({ label, order, count: counts.get(label) ?? 0 }))
+    .filter(({ count }) => count > 0)
+    .sort((a, b) => b.count - a.count || a.order - b.order);
+  const top = ranked[0];
+  if (
+    !top ||
+    top.count < minimumVotes ||
+    top.label === 'mixed_or_uncertain' ||
+    ranked[1]?.count === top.count
+  ) {
+    return null;
+  }
+  return top.label;
+}
+
 /** The standard labels remain active even when a smaller dialect set is configured. */
 export function getActiveDialectLabels(
   configured: string = env.DIALECT_ACTIVE,
@@ -118,13 +151,24 @@ export function getActiveDialectLabels(
 
 /** Independent Gemini views: audio, transcript, then both. Text-only requests have one view. */
 export async function classifyDialect(input: DialectEvidence): Promise<DialectOutcome> {
+  const startedAt = Date.now();
+  try {
+    return await classifyDialectInternal(input);
+  } finally {
+    recordDialectLatency(Date.now() - startedAt);
+  }
+}
+
+async function classifyDialectInternal(input: DialectEvidence): Promise<DialectOutcome> {
   const activeLabels = [...new Set(input.activeLabels)];
   const text = input.text?.trim();
+  const settings = getDialectSettings();
   const views = evidenceViews(input.audio, text).slice(
     0,
-    input.ensembleSize ?? env.DIALECT_ENSEMBLE_SIZE,
+    input.ensembleSize ?? settings.ensembleSize,
   );
   if (activeLabels.length === 0 || views.length === 0) {
+    input.onDecision?.({ votes: [], selectedLabel: null });
     return { dialect: null, dialectCandidates: [] };
   }
 
@@ -139,6 +183,7 @@ export async function classifyDialect(input: DialectEvidence): Promise<DialectOu
 
   const results = await Promise.all(
     views.map(async (view) => {
+      const controller = new AbortController();
       try {
         const result = await withTimeout(
           generateJson({
@@ -148,14 +193,17 @@ export async function classifyDialect(input: DialectEvidence): Promise<DialectOu
             input: view.input,
             schema,
             maxOutputTokens: 256,
-            maxRetries: 0,
+            maxRetries: input.maxRetries ?? 0,
             timeoutMs,
+            signal: controller.signal,
           }),
           timeoutMs,
         );
         return { label: result.label };
       } catch (error) {
         return { error };
+      } finally {
+        controller.abort();
       }
     }),
   );
@@ -168,16 +216,24 @@ export async function classifyDialect(input: DialectEvidence): Promise<DialectOu
   if (failures > 0) {
     logger.warn('dialect classifier: ' + failures + '/' + results.length + ' view(s) failed');
   }
-  if (votes.length === 0) return { dialect: null, dialectCandidates: [] };
+  if (votes.length === 0) {
+    input.onDecision?.({ votes, selectedLabel: null });
+    return { dialect: null, dialectCandidates: [] };
+  }
 
   const tally = Object.fromEntries(
     [...new Set(votes)].map((label) => [label, votes.filter((vote) => vote === label).length]),
   );
   logger.debug('dialect vote tally', tally);
+  const minimumVotes = input.minimumVotes ?? settings.minimumVotes;
+  input.onDecision?.({
+    votes,
+    selectedLabel: selectedClassifierLabel(votes, activeLabels, minimumVotes),
+  });
   return decideDialect({
     votes,
     activeLabels,
-    minimumVotes: input.minimumVotes ?? env.DIALECT_MIN_VOTES,
+    minimumVotes,
     ensembleSize: views.length,
     dialects: registry,
   });
@@ -237,7 +293,11 @@ function audioPart(audio: NonNullable<DialectEvidence['audio']>): GeminiInputPar
   return { type: 'audio', data: audio.data, mimeType: audio.mimeType };
 }
 
-function buildClassifierPrompt(activeLabels: string[], dialects: DialectRegistryEntry[]): string {
+export function buildClassifierPrompt(
+  activeLabels: string[],
+  dialects: DialectRegistryEntry[] = getDialectRegistry(),
+  exemplars: DialectExemplarSet = getDialectExemplars(),
+): string {
   const byId = new Map(dialects.map((entry) => [entry.id, entry]));
   const labelDescriptions = activeLabels.map((label) => {
     const entry = byId.get(label);
@@ -253,6 +313,7 @@ function buildClassifierPrompt(activeLabels: string[], dialects: DialectRegistry
       (confusable.join(', ') || 'none')
     );
   });
+  const exampleBlocks = renderPromptExemplars(activeLabels, exemplars);
   return [
     'Identify the spoken language or regional variety from the supplied evidence.',
     'Output exactly one label from the closed list below and a short evidence-based reason. Never invent a label.',
@@ -263,7 +324,27 @@ function buildClassifierPrompt(activeLabels: string[], dialects: DialectRegistry
     'Do not translate, correct, or normalize the evidence.',
     'Active labels:',
     ...labelDescriptions.map((label) => '- ' + label),
+    ...(exampleBlocks.length
+      ? [
+          'The following real native-speaker examples and Hindi meanings are consented reference examples, not generated text. Compare hard negatives side by side and identify positive distinctions; do not copy them as output.',
+          'Real examples (the section is omitted for labels without samples):',
+          ...exampleBlocks,
+        ]
+      : ['No native-speaker exemplars are available for these labels; classify zero-shot and abstain when evidence is weak.']),
   ].join('\n');
+}
+
+const DIALECT_LATENCY_WINDOW = 200;
+const dialectLatencySamples: number[] = [];
+
+function recordDialectLatency(durationMs: number): void {
+  dialectLatencySamples.push(durationMs);
+  if (dialectLatencySamples.length > DIALECT_LATENCY_WINDOW) dialectLatencySamples.shift();
+  const sorted = [...dialectLatencySamples].sort((a, b) => a - b);
+  const percentile = (p: number) => sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)];
+  logger.info(
+    `dialect classify latency (${sorted.length} sample(s)): p50=${percentile(0.5)}ms p95=${percentile(0.95)}ms`,
+  );
 }
 
 function standardLabelMeaning(label: string): string {
