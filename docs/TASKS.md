@@ -1,0 +1,129 @@
+# Workstreams
+
+Four workstreams, each owning its own folders, so 3–4 people can work in parallel with few
+merge conflicts. Everything already runs on mock data, so nobody waits for anybody: build your
+part behind the mocks, then switch it on (`USE_MOCKS` takes a list of modules that stay mocked).
+
+**Rules of thumb**
+
+- Stay inside the folders your workstream owns. If you must touch someone else's file, keep the
+  change tiny and ask the owner to review.
+- The contract (`shared/src/types.ts` + `docs/API_CONTRACT.md`) changes only through a contract PR
+  ([CONTRIBUTING.md](../CONTRIBUTING.md#the-api-contract-rule)).
+- Small PRs into `main`, rebased first. Look for `TODO(step-2)` / `TODO(step-3)` in your folders.
+
+## Ownership map
+
+| Workstream                 | Branches                              | Owns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1. Voice + Chat UI**     | `feature/voice-ui`, `feature/chat-ui` | `client/src/features/voice/`<br>`client/src/features/chat/`<br>`client/src/features/sources/`<br>`client/src/features/language/`<br>`client/src/mocks/query.ts`                                                                                                                                                                                                                                                                                                                                              |
+| **2. RAG backend**         | `feature/rag-backend`                 | `server/src/modules/chat/`, `voice/`, `rag/`, `tts/`<br>`server/src/lib/geminiClient.ts`, `server/src/lib/cache.ts`<br>`server/src/mocks/query.ts`<br>`data/schemes/`                                                                                                                                                                                                                                                                                                                                        |
+| **3. Eligibility + SMS**   | `feature/eligibility`, `feature/sms`  | `client/src/features/eligibility/`<br>`client/src/features/sms/` (except the two low-bandwidth files below)<br>`server/src/modules/eligibility/`, `server/src/modules/sms/`<br>`server/src/mocks/eligibility.ts`, `client/src/mocks/eligibility.ts`                                                                                                                                                                                                                                                          |
+| **4. PWA + Deploy + Demo** | `feature/sms-pwa`, `feature/deploy`   | `client/src/app/`, `client/src/components/ui/`, `client/src/lib/`<br>`client/public/`, `client/index.html`, `client/vite.config.ts`<br>`client/src/features/sms/LowBandwidthToggle.tsx`, `client/src/features/sms/OfflineFaqList.tsx`<br>`server/src/modules/faq/`, `server/src/mocks/faq.ts`, `client/src/mocks/faq.ts`<br>`server/src/{index,app}.ts`, `server/src/config/`, `server/src/middleware/`, the rest of `server/src/lib/`<br>root config files, `.github/`, `README.md`, `docs/ARCHITECTURE.md` |
+
+**Shared files** (change together, ping the owners): `shared/src/*` and `docs/API_CONTRACT.md`
+(contract PR only); `client/src/mocks/index.ts` (each workstream edits only its own handlers);
+`client/src/lib/api.ts` (only in contract PRs).
+
+## 1. Voice + Chat UI
+
+The main screen: push-to-talk, transcript, answers with sources, fraud warning, text fallback.
+
+Step 2
+
+- [ ] `useRecorder`: record for real with `getUserMedia` + `MediaRecorder` (`audio/webm;codecs=opus`,
+      `audio/mp4` on Safari), handle a denied permission, auto-stop after ~30 s, release the mic.
+      Keep the hook's interface so `MicButton` does not change.
+- [ ] Recording feedback: timer or level meter, vibration on start/stop (`navigator.vibrate`).
+- [ ] Play `audioUrl` when the server sends one; setting to auto-read answers on or off.
+- [ ] Retry button on error bubbles; disable input while offline.
+- [ ] Native speakers check every `strings.ts` in hi / mr / ta.
+
+Step 3
+
+- [ ] On-device speech recognition fallback (Web Speech API) when the network is slow.
+- [ ] Polish: scroll-to-latest button, long-answer "read more", larger-text setting.
+
+## 2. RAG backend
+
+Everything behind `/api/chat/query`, `/api/voice/query` and `/api/tts`, plus the knowledge base.
+Work with `USE_MOCKS=eligibility,sms,faq,tts` so only your modules run for real.
+
+Step 2
+
+- [ ] `lib/geminiClient.ts`: implement with `@google/genai` (`generateText`, `transcribeAudio`,
+      `embedTexts`), with timeouts and one retry.
+- [ ] `voice`: speech-to-text + language detection in one Gemini call; pass the detected language on.
+- [ ] `rag`: load `data/schemes/*.md`, chunk by `##` heading, rank chunks (BM25 or in-memory
+      embeddings), relevance threshold. Test with `POST /api/rag/search`.
+- [ ] `chat`: grounded prompt (answer only from the chunks, user's language, short sentences),
+      JSON output `{ answer, smsText, notFound }`, `notFound` when nothing is relevant.
+- [ ] Add 8–10 high-impact schemes to `data/schemes/` (e.g. MGNREGA, PMAY-G, PM Ujjwala,
+      PM Fasal Bima, Sukanya Samriddhi, APY, PMSBY / PMJJBY, ration card / NFSA).
+- [ ] Optional: `tts` with Gemini or Cloud TTS for languages phones lack (Marathi).
+
+Step 3
+
+- [ ] Vector DB for embeddings (replace the in-memory index).
+- [ ] Semantic cache in `lib/cache.ts` (hit on paraphrases).
+- [ ] Small eval set: 10 questions per language with expected scheme and section.
+
+## 3. Eligibility + SMS
+
+The eligibility wizard end to end and SMS compression.
+
+Step 2
+
+- [ ] Eligibility questions and rules from `data/schemes` front matter (see
+      `data/schemes/README.md`), evaluated by plain code. Unit-test the rules.
+- [ ] Results screen: "Ask about this scheme" opens the chat with a prefilled question.
+- [ ] `sms/compress` with Gemini: at most 2 segments, keep amounts, dates, URLs and helplines;
+      fall back to truncation. "Rs" instead of "₹" in English (GSM-7).
+- [ ] SMS screen: copy button, share via the phone's SMS app (`sms:?body=`).
+
+Step 3
+
+- [ ] More schemes in the wizard; skip questions that no longer matter.
+- [ ] Optional: real SMS sending through a gateway (Indian numbers require DLT registration, so
+      demo with a simulator).
+
+## 4. PWA + Deploy + Demo
+
+The app shell, offline / low-bandwidth behaviour, deployment and the demo itself.
+
+Step 2
+
+- [ ] HTTPS tunnel for phone testing (the mic needs https), e.g.
+      `cloudflared tunnel --url http://localhost:5173`; add the tunnel host to `server.allowedHosts`
+      in `vite.config.ts`.
+- [ ] Deploy: API on Render / Railway / Fly (build `npm ci && npm run build -w server`, start
+      `npm start`); client on Vercel / Netlify (`npm run build -w client`, output `client/dist`,
+      SPA fallback to `index.html`). Set `VITE_API_URL`, `CLIENT_ORIGIN`, `USE_MOCKS`, the Gemini vars.
+- [ ] A second, frontend-only deploy with `VITE_USE_MOCKS=true` as the demo fallback.
+- [ ] Curate the FAQ (`server/src/modules/faq/`) with the RAG workstream.
+
+Step 3
+
+- [ ] PWA: `vite-plugin-pwa`, manifest and icons, offline app shell, precache `/api/faq/top`.
+- [ ] Low-bandwidth mode: smaller payloads, lazy-load screens, check bundle size.
+- [ ] Demo script, seed questions per language, backup screen recording.
+
+## Suggested 24-hour plan
+
+| Hours | What                                                                                       |
+| ----- | ------------------------------------------------------------------------------------------ |
+| 0–1   | Everyone: `npm install`, `npm run dev`, read the docs, create your branch                  |
+| 1–9   | Step 2 in parallel, each behind the mocks; small PRs into `main` as pieces work            |
+| 9–11  | Integration: run `USE_MOCKS=false`, fix the seams, test on a real phone through the tunnel |
+| 11–17 | Step 3 + deployment                                                                        |
+| 17–21 | Polish, translation check with native speakers, accessibility pass, more scheme documents  |
+| 21–24 | Feature freeze, demo rehearsal, backup recording, mock-mode fallback ready                 |
+
+## Demo checklist
+
+- [ ] Hold the mic and ask in Hindi → answer with sources and fraud warning, read aloud.
+- [ ] Ask the same question in Tamil → Tamil answer; ask again → "saved answer" badge.
+- [ ] Ask something not in the documents → "not in official documents" (no guessing).
+- [ ] "View as SMS" → feature phone with segment count.
+- [ ] Eligibility wizard → results with reasons.
+- [ ] Turn on low-bandwidth mode, go offline → saved answers still work.
