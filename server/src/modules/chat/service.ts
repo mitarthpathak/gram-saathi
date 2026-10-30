@@ -4,6 +4,12 @@ import { LruCache } from '../../lib/cache';
 import { generateJson } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
 import { mockDialectFields, mockGenerateAnswer } from '../../mocks';
+import {
+  classifyDialect,
+  getActiveDialectLabels,
+  type DialectOutcome,
+} from '../dialect/classifier';
+import { dialectHintOutcome, parentLanguageForDialect } from '../dialect/language';
 import { ANSWER_SYSTEM_PROMPT, answerSchema, buildAnswerInput } from '../rag/prompts';
 import { searchSchemes } from '../rag/service';
 import type { ScoredChunk } from '../rag/vectorStore';
@@ -17,6 +23,11 @@ export interface AnswerInput {
   language?: LanguageCode;
   /** Registry id confirmed or selected by the user. */
   dialectHint?: string;
+  /** Audio evidence is supplied only by the voice route. */
+  dialectEvidence?: {
+    audio?: { data: string; mimeType: string };
+    text?: string;
+  };
   /** Language already known from speech recognition; skips text-based detection. */
   detectedLanguage?: LanguageCode;
   sessionId: string;
@@ -25,7 +36,10 @@ export interface AnswerInput {
 }
 
 /** The part of a response that depends only on the question, so it can be cached and shared. */
-export type CachedAnswer = Omit<QueryResponse, 'sessionId' | 'transcript' | 'usedCache'>;
+export type CachedAnswer = Omit<
+  QueryResponse,
+  'sessionId' | 'transcript' | 'usedCache' | 'dialect' | 'dialectCandidates'
+>;
 
 const answerCache = new LruCache<CachedAnswer>({
   maxEntries: env.CACHE_MAX_ENTRIES,
@@ -39,11 +53,18 @@ const inFlight = new Map<string, Promise<CachedAnswer>>();
  * language -> cache -> retrieve -> relevance gate -> grounded answer -> SMS + fraud warning.
  */
 export async function answerQuestion(input: AnswerInput): Promise<QueryResponse> {
-  const language = input.detectedLanguage ?? detectTextLanguage(input.text, input.language);
+  const language =
+    (input.dialectHint ? parentLanguageForDialect(input.dialectHint) : undefined) ??
+    input.detectedLanguage ??
+    detectTextLanguage(input.text, input.language);
   const key = cacheKey(input.text, language);
+  const dialectPromise = getDialectOutcome(input);
 
   const cached = answerCache.get(key);
-  if (cached) return toResponse(cached, input, true);
+  if (cached) {
+    const dialect = await dialectPromise;
+    return { ...toResponse(cached, input, true), ...dialect };
+  }
 
   let pending = inFlight.get(key);
   if (!pending) {
@@ -55,7 +76,32 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
       .finally(() => inFlight.delete(key));
     inFlight.set(key, pending);
   }
-  return toResponse(await pending, input, false);
+  const [answer, dialect] = await Promise.all([pending, dialectPromise]);
+  return { ...toResponse(answer, input, false), ...dialect };
+}
+
+async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
+  if (input.dialectHint) {
+    return dialectHintOutcome(input.dialectHint) ?? { dialect: null, dialectCandidates: [] };
+  }
+
+  const audio = input.dialectEvidence?.audio;
+  const isVoice = Boolean(audio);
+  if (!isVoice && !env.DIALECT_TEXT_DETECT) {
+    return { dialect: null, dialectCandidates: [] };
+  }
+  if (isMocked('dialect')) return mockDialectFields();
+
+  try {
+    return await classifyDialect({
+      audio,
+      text: isVoice ? (input.dialectEvidence?.text ?? input.text) : input.text,
+      activeLabels: getActiveDialectLabels(),
+    });
+  } catch {
+    logger.warn('dialect classifier unavailable; returning an abstention');
+    return { dialect: null, dialectCandidates: [] };
+  }
 }
 
 async function buildAnswer(question: string, language: LanguageCode): Promise<CachedAnswer> {
@@ -128,7 +174,6 @@ function toResponse(answer: CachedAnswer, input: AnswerInput, usedCache: boolean
     sessionId: input.sessionId,
     transcript: input.transcript,
     ...answer,
-    ...(isMocked('dialect') ? mockDialectFields(input.dialectHint) : {}),
     usedCache,
   };
 }

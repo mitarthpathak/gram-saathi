@@ -1,6 +1,10 @@
+import { isMocked } from '../../config/env';
 import { mockDialectInfo } from '../../mocks';
+import type { DialectInfo } from '@gram-saathi/shared';
+import { getDialectRegistry, toDialectInfo } from './registry';
 
-/** Mock-backed endpoint stub; Stage 1 loads and validates data/dialects/registry.json. */
-export function listDialects() {
-  return mockDialectInfo();
+/** Lists selectable dialects from the registry, or its mock-backed public copy. */
+export function listDialects(): DialectInfo[] {
+  if (isMocked('dialect')) return mockDialectInfo();
+  return getDialectRegistry().map(toDialectInfo);
 }

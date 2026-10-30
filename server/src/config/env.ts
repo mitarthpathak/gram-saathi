@@ -19,6 +19,7 @@ if (process.env.NODE_ENV !== 'test') {
 export const PATHS = {
   schemes: path.resolve(serverRoot, '../data/schemes'),
   eligibility: path.resolve(serverRoot, '../data/eligibility'),
+  dialects: path.resolve(serverRoot, '../data/dialects/registry.json'),
   faqSeeds: path.resolve(serverRoot, '../data/faq/questions.json'),
   vectorStore: path.join(serverRoot, 'data/vectorstore.json'),
   faq: path.join(serverRoot, 'data/faq.json'),
@@ -83,6 +84,13 @@ const envSchema = z.object({
   ),
   GEMINI_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(300_000).default(30_000)),
   GEMINI_MAX_RETRIES: fromEnv(z.coerce.number().int().min(0).max(8).default(3)),
+
+  // Dialect classification. A smaller dialect active set means higher accuracy.
+  DIALECT_ENSEMBLE_SIZE: fromEnv(z.coerce.number().int().min(1).max(3).default(3)),
+  DIALECT_MIN_VOTES: fromEnv(z.coerce.number().int().min(1).max(3).default(2)),
+  DIALECT_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(100).max(300_000).default(6000)),
+  DIALECT_TEXT_DETECT: fromEnv(z.stringbool().default(false)),
+  DIALECT_ACTIVE: fromEnv(z.string().trim().default('all')),
 
   // Retrieval
   RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),

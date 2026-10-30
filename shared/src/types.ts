@@ -101,7 +101,7 @@ export interface QueryResponse {
   detectedLanguage: LanguageCode;
   /** Confident dialect identification; null means abstained or not applicable. */
   dialect?: DialectResult | null;
-  /** Up to three suggestions, sent for abstentions and medium confidence. */
+  /** Up to three suggestions, sent for abstentions and medium confidence (or [] for a hint). */
   dialectCandidates?: DialectOption[];
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;

@@ -123,6 +123,19 @@ describe('generateJson', () => {
     });
   });
 
+  it('does not include malformed model output in error messages', async () => {
+    const transcript = 'म्हारो निजी सवाल';
+    setGeminiBackend(fakeGemini(() => transcript));
+    try {
+      await generateJson({ label: 't', input: 'q', schema });
+      throw new Error('expected invalid JSON to reject');
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).not.toContain(transcript);
+      expect((error as Error).message).toContain('Gemini returned invalid JSON');
+    }
+  });
+
   it('reports a missing API key as 503 AI_NOT_CONFIGURED', async () => {
     await expect(generateJson({ label: 't', input: 'q', schema })).rejects.toMatchObject({
       status: 503,

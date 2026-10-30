@@ -411,7 +411,8 @@ function parseJsonOutput(text: string): unknown {
   try {
     return JSON.parse(cleaned);
   } catch {
-    throw new GeminiError('bad_response', `Gemini returned invalid JSON: ${cleaned.slice(0, 200)}`);
+    // Model output may contain a transcript. Keep it out of error messages and retry logs.
+    throw new GeminiError('bad_response', 'Gemini returned invalid JSON');
   }
 }
 

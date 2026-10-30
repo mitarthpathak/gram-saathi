@@ -2,11 +2,10 @@ import type { LanguageCode, QueryResponse } from '@gram-saathi/shared';
 import { env, isMocked } from '../../config/env';
 import { generateJson } from '../../lib/geminiClient';
 import { HttpError } from '../../lib/httpError';
-import { toSupportedLanguage } from '../../lib/languages';
 import { logger } from '../../lib/logger';
 import { mockDetectLanguage, mockTranscribe } from '../../mocks';
-import { detectTextLanguage } from '../chat/language';
 import { answerQuestion } from '../chat/service';
+import { answerLanguageFromTranscription } from '../dialect/language';
 import {
   buildTranscribeInstruction,
   TRANSCRIBE_SYSTEM_PROMPT,
@@ -24,18 +23,30 @@ export interface VoiceQueryInput {
 
 export interface Transcription {
   transcript: string;
-  /** Detected language, mapped to one we answer in (dialects -> base language). */
-  language: LanguageCode;
+  detectedLanguage: string;
+  script: string;
 }
 
 /** Speech -> text, then the same answer pipeline as typed questions. */
 export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryResponse> {
-  const { transcript, language } = await transcribe(input);
+  const { transcript, detectedLanguage } = await transcribe(input);
+  const language = answerLanguageFromTranscription(
+    detectedLanguage,
+    input.language,
+    input.dialectHint,
+  );
   return answerQuestion({
     text: transcript,
     language: input.language,
     dialectHint: input.dialectHint,
     detectedLanguage: language,
+    dialectEvidence: {
+      audio: {
+        data: input.audio.toString('base64'),
+        mimeType: normalizeAudioMimeType(input.mimeType),
+      },
+      text: transcript,
+    },
     sessionId: input.sessionId,
     transcript,
   });
@@ -45,7 +56,13 @@ export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryRes
 export async function transcribe(input: VoiceQueryInput): Promise<Transcription> {
   if (isMocked('voice')) {
     const transcript = mockTranscribe(input.language);
-    return { transcript, language: mockDetectLanguage(transcript, input.language) };
+    const detectedLanguage = mockDetectLanguage(transcript, input.language);
+    const script = /[஀-௿]/.test(transcript)
+      ? 'Tamil'
+      : /[ऀ-ॿ]/.test(transcript)
+        ? 'Devanagari'
+        : 'Latin';
+    return { transcript, detectedLanguage, script };
   }
 
   const result = await generateJson({
@@ -64,20 +81,15 @@ export async function transcribe(input: VoiceQueryInput): Promise<Transcription>
     maxOutputTokens: 1024,
   });
 
-  const transcript = result.transcript.trim();
-  if (!transcript) {
+  if (!result.transcript.trim()) {
     throw new HttpError(
       422,
       'NO_SPEECH_DETECTED',
       'No speech was recognised in the recording. Ask the user to speak again.',
     );
   }
-  const language = toSupportedLanguage(
-    result.detectedLanguage,
-    input.language ?? detectTextLanguage(transcript),
-  );
-  logger.debug(`transcript (${result.detectedLanguage} -> ${language}): ${transcript}`);
-  return { transcript, language };
+  logger.debug('transcribed voice: ' + result.detectedLanguage + ' (' + result.script + ' script)');
+  return result;
 }
 
 const MIME_ALIASES: Record<string, string> = {
