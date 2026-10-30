@@ -47,9 +47,9 @@ export default defineConfig([
     },
   },
 
-  // Root-level config files run in Node.
+  // The server and root-level config files run in Node.
   {
-    files: ['*.{js,mjs,cjs}'],
+    files: ['server/**/*.ts', '*.{js,mjs,cjs}'],
     languageOptions: { globals: globals.node },
   },
 
