@@ -35,3 +35,10 @@
 - Commands run: `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test -w server -- --run test/chat.test.ts test/conversation.test.ts test/voiceConversation.test.ts`; `npm.cmd run build`.
 - Results: the optional `intent` field is typed and documented. Direct replies have no citations, return `fraudWarning: ''`, and map the intent. Grounded and not-found replies preserve the existing source, fraud, SMS, and fixed-text mapping. The pre-existing client change hides fraud warnings for direct responses because they have no sources and are not not-found.
 - Open issues: none for this phase; all focused tests, typecheck, lint, and build passed.
+
+## Phase 5 — dialect plumbing
+
+- Files changed: `docs/RUNBOOK.md`, `docs/DECISIONS.md`.
+- Commands run: inspected `data/dialects/registry.json`, `data/dialects/exemplars/*.jsonl`, client language feature files, and existing `exemplars.ts` selection; `npm.cmd test -w server -- --run test/dialectRegistry.test.ts test/dialect.test.ts`.
+- Results: Braj and Wagdi were already present as experimental Hindi dialect entries, so the registry stayed unchanged. All 14 dialect exemplar files currently contain zero examples; RUNBOOK lists each and suggests 20+ consented native-speaker examples. No client dialect selector exists; the server/API supports a confirmed dialect hint. Text chat now uses the existing consented exemplar store with its configured per-label and token limits.
+- Open issues: dialect samples and automatic classification need native-speaker review; no exemplars were added.
