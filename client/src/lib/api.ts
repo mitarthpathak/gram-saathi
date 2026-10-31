@@ -83,10 +83,11 @@ function postJson<T>(path: string, body: unknown): Promise<T> {
 const httpApi: Api = {
   health: () => request<HealthResponse>('/api/health'),
   chatQuery: (body) => postJson<QueryResponse>('/api/chat/query', body),
-  voiceQuery: ({ audio, language, sessionId }) => {
+  voiceQuery: ({ audio, language, dialectHint, sessionId }) => {
     const form = new FormData();
     form.append('audio', audio, `question.${audio.type.includes('wav') ? 'wav' : 'webm'}`);
     if (language) form.append('language', language);
+    if (dialectHint) form.append('dialectHint', dialectHint);
     form.append('sessionId', sessionId);
     return request<QueryResponse>('/api/voice/query', { method: 'POST', body: form });
   },

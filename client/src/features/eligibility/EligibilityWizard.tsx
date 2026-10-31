@@ -80,6 +80,9 @@ export function EligibilityWizard() {
         // The server restarted (sessions live in memory): starting over is the fix.
         toast.show(t.errorExpired, 'error');
         setPhase({ name: 'intro' });
+      } else if (code === 'ELIGIBILITY_RULES_UNVERIFIED') {
+        toast.show(t.errorUnverified, 'error');
+        setPhase({ name: 'intro' });
       } else {
         // Stay on the same question so the user can simply answer again.
         const unclear = code === 'UNCLEAR_ANSWER' || code === 'INVALID_ANSWER';

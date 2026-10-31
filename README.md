@@ -10,9 +10,11 @@ Also included: an **eligibility check** (3–4 questions tell you which schemes 
 for), a **low-bandwidth mode** with answers saved for offline use, and an **SMS fallback
 preview**.
 
-> **Status: step 1 of 3, the skeleton.** Everything runs end to end on realistic mock data.
-> Real AI (Gemini) comes in step 2 and the vector DB in step 3; look for `TODO(step-2)` /
-> `TODO(step-3)`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-and-todo-markers).
+> **Status: prototype.** The Gemini voice/chat pipeline, retrieval, eligibility, SMS, and mock
+> paths are implemented. Six concise scheme summaries were checked against their linked official
+> sources on 2026-10-31; PMAY-G remains a sample, eligibility rules remain unverified, and dialect
+> exemplars are empty. Ingest the reviewed documents before using live retrieval. Do not present
+> the unverified parts as production-ready.
 
 ## Quick start
 
@@ -20,12 +22,17 @@ Requires **Node 22.22+** (or 24 LTS) and npm 10.
 
 ```bash
 npm install
-cp .env.example .env    # optional: the defaults run everything on mock data
+cp .env.example .env    # optional; set USE_MOCKS=true for a no-key demo
 npm run dev
 ```
 
+`npm run dev` starts **both** the API and the UI. Run it once. If you prefer separate terminals,
+run `npm run dev:server` and `npm run dev:client` instead; do not start a second server workspace
+process, or it will fail with `EADDRINUSE` on port 4000. To preview only the browser-side mock UI,
+set `VITE_USE_MOCKS=true` and run `npm run dev:client`.
+
 - UI: <http://localhost:5173> (open it in your browser's phone emulation)
-- API: <http://localhost:4000/api/health> → `{"status":"ok","mocks":true}`
+- API: <http://localhost:4000/api/health> → `{"status":"ok","mocks":true,"dialectConfigured":false,"ttsConfigured":false}`
 
 ```bash
 curl -s localhost:4000/api/chat/query -H 'Content-Type: application/json' \
@@ -51,18 +58,51 @@ Workspace scripts also work directly, e.g. `npm run dev -w client`.
 
 One `.env` at the repo root is shared by both apps (template: [.env.example](.env.example)).
 
-| Variable             | Used by | Default                 | Notes                                                                        |
-| -------------------- | ------- | ----------------------- | ---------------------------------------------------------------------------- |
-| `GEMINI_API_KEY`     | server  | –                       | Not needed while mocks are on. Never commit it                               |
-| `GEMINI_CHAT_MODEL`  | server  | `gemini-flash-latest`   | Pin an exact model id before the demo                                        |
-| `GEMINI_EMBED_MODEL` | server  | `gemini-embedding-001`  |                                                                              |
-| `USE_MOCKS`          | server  | `true`                  | `true`, `false`, or a list of modules to keep mocked, e.g. `eligibility,sms` |
-| `PORT`               | both    | `4000`                  | API port; the Vite dev proxy follows it                                      |
-| `CLIENT_ORIGIN`      | server  | `http://localhost:5173` | CORS allow-list (comma-separated); add your deployed UI URL                  |
-| `VITE_API_URL`       | client  | empty                   | Empty in dev (proxy). In production: the API origin                          |
-| `VITE_USE_MOCKS`     | client  | `false`                 | `true` = the browser uses `client/src/mocks`, no server needed               |
+| Variable | Default | Purpose |
+|---|---:|---|
+| `GEMINI_API_KEY` | unset | Server-only; required for live Gemini calls. Never commit it. |
+| `GEMINI_CHAT_MODEL` | `gemini-3.8-flash` | Conversation and answer model. |
+| `GEMINI_FALLBACK_MODEL` | `gemini-3.6-flash` | Retry model for temporary primary-model errors; `none` disables fallback. |
+| `GEMINI_AUDIO_MODEL` | chat model | Optional speech-to-text model override. |
+| `GEMINI_EMBED_MODEL` / `GEMINI_EMBED_DIMENSIONS` | `gemini-embedding-2` / `768` | Vector store model and size; changing either requires ingest. |
+| `GEMINI_TTS_MODEL` / `GEMINI_TTS_TIMEOUT_MS` | unset / `15000` | Optional Gemini speech and request timeout. Empty model keeps browser speech. |
+| `USE_MOCKS` | `true` | `true`, `false`, or comma-separated mocked modules. |
+| `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | API port and server CORS allow-list. |
+| `RAG_TOP_K` / `RAG_MIN_SCORE` | `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
+| `DIALECT_*` | see below | Classification, active labels and consented-example limits. |
+| `VITE_API_URL` / `VITE_USE_MOCKS` | empty / `false` | Client API origin and browser-only mocks. Never put secrets in `VITE_*`. |
 
+The remaining server settings cover timeouts/retries, dialect confidence, translation, cache,
+SMS length and rate limits. See the full [environment table in the architecture guide](docs/ARCHITECTURE.md#configuration).
 `VITE_*` values are compiled into the public JavaScript bundle, so never put secrets in them.
+
+### Real API setup and common startup errors
+
+For `USE_MOCKS=false`, add a valid server-only `GEMINI_API_KEY` and build the retrieval index
+with `npm run ingest -w server`. Ingestion accepts only secure official documents marked
+`sample: false` and `verified: true`; PMAY-G remains a sample. Run
+`npm run prewarm -w server` to create the optional offline FAQ cache after the index exists. A
+missing index produces `KNOWLEDGE_BASE_MISSING`; a missing FAQ only disables
+`GET /api/faq/top` and produces `FAQ_NOT_READY`.
+
+`EADDRINUSE` means another server process already owns the configured API port. Stop the extra
+server, then use either the combined root command or the two split commands above. Gemini `503`
+responses are upstream service, account, quota, or availability failures; the server retries
+them, but restarting the UI or generating a local FAQ cannot repair the Gemini service. Check
+the API key, model access, quota, and Google AI service status before retrying. Do not add an
+automatic mock fallback to real answers, since that can make demo content look like sourced
+scheme guidance.
+
+## Known limitations
+
+- Dialect output is best-effort until native speakers review model replies and consented examples.
+  Wagdi speech recognition is expected to be weak with the current data.
+- Dialect text is spoken using its base-language voice (Hindi for Braj/Wagdi). Browser speech
+  voices vary by phone; server Gemini TTS is optional and disabled without `GEMINI_TTS_MODEL`.
+- Six scheme summaries have linked official sources; PMAY-G remains a sample. Eligibility rules
+  remain unverified and the eligibility endpoint is disabled until every rule is verified.
+- The retrieval score default is uncalibrated. Review sources and run calibration/eval before
+  treating live answers as reliable.
 
 ## Project structure
 

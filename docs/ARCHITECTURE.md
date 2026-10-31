@@ -273,7 +273,10 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | `LOG_LEVEL`                     | `debug` (dev), `info` (prod), `error` (tests) | `debug`, `info`, `warn` or `error`; debug shows each Gemini call with timings and token counts            |
 | `GEMINI_API_KEY`                | none                                          | Google AI Studio key. Needed for every real AI call; server only                                          |
 | `GEMINI_CHAT_MODEL`             | `gemini-3.8-flash`                            | Answers, SMS rewrite, eligibility answer reading and translation, query translation                       |
+| `GEMINI_FALLBACK_MODEL`         | `gemini-3.6-flash`                            | Retry model for temporary primary-model errors; `none` disables fallback                                |
 | `GEMINI_AUDIO_MODEL`            | `GEMINI_CHAT_MODEL`                           | Speech-to-text and language identification                                                                |
+| `GEMINI_TTS_MODEL`               | unset                                         | Optional Gemini TTS model; unset keeps browser speech                                                    |
+| `GEMINI_TTS_TIMEOUT_MS`          | `15000`                                       | Deadline for optional server-side speech generation                                                       |
 | `GEMINI_EMBED_MODEL`            | `gemini-embedding-2`                          | Embedding model used by `npm run ingest`; queries always use the model the knowledge base was built with  |
 | `GEMINI_EMBED_DIMENSIONS`       | `768`                                         | Embedding size for ingestion (128–3072)                                                                   |
 | `GEMINI_THINKING_LEVEL`         | `low`                                         | `minimal`, `low`, `medium`, `high`, or `default` (let the model decide). Higher = slower, more careful    |

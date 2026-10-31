@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "createdAt": "2026-10-31T00:40:17.651Z",
+  "createdAt": "2026-10-31T04:01:08.614Z",
   "embedModel": "gemini-embedding-2",
   "dimensions": 768,
-  "sourceFingerprint": "b5a3948317424543",
+  "sourceFingerprint": "94964a0a8624ab95",
   "chunking": {
     "targetTokens": 600,
     "maxTokens": 800,

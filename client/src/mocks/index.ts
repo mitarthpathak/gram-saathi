@@ -18,7 +18,14 @@ import {
   type MockAnswers,
 } from './eligibility';
 import { mockTopFaq } from './faq';
-import { mockDetectLanguage, mockGenerateAnswer, mockSearchSchemes, mockTranscribe } from './query';
+import {
+  mockDetectLanguage,
+  mockGenerateAnswer,
+  mockGreeting,
+  mockSmallTalk,
+  mockSearchSchemes,
+  mockTranscribe,
+} from './query';
 
 // Same text as server/src/modules/chat/fraudWarning.ts.
 const FRAUD_WARNINGS: Record<LanguageCode, string> = {
@@ -38,14 +45,21 @@ function answer(
   hint: LanguageCode | undefined,
   sessionId: string,
   transcript?: string,
+  dialectHint?: string,
 ) {
-  const language = mockDetectLanguage(text, hint);
+  const language = mockDetectLanguage(text, hint, dialectHint);
+  const greeting = mockGreeting(text, language);
+  const smallTalk = greeting ? undefined : mockSmallTalk(text, language);
   const cacheKey = `${language}:${text.toLowerCase().trim()}`;
-  const usedCache = askedBefore.has(cacheKey);
-  askedBefore.add(cacheKey);
+  const usedCache = !greeting && !smallTalk && askedBefore.has(cacheKey);
+  if (!greeting && !smallTalk) askedBefore.add(cacheKey);
 
-  const chunks = mockSearchSchemes(text, 3);
-  const generated = mockGenerateAnswer(chunks, language);
+  const chunks = greeting || smallTalk ? [] : mockSearchSchemes(text, 3);
+  const generated = greeting
+    ? { answer: greeting.answer, smsText: greeting.sms, notFound: false }
+    : smallTalk
+      ? { answer: smallTalk.answer, smsText: smallTalk.sms, notFound: false }
+      : mockGenerateAnswer(chunks, language);
   const response: QueryResponse = {
     sessionId,
     transcript,
@@ -87,11 +101,12 @@ function questionAt(step: number, language: LanguageCode): EligibilityStartRespo
 export const mockApi: Api = {
   health: () => delay({ status: 'ok', mocks: true }),
 
-  chatQuery: ({ text, language, sessionId }) => answer(text, language, sessionId),
+  chatQuery: ({ text, language, dialectHint, sessionId }) =>
+    answer(text, language, sessionId, undefined, dialectHint),
 
-  voiceQuery: ({ language, sessionId }) => {
+  voiceQuery: ({ language, dialectHint, sessionId }) => {
     const transcript = mockTranscribe(language);
-    return answer(transcript, language, sessionId, transcript);
+    return answer(transcript, language, sessionId, transcript, dialectHint);
   },
 
   eligibilityStart: ({ sessionId, language }) => {

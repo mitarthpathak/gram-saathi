@@ -102,6 +102,3 @@ the API accepts a confirmed `dialectHint`. Exemplar prompts respect
   native audio and consented examples are available.
 - Browser voices vary by phone. Server Gemini TTS is optional; dialect text uses its base-language
   voice (Hindi for Braj/Wagdi).
-- README has owner edits in the starting working tree and was left untouched under the repo's
-  preservation rule. Check the limitations and configuration section against this runbook before
-  using README as the operational reference.

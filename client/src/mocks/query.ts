@@ -63,6 +63,7 @@ interface MockAnswer {
   sms: string;
 }
 
+
 const ANSWERS: Record<Topic | 'notFound', Record<LanguageCode, MockAnswer>> = {
   pmKisan: {
     en: {
@@ -161,14 +162,183 @@ const TOPIC_KEYWORDS: [Topic, RegExp][] = [
   ['pmKisan', /kisan|किसान|शेतकरी|கிசான்|விவசாய|farmer|किस्त|हप्ता|தவணை|instal/i],
 ];
 
-/** Script-based guess: Tamil script → ta, Devanagari → hi or mr (Marathi marker words), else the hint. */
-export function mockDetectLanguage(text: string, hint?: LanguageCode): LanguageCode {
+const GREETING_ANSWERS: Record<LanguageCode, MockAnswer> = {
+  en: {
+    answer: 'Hi! What would you like to know about a government scheme?',
+    sms: 'Hi! What would you like to know?',
+  },
+  hi: {
+    // TODO(review-native): have a native Hindi speaker review this greeting.
+    answer: 'नमस्ते! सरकारी योजना के बारे में क्या जानना चाहेंगे?',
+    sms: 'नमस्ते! सरकारी योजना के बारे में पूछें।',
+  },
+  mr: {
+    // TODO(review-native): have a native Marathi speaker review this greeting.
+    answer: 'नमस्कार! सरकारी योजनेबद्दल काय जाणून घ्यायचे आहे?',
+    sms: 'नमस्कार! सरकारी योजनेबद्दल विचारा.',
+  },
+  ta: {
+    // TODO(review-native): have a native Tamil speaker review this greeting.
+    answer: 'வணக்கம்! அரசுத் திட்டம் பற்றி என்ன தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
+    sms: 'வணக்கம்! அரசுத் திட்டம் பற்றி கேளுங்கள்.',
+  },
+};
+
+const GREETING_PHRASES = new Set([
+  'hi',
+  'hi there',
+  'hello',
+  'hello there',
+  'hey',
+  'hey there',
+  'good morning',
+  'good afternoon',
+  'good evening',
+  'namaste',
+  'namaskar',
+  'namaskaar',
+  'namaskara',
+  'pranam',
+  'vanakkam',
+  'vanakkangal',
+  'khamma ghani',
+  'johar',
+  'ram ram sa',
+  'radhe radhe',
+  'नमस्ते',
+  'नमस्कार',
+  'प्रणाम',
+  'राम राम',
+  'राधे राधे',
+  'खम्मा घणी',
+  'हेलो',
+  'हैलो',
+  'हाय',
+  'வணக்கம்',
+  'வணக்கங்கள்',
+  'ஹலோ',
+  'ஹாய்',
+]);
+
+export function mockGreeting(text: string, language: LanguageCode): MockAnswer | undefined {
+  const normalized = text
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[\p{P}\p{S}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!GREETING_PHRASES.has(normalized)) return undefined;
+  return GREETING_ANSWERS[language];
+}
+
+export function mockSmallTalk(
+  text: string,
+  language: LanguageCode,
+): MockAnswer | undefined {
+  const normalized = text
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[?!.,।]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const asksWhereFrom =
+    /\bwhere are you from\b/.test(normalized) ||
+    /\b(?:kaha|kahaan|kahan)\s+se\s+(?:ho|hain|hai)\b/.test(normalized) ||
+    /\b(?:kaha|kahaan|kahan)\s+ke\s+ho\b/.test(normalized) ||
+    /कहाँ\s+से\s+(?:हो|हैं|है)/.test(normalized) ||
+    /आप\s+कहाँ\s+के\s+हो/.test(normalized);
+  if (!asksWhereFrom) return undefined;
+  const replies: Record<LanguageCode, string> = {
+    en: "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
+    hi: GREETING_ANSWERS.hi.answer,
+    mr: GREETING_ANSWERS.mr.answer,
+    ta: GREETING_ANSWERS.ta.answer,
+  };
+  return { answer: replies[language], sms: replies[language] };
+}
+
+/** Script and marker-word guess; a selected dialect hint overrides language detection. */
+export function mockDetectLanguage(
+  text: string,
+  hint?: LanguageCode,
+  dialectHint?: string,
+): LanguageCode {
+  const dialectLanguage: Partial<Record<string, LanguageCode>> = {
+    varhadi: 'mr',
+    marwari: 'hi',
+    dhundhari: 'hi',
+    shekhawati: 'hi',
+    bagri: 'hi',
+    mewari: 'hi',
+    mewati: 'hi',
+    harauti: 'hi',
+    malvi: 'hi',
+    wagdi: 'hi',
+    braj: 'hi',
+    haryanvi: 'hi',
+    bhojpuri: 'hi',
+    awadhi: 'hi',
+    bundeli: 'hi',
+  };
+  if (dialectHint && dialectLanguage[dialectHint]) return dialectLanguage[dialectHint]!;
   if (/[஀-௿]/.test(text)) return 'ta';
   if (/[ऀ-ॿ]/.test(text)) {
-    return /ळ|आहे|काय|मला|किती|कसे|नाही|आणि|योजनेत/.test(text) ? 'mr' : 'hi';
+    if (/ळ|आहे|काय|मला|किती|कसे|नाही|आणि|योजनेत/.test(text)) return 'mr';
+    return hint === 'mr' ? 'mr' : 'hi';
   }
-  // Latin script: English, or romanised Hindi/Marathi/Tamil typed by someone using that UI language.
-  return hint ?? 'en';
+  const tokens: string[] = text.toLowerCase().match(/[a-z]+/g) ?? [];
+  const joined = tokens.join(' ');
+  if (
+    [
+      'hi',
+      'hello',
+      'hey',
+      'hi there',
+      'hello there',
+      'hey there',
+      'good morning',
+      'good afternoon',
+      'good evening',
+    ].some((greeting) => greeting === joined)
+  ) {
+    return 'en';
+  }
+  if (
+    ['vanakkam', 'vanakkangal'].some((word) => word === joined) ||
+    ['enna', 'eppadi', 'thittam', 'panam', 'kidaikkum'].some((word) => tokens.includes(word))
+  ) {
+    return 'ta';
+  }
+  if (
+    ['namaste', 'pranam', 'ram ram', 'ram ram sa', 'radhe radhe', 'khamma ghani', 'johar'].some(
+      (word) => word === joined,
+    )
+  ) {
+    return 'hi';
+  }
+  if (['namaskar', 'namaskaar', 'namaskara'].some((word) => word === joined)) {
+    return hint === 'mr' ? 'mr' : 'hi';
+  }
+  const hindi = [
+    'hai', 'hain', 'kya', 'kaise', 'kitna', 'mujhe', 'nahi', 'yojana', 'batao',
+    'ki', 'kaha', 'kahaan', 'kahan', 'se', 'ho',
+  ];
+  const marathi = ['ahe', 'aahe', 'kay', 'mala', 'kiti', 'sathi', 'kuthe', 'ani'];
+  const english = ['the', 'is', 'are', 'what', 'how', 'who', 'can', 'apply', 'eligible', 'scheme'];
+  const scores = [
+    ['hi', hindi],
+    ['mr', marathi],
+    ['en', english],
+  ] as const;
+  const ranked = scores.map(([language, words]) => ({
+    language,
+    score: tokens.filter((token) => (words as readonly string[]).includes(token)).length,
+  }));
+  const best = Math.max(...ranked.map(({ score }) => score));
+  if (best === 0) return hint ?? 'en';
+  const leaders = ranked.filter(({ score }) => score === best).map(({ language }) => language);
+  if (hint && leaders.includes(hint as (typeof leaders)[number])) return hint;
+  return leaders[0];
 }
 
 export function mockSearchSchemes(query: string, topK: number): RetrievedChunk[] {

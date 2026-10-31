@@ -39,9 +39,9 @@
 
 ## Existing working-tree changes and README
 
-- **Decision:** Preserve the owner's pre-existing uncommitted edits in README, client files, `.env.example`, and scheme data. Do not stage those files as part of this branch's documentation commits.
-- **Alternatives considered:** Rewrite README and stage only intended hunks; temporarily stash or commit the owner's changes.
-- **Why:** The task explicitly says to leave unrelated starting-tree changes untouched. The current README still needs an owner review against `RUNBOOK.md` for the limitations, current TTS behavior, and complete environment table. The operational details are documented here without overwriting that working copy.
+- **Decision:** Preserve the owner's pre-existing edits until the owner explicitly requested “push everything”; then include the staged client/config/data edits in a follow-up commit. Corrected client mock replies to use the existing native-script fixtures, and reconciled README/report statements with the reviewed sources and current runbook.
+- **Alternatives considered:** Leave the staged changes uncommitted or commit them without checking native-script output and source provenance.
+- **Why:** The later explicit instruction authorizes committing the owner's work. The output-script and scheme-source rules still apply, so the mock output was kept native-script and the six modified scheme summaries received official source URLs/access dates. PMAY-Gramin remains unverified.
 
 ## Health capability fields
 

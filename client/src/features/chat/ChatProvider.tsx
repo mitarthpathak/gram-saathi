@@ -99,9 +99,11 @@ function errorText(error: unknown, t: (typeof chatStrings)['en']): string {
     case 'AI_TIMEOUT':
     case 'AI_ERROR':
       return t.errorBusy;
-    case 'AI_NOT_CONFIGURED':
     case 'KNOWLEDGE_BASE_MISSING':
+    case 'KNOWLEDGE_BASE_UNVERIFIED':
       return t.errorSetup;
+    case 'AI_NOT_CONFIGURED':
+      return t.errorAiConfig;
   }
   // 413: too long for the server (10 MB) or for the hosting platform's request limit.
   return error.status === 413 ? t.errorTooLong : t.errorGeneric;

@@ -116,7 +116,9 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
           </Link>
         </div>
         <SourceList sources={response.sources} />
-        <FraudWarning text={response.fraudWarning} />
+        {(response.notFound || response.sources.length > 0) && (
+          <FraudWarning text={response.fraudWarning} />
+        )}
       </div>
     </article>
   );

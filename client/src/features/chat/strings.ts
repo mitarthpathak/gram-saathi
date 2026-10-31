@@ -21,7 +21,8 @@ const en = {
   errorOffline: 'No internet connection. Try again, or open saved answers in the SMS tab.',
   errorNoSpeech: 'I could not hear anything. Hold the button and speak a little louder.',
   errorBusy: 'The assistant is busy right now. Please try again in a moment.',
-  errorSetup: 'The service is still being set up. Please try again later.',
+  errorSetup: 'Official scheme documents are not loaded yet. Please try again later.',
+  errorAiConfig: 'The answer service is not configured yet. Please try again later.',
   errorTooLong: 'That recording was too long. Please ask a shorter question.',
 };
 
@@ -48,7 +49,10 @@ export const chatStrings: Strings<typeof en> = {
     errorOffline: 'इंटरनेट नहीं है। फिर से कोशिश करें, या SMS टैब में सहेजे गए जवाब देखें।',
     errorNoSpeech: 'कुछ सुनाई नहीं दिया। बटन दबाकर थोड़ा ज़ोर से बोलें।',
     errorBusy: 'सहायक अभी व्यस्त है। थोड़ी देर में फिर से कोशिश करें।',
-    errorSetup: 'सेवा अभी तैयार हो रही है। कृपया बाद में कोशिश करें।',
+    // TODO(review-native): review this setup message with a native Hindi speaker.
+    errorSetup: 'योजना के आधिकारिक दस्तावेज़ अभी उपलब्ध नहीं हैं। कृपया बाद में फिर कोशिश करें।',
+    // TODO(review-native): review this setup message with a native Hindi speaker.
+    errorAiConfig: 'जवाब देने वाली सेवा अभी तैयार नहीं है। कृपया थोड़ी देर बाद कोशिश करें।',
     errorTooLong: 'रिकॉर्डिंग बहुत लंबी थी। कृपया छोटा सवाल पूछें।',
   },
   mr: {
@@ -72,7 +76,10 @@ export const chatStrings: Strings<typeof en> = {
     errorOffline: 'इंटरनेट नाही. पुन्हा प्रयत्न करा, किंवा SMS टॅबमधील जतन केलेली उत्तरे पहा.',
     errorNoSpeech: 'काहीच ऐकू आले नाही. बटण दाबून थोडे मोठ्याने बोला.',
     errorBusy: 'सहाय्यक सध्या व्यस्त आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.',
-    errorSetup: 'सेवा अजून तयार होत आहे. कृपया नंतर प्रयत्न करा.',
+    // TODO(review-native): review this setup message with a native Marathi speaker.
+    errorSetup: 'योजनेची अधिकृत कागदपत्रे अजून उपलब्ध नाहीत. कृपया नंतर पुन्हा प्रयत्न करा.',
+    // TODO(review-native): review this setup message with a native Marathi speaker.
+    errorAiConfig: 'उत्तर देणारी सेवा अजून तयार नाही. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.',
     errorTooLong: 'रेकॉर्डिंग खूप मोठे होते. कृपया छोटा प्रश्न विचारा.',
   },
   ta: {
@@ -97,7 +104,11 @@ export const chatStrings: Strings<typeof en> = {
       'இணைய இணைப்பு இல்லை. மீண்டும் முயற்சிக்கவும், அல்லது SMS பகுதியில் சேமித்த பதில்களைப் பாருங்கள்.',
     errorNoSpeech: 'எதுவும் கேட்கவில்லை. பொத்தானை அழுத்தி சற்று சத்தமாகப் பேசுங்கள்.',
     errorBusy: 'உதவியாளர் இப்போது பிஸியாக உள்ளது. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
-    errorSetup: 'சேவை இன்னும் தயாராகிறது. பிறகு முயற்சிக்கவும்.',
+    // TODO(review-native): review this setup message with a native Tamil speaker.
+    errorSetup:
+      'அதிகாரப்பூர்வ திட்ட ஆவணங்கள் இன்னும் கிடைக்கவில்லை. பிறகு மீண்டும் முயற்சிக்கவும்.',
+    // TODO(review-native): review this setup message with a native Tamil speaker.
+    errorAiConfig: 'பதில் வழங்கும் சேவை இன்னும் தயாராகவில்லை. சிறிது நேரம் கழித்து முயற்சிக்கவும்.',
     errorTooLong: 'பதிவு மிக நீளமாக இருந்தது. சுருக்கமான கேள்வி கேளுங்கள்.',
   },
 };
