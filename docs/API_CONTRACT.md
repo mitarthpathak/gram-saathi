@@ -92,7 +92,8 @@ try again" (also `RATE_LIMITED`); `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and 
 
 `mocks` is `true` when any module serves mock data. The UI shows a "demo data" badge.
 `dialectConfigured` and `ttsConfigured` are booleans indicating whether the respective
-non-mocked feature has its required Gemini credentials/configuration. They never expose secrets.
+non-mocked feature has its required Gemini credentials/configuration (`ttsConfigured` is also
+false when `GEMINI_TTS_MODEL=none`). They never expose secrets.
 They are optional for compatibility with older servers and local mock fixtures.
 
 ---
@@ -424,13 +425,45 @@ The answers are generated ahead of time from `data/faq/questions.json` by
 ```
 
 ```json
-{ "audioUrl": null }
+{ "text": "<dialect-worded answer>", "language": "hi", "dialectId": "braj" }
 ```
 
-Optional. With no configured TTS model or when the provider fails, `audioUrl` is `null` and
-the client uses browser speech synthesis. When available, the server returns a WAV `data:` URL.
-`text` is 1–2000 characters. The endpoint uses the shared AI rate limiter. Dialect text is
-spoken with the selected base-language voice; browser voice availability varies by phone.
+```json
+{ "audioUrl": "data:audio/wav;base64,UklGR...", "basis": "base-language-approximation" }
+```
+
+```json
+{ "audioUrl": null, "basis": "none" }
+```
+
+| Field (request) | Type           | Notes                                                                                                                                   |
+| --------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`          | string         | 1–2000 characters, spoken as written. Markdown markers and emoji are removed; nothing is added.                                          |
+| `language`      | `LanguageCode` | Picks the voice. The TTS model itself detects the language from the text.                                                               |
+| `dialectId`     | string?        | Registry id (`GET /api/dialects`); unknown ids → `400 VALIDATION_ERROR`. Send it **only** when `text` is dialect-worded (`answerStyle.rendered === 'dialect'`). Ignored when the dialect belongs to another language. |
+
+| Field (response) | Type            | Notes                                                                 |
+| ---------------- | --------------- | --------------------------------------------------------------------- |
+| `audioUrl`       | string \| null | A WAV `data:` URL, or `null`: use browser speech synthesis.           |
+| `basis`          | `TtsBasis`?     | What the audio is based on (below). Older servers omit it.            |
+
+`basis` values (honest labels for the UI):
+
+| Value                         | Meaning                                                                                                                                                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `language`                    | No dialect: the text's language, spoken with that language's configured voice.                                                                                                           |
+| `named-dialect`               | The Gemini TTS language table names this dialect itself (registry: Bhojpuri, Awadhi). Speech uses the dialect TTS model. Whether it sounds right is unreviewed until a native speaker listens. |
+| `base-language-approximation` | The dialect is not named by the TTS model (e.g. Braj, Marwari, Wagdi): dialect-worded text spoken by a voice for the parent language. Not a dialect accent.                                |
+| `none`                        | No server audio (mock mode, no key, `GEMINI_TTS_MODEL=none`, provider error or timeout, audio over the size cap).                                                                         |
+
+Behaviour: mock mode (`USE_MOCKS` including `tts`) always returns `{ "audioUrl": null, "basis": "none" }`
+and makes no provider call. In real mode the server calls Gemini TTS (`GEMINI_TTS_MODEL`, or
+`GEMINI_TTS_DIALECT_MODEL` when a dialect applies) with the voice from
+`server/src/config/tts-voices.json`. Answers longer than `TTS_MAX_CHARS` are split at sentence
+ends and joined into one WAV. Audio whose data URL would exceed about 3 MB (roughly 70 s at
+16 kHz, 47 s at 24 kHz) is dropped (`null`). Results are cached in memory per process. Every
+failure returns `null` rather than an error, so the client can always fall back to browser speech;
+only invalid requests get `400`. The endpoint uses the shared AI rate limiter.
 
 ---
 
@@ -467,3 +500,4 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 | 2       | No type changes. Eligibility answers may be free-form text (`422 UNCLEAR_ANSWER` if unreadable); questions come from data and may be skipped, so `progress.total` can shrink. `detectedLanguage` is always a `LanguageCode`. New error codes: `NO_SPEECH_DETECTED`, `UNCLEAR_ANSWER`, `AI_*`, `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY`, `RATE_LIMITED` (per-IP limit on the AI endpoints). |
 | 3       | Add optional dialect results and candidates, dialect hints, and `GET /api/dialects`. Dialect ids map to parent answer languages; voice transcripts remain verbatim.                                                                                                                                                                                                                         |
 | 4       | Additive: optional `answerStyle` on query responses (dialect rewording status and reason). No existing field changed.                                                                                                                                                                                                                                                                        |
+| 5       | Additive: optional `TtsRequest.dialectId` and `TtsResponse.basis` (`TtsBasis`). `POST /api/tts` now returns server speech by default in real mode (`GEMINI_TTS_MODEL` defaults to a TTS model; `none` disables it). No existing field changed.                                                                                                                                                 |

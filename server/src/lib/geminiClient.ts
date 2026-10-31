@@ -237,9 +237,128 @@ export interface EmbedRequest {
   timeoutMs: number;
 }
 
+/** One text-to-speech call (https://ai.google.dev/gemini-api/docs/speech-generation). */
+export interface SpeechRequest {
+  model: string;
+  /** Read verbatim: never prepend instructions, they would be read aloud. */
+  text: string;
+  /** Prebuilt voice name (e.g. "Kore") or a voice id from the voice library. */
+  voice: string;
+  /** Optional speech_metadata.style for the whole turn. */
+  style?: string;
+  sampleRate: number;
+  timeoutMs: number;
+}
+
+export interface SpeechResult {
+  audio: Buffer;
+  /** e.g. "audio/wav"; raw PCM is reported as "audio/l16". */
+  mimeType: string;
+}
+
 export interface GeminiBackend {
   generate(request: GenerateRequest): Promise<GenerateResult>;
   embed(request: EmbedRequest): Promise<number[][]>;
+  /** Optional so older fakes keep compiling; without it server speech is unavailable. */
+  synthesize?(request: SpeechRequest): Promise<SpeechResult>;
+}
+
+const GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+
+/** The documented request body for single-speaker speech (Interactions API, REST shape). */
+export function speechRequestBody(request: SpeechRequest): Record<string, unknown> {
+  return {
+    model: request.model,
+    input: [
+      {
+        type: 'user_input',
+        content: [
+          {
+            type: 'text',
+            text: request.text,
+            ...(request.style && {
+              annotations: [{ type: 'speech_metadata', style: request.style }],
+            }),
+          },
+        ],
+      },
+    ],
+    response_format: { type: 'audio', mime_type: 'audio/wav', sample_rate: request.sampleRate },
+    generation_config: { speech_config: [{ voice: request.voice }] },
+  };
+}
+
+/** Audio from an Interactions response: `output_audio` (SDK shape) or a `steps[].content[]` audio block (REST). */
+export function extractSpeechAudio(
+  payload: unknown,
+): { data: string; mimeType?: string } | undefined {
+  if (typeof payload !== 'object' || payload === null) return undefined;
+  const object = payload as Record<string, unknown>;
+  const block = (value: unknown) => {
+    if (typeof value !== 'object' || value === null) return undefined;
+    const item = value as Record<string, unknown>;
+    const data = item.data;
+    if (typeof data !== 'string' || data.length === 0) return undefined;
+    const mimeType =
+      typeof item.mime_type === 'string'
+        ? item.mime_type
+        : typeof item.mimeType === 'string'
+          ? item.mimeType
+          : undefined;
+    return { data, mimeType };
+  };
+  const direct = block(object.output_audio);
+  if (direct) return direct;
+  if (!Array.isArray(object.steps)) return undefined;
+  for (const step of object.steps) {
+    if (typeof step !== 'object' || step === null) continue;
+    const content = (step as Record<string, unknown>).content;
+    if (!Array.isArray(content)) continue;
+    for (const item of content) {
+      if (
+        typeof item === 'object' &&
+        item !== null &&
+        (item as Record<string, unknown>).type === 'audio'
+      ) {
+        const found = block(item);
+        if (found) return found;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * POST /v1beta/interactions for speech. Exported (with an injectable fetch) so tests can check the
+ * request and error mapping without the SDK.
+ */
+export async function synthesizeViaRest(
+  apiKey: string,
+  request: SpeechRequest,
+  fetcher: typeof fetch = fetch,
+): Promise<SpeechResult> {
+  const response = await fetcher(GEMINI_INTERACTIONS_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify(speechRequestBody(request)),
+    signal: AbortSignal.timeout(request.timeoutMs),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    // Shaped like an SDK error so classifyGeminiError maps it (429, 5xx, other 4xx, auth).
+    throw Object.assign(new Error(`TTS HTTP ${response.status}: ${body.slice(0, 300)}`), {
+      status: response.status,
+      headers: response.headers,
+    });
+  }
+  const payload: unknown = await response.json();
+  const status = (payload as { status?: unknown }).status;
+  if (typeof status === 'string' && status !== 'completed') {
+    throw new GeminiError('bad_response', `TTS interaction ended with status "${status}"`);
+  }
+  const audio = extractSpeechAudio(payload);
+  if (!audio) throw new GeminiError('blocked', 'Gemini returned no audio');
+  return { audio: Buffer.from(audio.data, 'base64'), mimeType: audio.mimeType ?? 'audio/wav' };
 }
 
 function createSdkBackend(apiKey: string): GeminiBackend {
@@ -317,6 +436,9 @@ function createSdkBackend(apiKey: string): GeminiBackend {
       }
       return vectors;
     },
+
+    // Speech uses the documented REST shape directly, so it does not depend on SDK typings.
+    synthesize: (request) => synthesizeViaRest(apiKey, request),
   };
 }
 
@@ -330,7 +452,7 @@ let backend: GeminiBackend | undefined;
 export interface GeminiCallRecord {
   /** Caller label, e.g. "conversation", "answer", "sms", "transcribe", "dialect-…", "embed". */
   label: string;
-  kind: 'generate' | 'embed';
+  kind: 'generate' | 'embed' | 'speech';
   model: string;
   startedAt: number;
   durationMs: number;
@@ -591,4 +713,47 @@ export function formatForEmbedding(
   return kind === 'query'
     ? `task: question answering | query: ${text}`
     : `title: ${title ?? 'none'} | text: ${text}`;
+}
+
+// ---------------------------------------------------------------------------
+// Speech
+// ---------------------------------------------------------------------------
+
+export interface SynthesizeOptions extends Omit<SpeechRequest, 'timeoutMs'> {
+  timeoutMs: number;
+  maxRetries?: number;
+}
+
+/**
+ * Text-to-speech with the same retries, typed errors, concurrency cap and observer as the other
+ * Gemini calls. The timeout is enforced here too, so a backend that never answers cannot hang.
+ */
+export async function synthesizeAudio(options: SynthesizeOptions): Promise<SpeechResult> {
+  const client = getBackend();
+  const synthesize = client.synthesize?.bind(client);
+  if (!synthesize)
+    throw new GeminiError('not_configured', 'This Gemini backend has no speech support.');
+  const { maxRetries, ...request } = options;
+  return withRetries(
+    () =>
+      withGeminiConcurrency('answer', () =>
+        observed(
+          { label: 'tts', kind: 'speech', model: request.model, inputText: request.text },
+          () => {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            const timeout = new Promise<never>((_, reject) => {
+              timer = setTimeout(
+                () =>
+                  reject(
+                    new GeminiError('timeout', `TTS did not answer within ${request.timeoutMs} ms`),
+                  ),
+                request.timeoutMs,
+              );
+            });
+            return Promise.race([synthesize(request), timeout]).finally(() => clearTimeout(timer));
+          },
+        ),
+      ),
+    { label: 'tts', maxRetries },
+  );
 }

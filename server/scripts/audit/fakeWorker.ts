@@ -41,6 +41,8 @@ const FAKE_ANSWER =
 interface Scenario {
   transcript: string;
   failWith?: Record<string, unknown>;
+  /** Makes the fake speech call fail like this (e.g. { status: 503 }). */
+  ttsFailWith?: Record<string, unknown>;
 }
 const scenario: Scenario = { transcript: QUESTION_HI };
 
@@ -121,7 +123,24 @@ const fakeBackend: GeminiBackend = {
     await delay();
     return request.texts.map(topicVector);
   },
+  async synthesize(request) {
+    await delay();
+    if (scenario.ttsFailWith)
+      throw Object.assign(new Error('fake TTS failure'), scenario.ttsFailWith);
+    // Roughly 15 characters per second of (silent) audio, at the requested rate.
+    const ms = Math.max(300, Math.round((request.text.length / 15) * 1000));
+    return { audio: silentWav(ms, request.sampleRate), mimeType: 'audio/wav' };
+  },
 };
+
+/** Server speech settings for the fake worker (its env has no key, so they are passed in). */
+const FAKE_TTS = {
+  mocked: false,
+  apiKey: 'fake-key',
+  model: 'fake-tts-lite',
+  dialectModel: 'fake-tts-flash',
+  maxRetries: 0,
+} as const;
 
 async function installFakeKnowledgeBase(): Promise<void> {
   const chunk: DocumentChunk = {
@@ -313,21 +332,62 @@ async function stageI(transport: Transport): Promise<StageResult> {
     );
     setGeminiBackend(fakeBackend);
 
+    const ttsSpeech = await synthesizeSpeech({ text: FAKE_ANSWER, language: 'hi' }, FAKE_TTS);
+    checks.push({
+      id: 'I-tts-ok',
+      title: 'Server speech returns a WAV data URL (fake provider)',
+      status:
+        ttsSpeech.audioUrl?.startsWith('data:audio/wav;base64,') && ttsSpeech.basis === 'language'
+          ? 'PASS'
+          : 'FAIL',
+      detail: `audioUrl ${ttsSpeech.audioUrl ? `data URL of ${ttsSpeech.audioUrl.length} chars` : 'null'}, basis ${ttsSpeech.basis}. Proves the plumbing only: the provider is fake, so nothing here says the voice is right.`,
+      evidence: ['server/src/modules/tts/service.ts', 'scripts/audit/fakeWorker.ts'],
+    });
+
+    const basisCases = [
+      { dialectId: 'bhojpuri', expected: 'named-dialect' },
+      { dialectId: 'braj', expected: 'base-language-approximation' },
+    ] as const;
+    const bases = [];
+    for (const item of basisCases) {
+      const result = await synthesizeSpeech(
+        { text: FAKE_ANSWER, language: 'hi', dialectId: item.dialectId },
+        FAKE_TTS,
+      );
+      bases.push({ ...item, got: result.basis });
+    }
+    checks.push({
+      id: 'I-tts-basis',
+      title: 'Speech basis is reported honestly for named and unnamed dialects',
+      status: bases.every((item) => item.got === item.expected) ? 'PASS' : 'FAIL',
+      detail: bases.map((item) => `${item.dialectId}: ${item.got} (expected ${item.expected})`).join('; '),
+      evidence: ['server/src/modules/tts/service.ts', 'server/src/config/dialect-render.json'],
+    });
+
+    scenario.ttsFailWith = { status: 503 };
     const ttsFailure = await synthesizeSpeech(
       { text: 'नमस्ते', language: 'hi' },
-      {
-        fetcher: async () => new Response('unavailable', { status: 503 }),
-        model: 'fake-tts',
-        apiKey: 'fake-key',
-      },
+      { ...FAKE_TTS, model: 'fake-tts-failing' },
     );
+    scenario.ttsFailWith = undefined;
     checks.push({
       id: 'I-tts-provider-error',
       title: 'TTS provider error falls back to browser speech',
-      status: ttsFailure.audioUrl === null ? 'PASS' : 'FAIL',
-      detail: `synthesizeSpeech with a provider answering 503 returned audioUrl ${ttsFailure.audioUrl === null ? 'null (client uses browser speech)' : 'non-null'}.`,
+      status: ttsFailure.audioUrl === null && ttsFailure.basis === 'none' ? 'PASS' : 'FAIL',
+      detail: `synthesizeSpeech with a provider answering 503 returned audioUrl ${ttsFailure.audioUrl === null ? 'null (client uses browser speech)' : 'non-null'}, basis ${ttsFailure.basis}.`,
       evidence: ['server/src/modules/tts/service.ts'],
     });
+
+    checks.push(
+      expectError(
+        'I-tts-unknown-dialect',
+        'POST /api/tts with an unknown dialectId',
+        await transport.tts({ text: 'नमस्ते', language: 'hi', dialectId: 'not-a-dialect' }),
+        400,
+        'VALIDATION_ERROR',
+        via,
+      ),
+    );
 
     checks.push({
       id: 'I-ui-path',
@@ -397,28 +457,20 @@ async function stageJShape(transport: Transport, calls: GeminiCallRecord[]): Pro
         { bytes: silentWav(1000), mimeType: 'audio/wav', fileName: 'q.wav' },
       ),
     );
-    let ttsCalls = 0;
-    await measure('J-shape-tts', 'Listen (server speech)', async () => {
-      await synthesizeSpeech(
-        { text: 'नमस्ते', language: 'hi' },
-        {
-          fetcher: async () => {
-            ttsCalls += 1;
-            return new Response(JSON.stringify({ output_audio: { data: 'AQID' } }), {
-              status: 200,
-            });
-          },
-          model: 'fake-tts',
-          apiKey: 'fake-key',
-        },
+    await measure('J-shape-tts', 'Listen (server speech, one piece)', async () => {
+      const result = await synthesizeSpeech(
+        { text: FAKE_ANSWER, language: 'hi' },
+        { ...FAKE_TTS, model: 'fake-tts-shape' },
       );
-      return { status: 200 };
+      return { status: result.audioUrl ? 200 : 502 };
     });
-    const tts = checks.at(-1);
-    if (tts && tts.id === 'J-shape-tts' && ttsCalls > 0 && (tts.data?.calls ?? 0) === 0) {
-      tts.detail = `${ttsCalls} provider call(s) made with fetch outside the Gemini client (not counted by the call observer), 1 sequential. Within the budget.`;
-      tts.data = { calls: ttsCalls, sequential: 1, labels: { 'tts (fetch)': ttsCalls } };
-    }
+    await measure('J-shape-tts-long', 'Listen on a long answer (split into pieces)', async () => {
+      const result = await synthesizeSpeech(
+        { text: `${FAKE_ANSWER} ${FAKE_ANSWER} ${FAKE_ANSWER}`, language: 'hi' },
+        { ...FAKE_TTS, model: 'fake-tts-shape-long', maxChars: 200 },
+      );
+      return { status: result.audioUrl ? 200 : 502 };
+    });
     return { checks };
   });
 }

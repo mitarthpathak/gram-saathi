@@ -191,6 +191,20 @@ export function stageB(ctx: WorkerContext): Promise<StageResult> {
           return `audio returned (${Math.round(result.audioUrl.length / 1024)} KB data URL)`;
         },
       );
+    if (!isMocked('tts') && env.GEMINI_TTS_DIALECT_MODEL.toLowerCase() !== 'none') {
+      await modelCheck(
+        'B-model-tts-dialect',
+        'Dialect text-to-speech model id resolves',
+        env.GEMINI_TTS_DIALECT_MODEL,
+        async () => {
+          // Any registry dialect selects the dialect model; the text is plain Hindi.
+          const result = await synthesizeSpeech({ text: 'नमस्ते', language: 'hi', dialectId: 'braj' });
+          if (!result.audioUrl)
+            throw new Error('no audio returned (provider error, timeout or unsupported model)');
+          return `audio returned (${Math.round(result.audioUrl.length / 1024)} KB data URL), basis ${result.basis}`;
+        },
+      );
+    }
 
     // Knowledge base file.
     const kb = ctx.kb;
@@ -780,7 +794,8 @@ export function stageE(ctx: WorkerContext): Promise<StageResult> {
       const rendered =
         style?.rendered ??
         (reached ? 'unknown (no answerStyle field; dialect instruction reached a prompt)' : 'no');
-      if (body) ctx.shared.dialectAnswers.set(entry.id, body.answer);
+      // Only dialect-worded text is spoken with a dialectId later (Stage G), as in the client.
+      if (body && style?.rendered === 'dialect') ctx.shared.dialectAnswers.set(entry.id, body.answer);
       csvRows.push([
         entry.id,
         entry.name,

@@ -65,7 +65,8 @@ One `.env` at the repo root is shared by both apps (template: [.env.example](.en
 | `GEMINI_FALLBACK_MODEL` | `gemini-3.6-flash` | Retry model for temporary primary-model errors; `none` disables fallback. |
 | `GEMINI_AUDIO_MODEL` | chat model | Optional speech-to-text model override. |
 | `GEMINI_EMBED_MODEL` / `GEMINI_EMBED_DIMENSIONS` | `gemini-embedding-2` / `768` | Vector store model and size; changing either requires ingest. |
-| `GEMINI_TTS_MODEL` / `GEMINI_TTS_TIMEOUT_MS` | unset / `15000` | Optional Gemini speech and request timeout. Empty model keeps browser speech. |
+| `GEMINI_TTS_MODEL` / `GEMINI_TTS_DIALECT_MODEL` | `gemini-3.8-flash-lite-tts` / `gemini-3.8-flash-tts` | Server speech model, and the model for dialect-worded replies. `none` keeps browser speech only. |
+| `GEMINI_TTS_SAMPLE_RATE` / `TTS_TIMEOUT_MS` / `TTS_MAX_CHARS` / `TTS_STYLE` | `16000` / `15000` / `600` / empty | Speech output rate (falls back to 24000), per-call timeout (older name `GEMINI_TTS_TIMEOUT_MS`), split size, one constant delivery style (never an accent). |
 | `USE_MOCKS` | `true` | `true`, `false`, or comma-separated mocked modules. |
 | `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | API port and server CORS allow-list. |
 | `RAG_TOP_K` / `RAG_MIN_SCORE` | `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
@@ -97,8 +98,11 @@ scheme guidance.
 
 - Dialect output is best-effort until native speakers review model replies and consented examples.
   Wagdi speech recognition is expected to be weak with the current data.
-- Dialect text is spoken using its base-language voice (Hindi for Braj/Wagdi). Browser speech
-  voices vary by phone; server Gemini TTS is optional and disabled without `GEMINI_TTS_MODEL`.
+- Dialect text is spoken using its base-language voice (Hindi for Braj/Wagdi): a
+  base-language approximation, not a dialect accent. Bhojpuri and Awadhi are named by the TTS
+  model, but nobody has listened yet. Browser speech voices vary by phone; in real mode server
+  Gemini TTS is on by default (`GEMINI_TTS_MODEL=none` turns it off). The voices in
+  `server/src/config/tts-voices.json` are placeholders until a person auditions them.
 - Six scheme summaries have linked official sources; PMAY-G remains a sample. Eligibility rules
   remain unverified and the eligibility endpoint is disabled until every rule is verified.
 - The retrieval score default is uncalibrated. Review sources and run calibration/eval before

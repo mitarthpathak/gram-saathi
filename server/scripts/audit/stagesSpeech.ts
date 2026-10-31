@@ -5,6 +5,7 @@ import type { LanguageCode, QueryResponse, TtsResponse } from '@gram-saathi/shar
 import { env, isMocked } from '../../src/config/env';
 import { getMessage } from '../../src/modules/chat/messages';
 import { getDialectRegistry } from '../../src/modules/dialect/registry';
+import { isServerSpeechConfigured } from '../../src/modules/tts/service';
 import {
   aggregateStatus,
   characterErrorRate,
@@ -192,14 +193,14 @@ export function stageF(ctx: WorkerContext): Promise<StageResult> {
           evidence: ['eval/audio/README.md'],
         });
         // Synthetic clips: machine speech of repo questions. Weak evidence by design.
-        const ttsReady = !isMocked('tts') && Boolean(env.GEMINI_TTS_MODEL);
+        const ttsReady = isServerSpeechConfigured();
         if (!ttsReady) {
           checks.push({
             id: 'F-synthetic',
             title: 'Synthetic clips',
             status: 'NOT-TESTED',
             detail:
-              'Server TTS is not available (tts mocked or no TTS model), so no synthetic clip could be generated.',
+              'Server TTS is not available (tts mocked, no key, or GEMINI_TTS_MODEL=none), so no synthetic clip could be generated.',
             evidence: [],
           });
         } else {
@@ -284,15 +285,18 @@ export function stageG(ctx: WorkerContext): Promise<StageResult> {
     mkdirSync(outDir, { recursive: true });
     const sizes: number[] = [];
 
-    const speak = async (row: string, text: string, language: LanguageCode, dialectId?: string) => {
+    const speak = async (
+      row: string,
+      text: string,
+      language: LanguageCode,
+      dialectId?: string,
+      note?: string,
+    ) => {
       const result = await ctx.transport.tts(
         dialectId ? { text, language, dialectId } : { text, language },
       );
       ctx.latencies.tts.push(result.ms);
-      const body =
-        result.body && !isErrorBody(result.body)
-          ? (result.body as TtsResponse & { basis?: string })
-          : undefined;
+      const body = result.body && !isErrorBody(result.body) ? (result.body as TtsResponse) : undefined;
       if (mode === 'mock') {
         checks.push({
           id: `G-${row}`,
@@ -346,7 +350,7 @@ export function stageG(ctx: WorkerContext): Promise<StageResult> {
         id: `G-${row}`,
         title: `${row}: server speech for “${excerpt(text, 60)}”`,
         status,
-        detail: `${problems.length ? `Problems: ${problems.join('; ')}.` : 'Audio returned with a valid header and a plausible length.'} Latency ${result.ms} ms.${body?.basis ? ` basis: ${body.basis}.` : dialectId ? ' No basis field in the response.' : ''} Pronunciation and accent are for a human to judge.`,
+        detail: `${problems.length ? `Problems: ${problems.join('; ')}.` : 'Audio returned with a valid header and a plausible length.'} Latency ${result.ms} ms.${body?.basis ? ` basis: ${body.basis}.` : dialectId ? ' No basis field in the response.' : ''}${note ? ` ${note}` : ''} Pronunciation and accent are for a human to judge.`,
         evidence: fileNote ? [fileNote] : [`HTTP ${result.status}`],
         data: { basis: body?.basis, ms: result.ms },
       });
@@ -369,11 +373,17 @@ export function stageG(ctx: WorkerContext): Promise<StageResult> {
     }
     if (mode === 'real') {
       for (const entry of getDialectRegistry()) {
-        const text =
-          ctx.shared.dialectAnswers.get(entry.id) ??
-          ctx.shared.standardAnswerHi ??
-          getMessage('hi', 'notFoundSms');
-        await speak(entry.id, text, entry.parentLanguage, entry.id);
+        // Like the client: dialectId only goes with dialect-worded text.
+        const dialectText = ctx.shared.dialectAnswers.get(entry.id);
+        if (dialectText) await speak(entry.id, dialectText, entry.parentLanguage, entry.id);
+        else
+          await speak(
+            entry.id,
+            ctx.shared.standardAnswerHi ?? getMessage(entry.parentLanguage, 'notFoundSms'),
+            entry.parentLanguage,
+            undefined,
+            'No dialect-worded answer was produced for this dialect (rendering fell back to the standard text), so the standard text was spoken without a dialectId, as the client would.',
+          );
       }
       if (sizes.length > 0) {
         checks.push({

@@ -183,3 +183,77 @@
 - **Why:** This is the real-mode guard for the reported "ki keh raho he" class of bug: the intent
   router exists (so a fix is in scope), but a clarification produced by the model was never
   checked against what the user had actually been told.
+
+## Server speech (Phase 3 of the dialect voice job)
+
+This supersedes the "enabled only when `GEMINI_TTS_MODEL` is configured" part of
+[Server-side TTS](#server-side-tts); the Bhashini part stands.
+
+- **Decision:** `POST /api/tts` calls Gemini TTS through `server/src/lib/geminiClient.ts`
+  (`synthesizeAudio`: the shared `withRetries`, typed `GeminiError`s, the answer lane of the
+  concurrency cap, the diagnostics observer with label `tts`, and a hard timeout race). The backend
+  makes the documented REST call (`POST /v1beta/interactions`, `x-goog-api-key` header,
+  `input[].content[]` text with optional `speech_metadata.style`, `response_format {type: audio,
+mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`) with `fetch`
+  rather than SDK methods, so it does not depend on SDK typings for the Interactions speech fields.
+  The installed SDK in the lockfile is `@google/genai` 2.32.0 (≥ 2.24.0 required for
+  `voices.list`); no upgrade was needed. The SDK backend's `synthesize` delegates to the exported
+  `synthesizeViaRest`, which tests drive with a fake `fetch`.
+- **Defaults (from the brief):** `GEMINI_TTS_MODEL=gemini-3.8-flash-lite-tts`,
+  `GEMINI_TTS_DIALECT_MODEL=gemini-3.8-flash-tts` (used whenever a valid dialect of the text's
+  language is sent), `GEMINI_TTS_SAMPLE_RATE=16000`, `TTS_MAX_CHARS=600`, `TTS_STYLE` empty,
+  `TTS_TIMEOUT_MS` (falls back to the existing `GEMINI_TTS_TIMEOUT_MS`, 15 s). `none` disables a
+  model. Consequence: in real mode server speech is now **on by default**; an existing `.env` with
+  an empty `GEMINI_TTS_MODEL=` (the old "off") now gets the default model. Set `none` to keep the
+  browser voice only. Mock mode is unchanged: no provider call, `audioUrl: null` (plus the new
+  optional `basis: 'none'`).
+- **Retries:** at most one retry (`min(1, GEMINI_MAX_RETRIES)`) because a person is waiting; any
+  failure returns `audioUrl: null` so the client falls back to browser speech instead of an error.
+- **Sample rate:** if the API answers 400 at the configured rate, one retry at 24000 Hz (the
+  documented default); only if that succeeds is the smaller rate remembered as rejected for the
+  rest of the process. Other errors are not retried this way.
+- **Basis:** `named-dialect` for registry dialects that `dialect-render.json` marks
+  `ttsNamedLanguage` (Bhojpuri, Awadhi; Chhattisgarhi, Magahi and Maithili are also named by the
+  docs but are not registry dialects), `base-language-approximation` for the other twelve,
+  `language` without a dialect, `none` without audio. It describes what the TTS model claims,
+  not what it sounds like: nothing about pronunciation or accent is verified.
+- **Contract:** `TtsRequest.dialectId?` (validated against the registry like `dialectHint`; a
+  dialect of another language is ignored) and `TtsResponse.basis?`, both optional. The client
+  must send `dialectId` only with dialect-worded text.
+- **Text:** spoken exactly as given. Only Markdown markers and emoji are removed
+  (`speechText.ts`); Indic joiners (ZWJ/ZWNJ), numbers, URLs and numbered lists are kept. Over
+  `TTS_MAX_CHARS`, the text is split at sentence ends (`.!?।॥` followed by a space, so domains and
+  decimals stay whole), then at clause ends, then between words; pieces are synthesized in
+  parallel and joined into one WAV with 250 ms of silence between them.
+- **Payload and cache:** data URLs over 3,000,000 characters are dropped (`null`), about 70 s of
+  audio at 16 kHz or 47 s at 24 kHz, so very long answers fall back to the browser voice. A
+  24-entry, 1-hour in-memory LRU per process caches finished audio by SHA-256 of (text, voice,
+  model, rate, style). Logs carry the model, voice entry, piece count, byte size and error kind,
+  never the text or the key.
+- **Voices:** `server/src/config/tts-voices.json` maps each language (and optionally a dialect) to
+  `{ voice }` or `{ voiceId }`. All defaults are the prebuilt `Kore` (the voice used in the
+  official examples), `"status": "to-be-auditioned"`. `npm run tts:voices -w server` lists
+  Extended Voice Library candidates; `npm run tts:samples -w server` renders the existing
+  greeting of each language (no scheme facts, no invented dialect text) per configured voice.
+  Neither script was run against the real API here (no key): both were exercised only against a
+  fake `fetch`/backend in the sandbox. No voice was designed or replicated; the manual,
+  consent-first process is in docs/RUNBOOK.md.
+- **Verified against docs (fetched 2026-10-31, page "Last updated 2026-10-28 UTC"):** the request
+  shape above; audio at `steps[].content[]` (`type: audio`, `.data`) in REST and `output_audio.data`
+  in the SDKs; WAV is the unary default, `audio/l16` headerless PCM; sample rates 24000/16000/8000
+  appear in examples; both models list Hindi, Marathi, Tamil, English, Awadhi, Bhojpuri,
+  Chhattisgarhi, Magahi and Maithili, and do not list Braj, Marwari, Rajasthani, Haryanvi,
+  Bundeli or Bhili/Wagdi; `GET /v1beta/voices` filters (`language_code`, `region_code`, `accent`,
+  …, `page_size` ≤ 1000, `page_token`/`next_page_token`) and voice fields (`id`, `display_name`,
+  `language_code`, `accent`, `gender`, `pitch`, `description`); style must not be used for
+  permanent accent changes.
+- **UNVERIFIED:** (1) that a library or designed voice id goes in `speech_config.voice` like a
+  prebuilt name (the docs print `voice.id` but show no request using it); (2) REST field casing of
+  the voices list (the script accepts snake_case and camelCase); (3) the 8,192-token input limit
+  in the brief (not stated on the page fetched; 600-character pieces stay far below it anyway);
+  (4) whether the API accepts 16000 Hz for every model (hence the fallback); (5) whether the
+  response carries a `mime_type` (the code checks for a RIFF header instead).
+- **Alternatives considered:** the SDK's `interactions.create` (typings for speech fields would
+  have to be trusted or cast); streaming audio (larger change, not needed for a Listen button);
+  returning an error status on provider failure (the client would need new handling; `null`
+  already means "use the browser voice").

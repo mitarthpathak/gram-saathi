@@ -266,10 +266,28 @@ export interface FaqTopResponse {
 export interface TtsRequest {
   text: string;
   language: LanguageCode;
+  /**
+   * Registry dialect id. Send it only when `text` is dialect-worded (answerStyle.rendered is
+   * 'dialect'); it selects the dialect TTS model and voice. Unknown ids are rejected (400).
+   */
+  dialectId?: string;
 }
 
+/**
+ * What the audio is based on:
+ * - language: the text's language, spoken by a voice for that language.
+ * - named-dialect: the TTS model's language table names this dialect itself (e.g. Bhojpuri,
+ *   Awadhi). Whether the model actually speaks it that way is unreviewed.
+ * - base-language-approximation: the dialect is not named by the TTS model, so the dialect text
+ *   is spoken by a voice for its parent language (e.g. Hindi for Braj, Marwari, Wagdi).
+ * - none: no server audio; use browser speech.
+ */
+export type TtsBasis = 'language' | 'named-dialect' | 'base-language-approximation' | 'none';
+
 export interface TtsResponse {
+  /** A data: URL (WAV) or null, meaning "use browser speech synthesis". */
   audioUrl: string | null;
+  basis?: TtsBasis;
 }
 
 // ---------------------------------------------------------------------------

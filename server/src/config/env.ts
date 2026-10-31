@@ -82,9 +82,25 @@ const envSchema = z.object({
   GEMINI_FALLBACK_MODEL: fromEnv(z.string().trim().default('gemini-3.6-flash')),
   /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
   GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
-  /** Optional Gemini TTS model; empty disables server-side TTS. */
-  GEMINI_TTS_MODEL: fromEnv(z.string().trim().optional()),
+  /** Server text-to-speech model; `none` disables server speech (the browser voice is used). */
+  GEMINI_TTS_MODEL: fromEnv(z.string().trim().default('gemini-3.8-flash-lite-tts')),
+  /** TTS model for dialect replies; `none` means GEMINI_TTS_MODEL is used for them too. */
+  GEMINI_TTS_DIALECT_MODEL: fromEnv(z.string().trim().default('gemini-3.8-flash-tts')),
+  /** Requested output rate; 16000 keeps data URLs small. Falls back to 24000 if rejected. */
+  GEMINI_TTS_SAMPLE_RATE: fromEnv(
+    z.coerce
+      .number()
+      .pipe(z.union([z.literal(24000), z.literal(16000), z.literal(8000)]))
+      .default(16000),
+  ),
+  /** Legacy name of TTS_TIMEOUT_MS, still honoured when TTS_TIMEOUT_MS is unset. */
   GEMINI_TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).default(15_000)),
+  /** Per-call timeout for server speech (overrides GEMINI_TTS_TIMEOUT_MS). */
+  TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).optional()),
+  /** Longer texts are split at sentence boundaries into pieces of at most this many characters. */
+  TTS_MAX_CHARS: fromEnv(z.coerce.number().int().min(100).max(2000).default(600)),
+  /** One short, constant delivery style for every reply (empty = none). Never an accent. */
+  TTS_STYLE: fromEnv(z.string().trim().max(200).default('')),
   GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
   GEMINI_EMBED_DIMENSIONS: fromEnv(z.coerce.number().int().min(128).max(3072).default(768)),
   /** `default` sends no thinking level and lets the model decide. */

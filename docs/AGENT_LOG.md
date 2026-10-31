@@ -200,3 +200,37 @@ Earlier sections above belong to the finished conversation-layer job. This job's
   model output only.
 - Open issues: dialect quality and naturalness NEEDS-HUMAN; real-model behaviour NOT-TESTED (no
   key); exemplars are all empty, so rewording is zero-shot; `ASK_AGAIN` strings need native review.
+
+## Phase 3 — spoken replies (server TTS)
+
+- Files changed: `server/src/lib/geminiClient.ts` (`SpeechRequest`/`SpeechResult`, optional
+  `GeminiBackend.synthesize`, `speechRequestBody`, `extractSpeechAudio`, `synthesizeViaRest`,
+  `synthesizeAudio`, observer kind `speech`), `server/src/lib/wav.ts` (new),
+  `server/src/modules/tts/{service,controller,speechText,voices}.ts`,
+  `server/src/config/tts-voices.json` (new, placeholders "to-be-auditioned"),
+  `server/src/config/env.ts` (TTS variables), `server/src/modules/health/service.ts`,
+  `shared/src/types.ts` (`TtsRequest.dialectId?`, `TtsBasis`, `TtsResponse.basis?`),
+  `server/scripts/tts-voices.ts`, `server/scripts/tts-samples.ts`, `server/package.json`
+  (`tts:voices`, `tts:samples`), `server/test/tts.test.ts` (rewritten), audit
+  (`fakeWorker.ts`: fake speech backend, `I-tts-ok`, `I-tts-basis`, `I-tts-unknown-dialect`,
+  `J-shape-tts` via the observer, `J-shape-tts-long`; `stagesText.ts`: `B-model-tts-dialect`,
+  dialect answers kept only when actually dialect-worded; `stagesSpeech.ts`: dialectId only with
+  dialect text), `.env.example`, `docs/API_CONTRACT.md` (TTS section, changelog v5),
+  `docs/RUNBOOK.md` (voice auditioning, design and consent-only replication), `README.md` (env rows,
+  limitation), `docs/DECISIONS.md`, `docs/tts-voice-candidates.md` (placeholder: not generated).
+- Docs re-read 2026-10-31 (speech-generation page, last updated 2026-10-28): request/response
+  shape, voices endpoint and fields, language table (Chhattisgarhi, Magahi, Maithili, Awadhi,
+  Bhojpuri named for both models; Braj, Marwari, Rajasthani, Haryanvi, Bundeli, Wagdi not).
+  UNVERIFIED items listed in DECISIONS.
+- Commands run (sandbox kit): server and shared `tsc --noEmit` (0 errors); `tts.test.ts` 28/28
+  pass; full server suite 192 tests: 182 pass, the same 10 baseline failures; both owner scripts
+  without a key (exit 1 with a clear message) and against a fake `fetch`/backend (pagination,
+  field casing, sample-rate fallback); `audit --skip-static` in mock mode (I-tts checks PASS with
+  the fake backend; J-shape-tts 1 call, long answer 3 calls in parallel); generated audit files
+  restored afterwards (the official re-run is Phase 5); prettier on new and previously clean files.
+- Results: real-mode speech, voice selection, basis labels, splitting, cache, payload cap and the
+  rate fallback are implemented and tested with fakes only. No real TTS call was made (no key):
+  real audio, voice quality and pronunciation are NOT-TESTED / NEEDS-HUMAN.
+- Open issues: library voice ids in `speech_config.voice` UNVERIFIED; answers longer than about
+  70 s of speech exceed the payload cap and fall back to the browser voice; the client does not
+  yet send `dialectId` or show `basis` (Phase 4).
