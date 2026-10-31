@@ -257,3 +257,35 @@ mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`
   have to be trusted or cast); streaming audio (larger change, not needed for a Listen button);
   returning an error status on provider failure (the client would need new handling; `null`
   already means "use the browser voice").
+
+## Client: Listen, honest labels, low-bandwidth (Phase 4 of the dialect voice job)
+
+- **Decision:** `speak()` (client/src/features/voice/speak.ts) plays the answer's `audioUrl`, else
+  `POST /api/tts { text, language, dialectId? }`, else browser speech synthesis, and returns who
+  spoke plus the server's `basis`. `dialectId` is sent only when `answerStyle.rendered ===
+  'dialect'`, so standard text is never labelled or voiced as a dialect.
+- **Low-bandwidth fix:** the setting is documented as "no server audio", but the old `speak()`
+  still called `/api/tts` (only the answer's `audioUrl` was suppressed). Now low-bandwidth mode
+  never requests or plays server audio, for every Listen button (the button reads the setting
+  itself, so the eligibility wizard is covered too) and for the automatic reply after a voice
+  question.
+- **Labels:** under a dialect-worded answer the bubble shows "बोली का रूप, प्रयोगात्मक" (and the
+  dialect's native name) unless `GET /api/dialects` marks that dialect `tested`; an unknown or
+  unreachable status counts as experimental. After speaking dialect-worded text, the bubble shows
+  "आवाज़ हिन्दी में, बोली का उच्चारण अनुमानित" for every voice except server audio whose basis is
+  `named-dialect` (that gets "बोली की आवाज़, प्रयोगात्मक", since nobody has listened to it yet).
+  The browser's voice reading dialect text is always labelled an approximation. Strings follow the
+  `strings.ts` pattern in all four languages; the new Marathi and Tamil strings carry
+  `TODO(review-native)`.
+- **Progress:** the server cannot report which step it is on, so the existing typing indicator
+  only switches to a generic "still working on the answer" after 6 s (dialect wording adds a
+  step), and the Listen button shows "Preparing audio…" with dots while server speech is fetched.
+- **Failure message:** browser speech now resolves on the utterance's `start` (or after 2.5 s,
+  since some engines never fire it) and fails on `error`, so the one localized "Audio playback is
+  unavailable" toast appears only when server and browser speech both fail. Starting new speech
+  also stops server audio that is still playing.
+- **Client API:** `api.dialects()` (existing `GET /api/dialects`, contract v3) was added to the
+  client `Api` interface; the client mock returns no dialects.
+- **Alternatives considered:** a dialect selector or candidate chips (a redesign, out of scope);
+  hard-coding "experimental" for all dialects (true today, wrong once a dialect is marked tested);
+  streaming progress events from the server (larger change than the brief allows).

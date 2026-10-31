@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { speak } from '@/features/voice/speak';
+import { speak, voiceNoteFor } from '@/features/voice/speak';
 import { ApiError, api } from '@/lib/api';
 import { useStrings } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
@@ -51,16 +51,32 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setBusy(true);
       try {
         const response = await api.voiceQuery({ audio, language, sessionId });
+        const answerId = nextMessageId();
         setMessages((all) => [
           ...all.map((message) =>
             message.id === questionId && message.role === 'user'
               ? { ...message, text: response.transcript ?? '', pending: false }
               : message,
           ),
-          { id: nextMessageId(), role: 'assistant', response },
+          { id: answerId, role: 'assistant', response },
         ]);
         // Voice in, voice out. Server audio costs data, so low-bandwidth mode uses the phone's voice.
-        speak(response.answer, response.detectedLanguage, lowBandwidth ? null : response.audioUrl);
+        const dialectWorded = response.answerStyle?.rendered === 'dialect';
+        void speak(response.answer, response.detectedLanguage, {
+          audioUrl: response.audioUrl,
+          dialectId: dialectWorded ? response.answerStyle?.dialectId : null,
+          lowBandwidth,
+        }).then((result) => {
+          const voiceNote = voiceNoteFor(result, dialectWorded);
+          if (!voiceNote) return;
+          setMessages((all) =>
+            all.map((message) =>
+              message.id === answerId && message.role === 'assistant'
+                ? { ...message, voiceNote }
+                : message,
+            ),
+          );
+        });
       } catch (error) {
         setMessages((all) => [
           ...all.filter((message) => message.id !== questionId),

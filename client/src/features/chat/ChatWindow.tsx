@@ -1,5 +1,5 @@
 import { ArrowRight, FileSearch, MessageSquareText, Mic } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/brand/Logo';
 import { LanguageSelector } from '@/features/language/LanguageSelector';
 import { useStrings } from '@/lib/i18n';
@@ -43,6 +43,12 @@ export function ChatWindow() {
 /** "Finding the answer…" bubble with bouncing dots while a question is being answered. */
 function TypingIndicator() {
   const t = useStrings(chatStrings);
+  // Dialect wording and speech add steps on the server; say so when an answer takes a while.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, []);
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">
       <Logo className="size-8 rounded-[0.6rem]" />
@@ -56,7 +62,9 @@ function TypingIndicator() {
             />
           ))}
         </span>
-        <span className="text-base font-semibold text-slate-600">{t.thinking}</span>
+        <span className="text-base font-semibold text-slate-600">
+          {slow ? t.stillThinking : t.thinking}
+        </span>
       </div>
     </div>
   );

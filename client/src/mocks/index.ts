@@ -139,5 +139,8 @@ export const mockApi: Api = {
 
   faqTop: (lang) => delay({ items: mockTopFaq(lang) }),
 
-  tts: () => delay({ audioUrl: null }),
+  tts: () => delay({ audioUrl: null, basis: 'none' as const }),
+
+  // The client mocks have no dialect registry; unknown dialects are treated as experimental.
+  dialects: () => delay({ items: [] }),
 };

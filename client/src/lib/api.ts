@@ -1,6 +1,7 @@
 import type {
   ApiErrorBody,
   ChatQueryRequest,
+  DialectsResponse,
   EligibilityAnswerRequest,
   EligibilityAnswerResponse,
   EligibilityStartRequest,
@@ -31,6 +32,7 @@ export interface Api {
   smsCompress(request: SmsCompressRequest): Promise<SmsCompressResponse>;
   faqTop(lang: LanguageCode): Promise<FaqTopResponse>;
   tts(request: TtsRequest): Promise<TtsResponse>;
+  dialects(): Promise<DialectsResponse>;
 }
 
 /** Thrown for non-2xx responses (status = HTTP status) and network failures (status 0). */
@@ -96,6 +98,7 @@ const httpApi: Api = {
   smsCompress: (body) => postJson<SmsCompressResponse>('/api/sms/compress', body),
   faqTop: (lang) => request<FaqTopResponse>(`/api/faq/top?lang=${encodeURIComponent(lang)}`),
   tts: (body) => postJson<TtsResponse>('/api/tts', body),
+  dialects: () => request<DialectsResponse>('/api/dialects'),
 };
 
 let mockApi: Promise<Api> | undefined;
@@ -117,4 +120,5 @@ export const api: Api = {
   smsCompress: (body) => backend().then((b) => b.smsCompress(body)),
   faqTop: (lang) => backend().then((b) => b.faqTop(lang)),
   tts: (body) => backend().then((b) => b.tts(body)),
+  dialects: () => backend().then((b) => b.dialects()),
 };

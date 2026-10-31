@@ -234,3 +234,30 @@ Earlier sections above belong to the finished conversation-layer job. This job's
 - Open issues: library voice ids in `speech_config.voice` UNVERIFIED; answers longer than about
   70 s of speech exceed the payload cap and fall back to the browser voice; the client does not
   yet send `dialectId` or show `basis` (Phase 4).
+
+## Phase 4 — client (Listen, honest labels, low-bandwidth, typing indicator)
+
+- Files changed: `client/src/features/voice/speak.ts` (options object, server/browser result,
+  `voiceNoteFor`, low-bandwidth skips server audio, browser failure detection, stop server audio),
+  `client/src/features/voice/SpeakButton.tsx` (reads low-bandwidth, `dialectId`, "Preparing
+  audio…" state, `onSpoken`), `client/src/features/voice/VoiceNoteLine.tsx` (new),
+  `client/src/features/voice/strings.ts` and `client/src/features/chat/strings.ts` (new keys in
+  en/hi/mr/ta; mr/ta marked for native review), `client/src/features/chat/dialects.ts` (new,
+  cached `GET /api/dialects`), `client/src/features/chat/MessageBubble.tsx` (dialect note, voice
+  note, dialectId), `client/src/features/chat/ChatProvider.tsx` (auto-speak passes dialectId,
+  records the voice note), `client/src/features/chat/useChat.ts` (`voiceNote?`),
+  `client/src/features/chat/ChatWindow.tsx` (slow-answer text), `client/src/lib/api.ts`
+  (`dialects()`), `client/src/mocks/index.ts` (`dialects`, `basis: 'none'`), `docs/DECISIONS.md`.
+- Commands run: client `tsc -b` / `vite build` NOT-TESTED (React, Vite and lucide are not
+  installed; npm registry blocked). Instead: `tsc` over all of `client/src` against loose
+  sandbox-only shims for react/react-router/lucide/vite (exit 0 with `noImplicitAny` off; the
+  remaining implicit-any reports were all shim artifacts in untouched files), with a negative
+  control proving it catches wrong string keys, a wrong language code and a wrong `basis`; a Node
+  harness (esbuild bundle, fake `Audio`, fake `speechSynthesis`, fake API) for `speak()` and
+  `voiceNoteFor()`: 12/12 PASS (dialectId sent only when given, low-bandwidth makes no `/api/tts`
+  call, null audio / error / blocked playback fall back to the browser voice, both failing returns
+  `ok: false`); prettier on touched files.
+- Results: SYNTHETIC-ONLY. No real browser, phone or server audio was used; how the labels look and
+  whether playback works on phones is NOT-TESTED.
+- Open issues: client typecheck and build must be run by the owner (`npm run typecheck -w client`,
+  `npm run build -w client`); the new mr/ta strings need native review (runbook, Phase 6).
