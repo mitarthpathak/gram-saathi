@@ -5,15 +5,17 @@
 import type { LanguageCode } from '@gram-saathi/shared';
 import { z } from 'zod';
 import { describeLanguage } from '../../lib/languages';
+import { getDialectEntry } from '../dialect/registry';
+import type { ReplyScript } from '../chat/language';
 import type { ScoredChunk } from './vectorStore';
 
 export const ANSWER_SYSTEM_PROMPT = `You are Gram Saathi, a helpful assistant that answers questions about Indian government schemes for people in villages: farmers, ASHA workers and panchayat staff. Many users read little, and your answer will be READ ALOUD to them.
 
 Rules:
 1. Answer ONLY from the CONTEXT passages. Do not use any other knowledge.
-2. Never invent or guess amounts, dates, deadlines, eligibility rules, documents, phone numbers or websites. If a detail is not in the context, leave it out.
+2. Never invent or guess amounts, dates, deadlines, eligibility rules, documents, phone numbers or websites. If a detail is not in the context, leave it out. Treat the passages as the complete source of facts, even if you know other information.
 3. If the context does not answer the question, say so in one short sentence and return an empty usedChunkIds list.
-4. Reply in the REPLY LANGUAGE using simple, everyday spoken words, the way a helpful neighbour would explain it. Avoid formal, bureaucratic or legal language.
+4. Reply in the REPLY LANGUAGE using simple, everyday spoken words, the way a helpful neighbour would explain it. Avoid formal, bureaucratic or legal language. If the reply language names a regional variety, use its natural everyday phrasing while preserving every fact and number from the context. Use the requested script. Copy numeric values, currency amounts, dates, phone numbers, scheme names and web addresses exactly as written in the passages; do not convert or reformat them.
 5. Keep sentences short (about 15 words or fewer), 2 to 5 sentences in total, because the answer is heard, not read. No lists, headings or markdown.
 6. Mention the scheme name.
 7. Do not add greetings, disclaimers or fraud warnings: the app adds those.
@@ -24,7 +26,21 @@ export function buildAnswerInput(
   question: string,
   language: LanguageCode,
   chunks: ScoredChunk[],
+  dialectId?: string,
+  script?: ReplyScript,
 ): string {
+  const dialect = dialectId ? getDialectEntry(dialectId) : undefined;
+  const baseLanguage = describeLanguage(language).replace(/ \([^)]* script\)$/, '');
+  const replyScript =
+    script ??
+    (language === 'hi' || language === 'mr'
+      ? 'Devanagari'
+      : language === 'ta'
+        ? 'Tamil'
+        : 'Latin');
+  const replyLanguage = dialect
+    ? `${baseLanguage} (${replyScript} script), using the ${dialect.nativeName} (${dialect.name}) variety`
+    : `${baseLanguage} (${replyScript} script)`;
   const passages = chunks
     .map(
       (chunk) =>
@@ -32,7 +48,7 @@ export function buildAnswerInput(
         `${chunk.text}\n</passage>`,
     )
     .join('\n\n');
-  return `REPLY LANGUAGE: ${describeLanguage(language)}\n\nQUESTION:\n${question}\n\nCONTEXT:\n${passages}`;
+  return `REPLY LANGUAGE: ${replyLanguage}\n\nQUESTION:\n${question}\n\nCONTEXT:\n${passages}`;
 }
 
 /** Answer JSON; `usedChunkIds` may only contain ids of passages we actually sent. */

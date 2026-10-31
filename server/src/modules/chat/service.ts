@@ -4,6 +4,7 @@ import { LruCache } from '../../lib/cache';
 import { generateJson } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
 import { mockDialectFields, mockGenerateAnswer } from '../../mocks';
+import { getDialectExemplars, renderPromptExemplars } from '../dialect/exemplars';
 import {
   classifyDialect,
   getActiveDialectLabels,
@@ -14,8 +15,14 @@ import { ANSWER_SYSTEM_PROMPT, answerSchema, buildAnswerInput } from '../rag/pro
 import { searchSchemes } from '../rag/service';
 import type { ScoredChunk } from '../rag/vectorStore';
 import { compressForSms, countSmsSegments, truncateAtSentence } from '../sms/service';
-import { detectTextLanguage } from './language';
-import { getFraudWarning, MESSAGES } from './messages';
+import {
+  defaultScriptForLanguage,
+  detectTextLanguage,
+  detectTextScript,
+  type ReplyScript,
+} from './language';
+import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply } from './messages';
+import { getHistory, handleTurn, recordTurn, type Passage } from './conversation';
 
 export interface AnswerInput {
   text: string;
@@ -30,7 +37,7 @@ export interface AnswerInput {
   };
   /** Language already known from speech recognition; skips text-based detection. */
   detectedLanguage?: LanguageCode;
-  sessionId: string;
+  sessionId?: string;
   /** Set when `text` came from speech-to-text. */
   transcript?: string;
 }
@@ -57,18 +64,68 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
     (input.dialectHint ? parentLanguageForDialect(input.dialectHint) : undefined) ??
     input.detectedLanguage ??
     detectTextLanguage(input.text, input.language);
-  const key = cacheKey(input.text, language);
-  const dialectPromise = getDialectOutcome(input);
+  const script = detectTextScript(input.text) ?? defaultScriptForLanguage(language);
+
+  const greeting = isMocked('chat') ? getGreetingReply(input.text, language, script) : undefined;
+  if (greeting) {
+    const dialect = input.dialectHint
+      ? (dialectHintOutcome(input.dialectHint) ?? { dialect: null, dialectCandidates: [] })
+      : { dialect: null, dialectCandidates: [] };
+    return {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+      ...dialect,
+      detectedLanguage: language,
+      answer: greeting.answer,
+      sources: [],
+      fraudWarning: getFraudWarning(language, script),
+      smsText: greeting.smsText,
+      smsSegments: countSmsSegments(greeting.smsText),
+      audioUrl: null,
+      usedCache: false,
+      notFound: false,
+    };
+  }
+
+  const smallTalk = isMocked('chat') ? getSmallTalkReply(input.text, language, script) : undefined;
+  if (smallTalk) {
+    const dialect = input.dialectHint
+      ? (dialectHintOutcome(input.dialectHint) ?? { dialect: null, dialectCandidates: [] })
+      : { dialect: null, dialectCandidates: [] };
+    return {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+      ...dialect,
+      detectedLanguage: language,
+      answer: smallTalk.answer,
+      sources: [],
+      fraudWarning: getFraudWarning(language, script),
+      smsText: smallTalk.smsText,
+      smsSegments: countSmsSegments(smallTalk.smsText),
+      audioUrl: null,
+      usedCache: false,
+      notFound: false,
+    };
+  }
+
+  const dialect = await getDialectOutcome(input);
+  const dialectId = input.dialectHint ?? dialect.dialect?.id;
+
+  // Preserve the pre-existing mocked answer pipeline byte-for-byte in USE_MOCKS mode.
+  if (!isMocked('chat')) {
+    return answerConversation(input, language, dialect, dialectId);
+  }
+
+  const key = cacheKey(input.text, language, dialectId, script);
 
   const cached = answerCache.get(key);
   if (cached) {
-    const dialect = await dialectPromise;
     return { ...toResponse(cached, input, true), ...dialect };
   }
 
   let pending = inFlight.get(key);
   if (!pending) {
-    pending = buildAnswer(input.text, language)
+    pending = buildAnswer(input.text, language, dialectId, script)
       .then((answer) => {
         answerCache.set(key, answer);
         return answer;
@@ -76,8 +133,95 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
       .finally(() => inFlight.delete(key));
     inFlight.set(key, pending);
   }
-  const [answer, dialect] = await Promise.all([pending, dialectPromise]);
+  const answer = await pending;
   return { ...toResponse(answer, input, false), ...dialect };
+}
+
+async function answerConversation(
+  input: AnswerInput,
+  fallbackLanguage: LanguageCode,
+  dialect: DialectOutcome,
+  dialectId?: string,
+): Promise<QueryResponse> {
+  let retrieved: ScoredChunk[] = [];
+  const result = await handleTurn(
+    {
+      minScore: env.RAG_MIN_SCORE,
+      generateJson: ({ system, prompt, schema }) =>
+        generateJson({ label: 'conversation', system, input: prompt, schema }),
+      search: async (queryEn) => {
+        retrieved = await searchSchemes({ query: queryEn, language: 'en', skipTranslation: true });
+        return retrieved.map((chunk): Passage => ({
+          id: chunk.chunkId,
+          schemeName: chunk.schemeName,
+          section: chunk.section,
+          text: chunk.text,
+          score: chunk.score,
+        }));
+      },
+      dialectExamples: (label) =>
+        renderPromptExemplars([label], getDialectExemplars()),
+    },
+    {
+      text: input.text,
+      history: input.sessionId ? getHistory(input.sessionId) : [],
+      dialectHint: input.dialectHint ?? dialectId,
+      languageHint: input.detectedLanguage ?? input.language ?? fallbackLanguage,
+    },
+  );
+
+  let response: QueryResponse;
+  if (result.kind === 'direct') {
+    const smsText = truncateAtSentence(result.answer, env.SMS_MAX_SEGMENTS);
+    response = {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+      ...dialect,
+      detectedLanguage: result.language,
+      answer: result.answer,
+      intent: result.intent,
+      sources: [],
+      fraudWarning: '',
+      smsText,
+      smsSegments: countSmsSegments(smsText),
+      audioUrl: null,
+      usedCache: false,
+      notFound: false,
+    };
+  } else if (result.kind === 'notFound') {
+    response = {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+        ...dialect,
+        ...notFoundAnswer(result.language ?? fallbackLanguage),
+        intent: result.intent,
+        usedCache: false,
+    };
+  } else {
+    const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
+    if (!result.answer || usedChunks.length === 0 || !preservesContextNumbers(result.answer, usedChunks)) {
+      response = {
+        sessionId: input.sessionId ?? '',
+        transcript: input.transcript,
+        ...dialect,
+        ...notFoundAnswer(result.language),
+        intent: result.intent,
+        usedCache: false,
+      };
+    } else {
+      const { sms } = await compressForSms({ text: result.answer, language: result.language });
+      response = {
+        sessionId: input.sessionId ?? '',
+        transcript: input.transcript,
+        ...dialect,
+        ...foundAnswer(result.language, result.answer, usedChunks, sms),
+        intent: result.intent,
+        usedCache: false,
+      };
+    }
+  }
+  if (input.sessionId) recordTurn(input.sessionId, input.text, response.answer);
+  return response;
 }
 
 async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
@@ -90,49 +234,63 @@ async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
   if (!isVoice && !env.DIALECT_TEXT_DETECT) {
     return { dialect: null, dialectCandidates: [] };
   }
-  if (isMocked('dialect')) return mockDialectFields();
+  if (isMocked('dialect')) return conservativeDialectOutcome(mockDialectFields());
 
   try {
-    return await classifyDialect({
+    const outcome = await classifyDialect({
       audio,
       text: isVoice ? (input.dialectEvidence?.text ?? input.text) : input.text,
       activeLabels: getActiveDialectLabels(),
     });
+    return conservativeDialectOutcome(outcome);
   } catch {
     logger.warn('dialect classifier unavailable; returning an abstention');
     return { dialect: null, dialectCandidates: [] };
   }
 }
 
-async function buildAnswer(question: string, language: LanguageCode): Promise<CachedAnswer> {
+/** Only repo-classified high confidence survives as a prompt hint; medium and abstentions are omitted. */
+function conservativeDialectOutcome(outcome: DialectOutcome): DialectOutcome {
+  if (outcome.dialect?.confidence !== 'medium') return outcome;
+  return { dialect: null, dialectCandidates: outcome.dialectCandidates ?? [] };
+}
+
+async function buildAnswer(
+  question: string,
+  language: LanguageCode,
+  dialectId?: string,
+  script?: ReplyScript,
+): Promise<CachedAnswer> {
   const retrieved = await searchSchemes({ query: question, language });
   const relevant = retrieved.filter((chunk) => chunk.score >= env.RAG_MIN_SCORE);
   if (relevant.length === 0) {
     logger.debug(
       `not found: best score ${retrieved[0]?.score.toFixed(3) ?? '-'} < RAG_MIN_SCORE ${env.RAG_MIN_SCORE}`,
     );
-    return notFoundAnswer(language);
+    return notFoundAnswer(language, script);
   }
 
   if (isMocked('chat')) {
-    const mock = mockGenerateAnswer(relevant, language);
-    if (mock.notFound) return notFoundAnswer(language);
-    return foundAnswer(language, mock.answer, relevant, mock.smsText);
+    const mock = mockGenerateAnswer(relevant, language, script === 'Latin' ? 'roman' : 'native');
+    if (mock.notFound) return notFoundAnswer(language, script);
+    return foundAnswer(language, mock.answer, relevant, mock.smsText, script);
   }
 
   const result = await generateJson({
     label: 'answer',
     system: ANSWER_SYSTEM_PROMPT,
-    input: buildAnswerInput(question, language, relevant),
+    input: buildAnswerInput(question, language, relevant, dialectId, script),
     schema: answerSchema(relevant.map((chunk) => chunk.chunkId)),
   });
   const answer = toPlainText(result.answer);
   const used = relevant.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
   // No passage used: the model found the documents do not answer it. Say so in reviewed words.
-  if (used.length === 0 || !answer) return notFoundAnswer(language);
+  if (used.length === 0 || !answer || !preservesContextNumbers(answer, used)) {
+    return notFoundAnswer(language, script);
+  }
 
-  const { sms } = await compressForSms({ text: answer, language });
-  return foundAnswer(language, answer, used, sms);
+  const { sms } = await compressForSms({ text: answer, language }, script);
+  return foundAnswer(language, answer, used, sms, script);
 }
 
 function foundAnswer(
@@ -140,12 +298,13 @@ function foundAnswer(
   answer: string,
   chunks: ScoredChunk[],
   smsText: string,
+  script?: ReplyScript,
 ): CachedAnswer {
   return {
     detectedLanguage: language,
     answer,
     sources: chunks.map(toSource),
-    fraudWarning: getFraudWarning(language),
+    fraudWarning: getFraudWarning(language, script),
     smsText,
     smsSegments: countSmsSegments(smsText),
     // TODO(step-3) (optional): server TTS (modules/tts); null tells the client to use browser speech.
@@ -155,13 +314,16 @@ function foundAnswer(
 }
 
 /** Honest fixed answer, no model call: we do not know, confirm at the CSC / gram panchayat. */
-function notFoundAnswer(language: LanguageCode): CachedAnswer {
-  const smsText = truncateAtSentence(MESSAGES[language].notFoundSms, env.SMS_MAX_SEGMENTS);
+function notFoundAnswer(language: LanguageCode, script?: ReplyScript): CachedAnswer {
+  const smsText = truncateAtSentence(
+    getMessage(language, 'notFoundSms', script),
+    env.SMS_MAX_SEGMENTS,
+  );
   return {
     detectedLanguage: language,
-    answer: MESSAGES[language].notFound,
+    answer: getMessage(language, 'notFound', script),
     sources: [],
-    fraudWarning: getFraudWarning(language),
+    fraudWarning: getFraudWarning(language, script),
     smsText,
     smsSegments: countSmsSegments(smsText),
     audioUrl: null,
@@ -171,7 +333,7 @@ function notFoundAnswer(language: LanguageCode): CachedAnswer {
 
 function toResponse(answer: CachedAnswer, input: AnswerInput, usedCache: boolean): QueryResponse {
   return {
-    sessionId: input.sessionId,
+    sessionId: input.sessionId ?? '',
     transcript: input.transcript,
     ...answer,
     usedCache,
@@ -193,7 +355,10 @@ export function seedAnswerCache(
   language: LanguageCode,
   answer: CachedAnswer,
 ): void {
-  answerCache.set(cacheKey(question, language), answer);
+  answerCache.set(
+    cacheKey(question, language, undefined, defaultScriptForLanguage(language)),
+    answer,
+  );
 }
 
 export function clearAnswerCache(): void {
@@ -201,13 +366,37 @@ export function clearAnswerCache(): void {
 }
 
 /** Language + the question without case, punctuation (incl. the Devanagari danda) or extra spaces. */
-export function cacheKey(question: string, language: LanguageCode): string {
+export function cacheKey(
+  question: string,
+  language: LanguageCode,
+  dialectId?: string,
+  script?: ReplyScript,
+): string {
   const normalized = question
     .normalize('NFC')
     .toLowerCase()
     .replace(/[\s?!.,;:'"‘’“”।॥-]+/g, ' ')
     .trim();
-  return `${language}:${normalized}`;
+  const scriptPart = script ? `${script}:` : '';
+  return dialectId
+    ? `${language}:${scriptPart}${dialectId}:${normalized}`
+    : `${language}:${scriptPart}${normalized}`;
+}
+
+/** Rejects numeric claims that are absent from the cited official passages. */
+function preservesContextNumbers(answer: string, chunks: ScoredChunk[]): boolean {
+  const supported = new Set(
+    chunks.flatMap((chunk) => numericLiterals(chunk.text).map(normalizeNumericLiteral)),
+  );
+  return numericLiterals(answer).every((value) => supported.has(normalizeNumericLiteral(value)));
+}
+
+function numericLiterals(text: string): string[] {
+  return text.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
+}
+
+function normalizeNumericLiteral(value: string): string {
+  return value.replace(/,/g, '');
 }
 
 /** Markdown (lists, bold, links, hard-wrapped lines) -> one line of plain text. */

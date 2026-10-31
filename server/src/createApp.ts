@@ -35,7 +35,7 @@ export function createApp() {
   app.use('/api/rag', aiLimit, ragRouter);
   app.use('/api/eligibility', aiLimit, eligibilityRouter);
   app.use('/api/sms', aiLimit, smsRouter);
-  app.use('/api/tts', ttsRouter);
+  app.use('/api/tts', aiLimit, ttsRouter);
   app.use('/api/faq', faqRouter);
   app.use('/api', notFoundHandler);
 

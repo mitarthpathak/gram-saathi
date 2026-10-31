@@ -2,40 +2,40 @@
 schemeId: pm-suraksha-bima-yojana
 schemeName: Pradhan Mantri Suraksha Bima Yojana (PMSBY)
 ministry: Ministry of Finance
-officialUrl: https://www.jansuraksha.gov.in
+officialUrl: https://jansuraksha.gov.in/Files/PMSBY/ENGLISH/FAQ.pdf
+sourceUrl: https://jansuraksha.gov.in/Files/PMSBY/ENGLISH/FAQ.pdf
+accessDate: 2026-10-31
 tags: [insurance, accident, bank-account]
 languages: [en]
-sample: true
-verified: false
+sample: false
+verified: true
+lastVerified: 2026-10-31
 ---
-
-<!-- SAMPLE: written for the hackathon from public summaries. Replace with the official scheme text, then set sample: false and verified: true. -->
 
 # Pradhan Mantri Suraksha Bima Yojana (PMSBY)
 
 ## Overview
 
-PMSBY is a low-cost accident insurance scheme offered through banks and post offices.
+PMSBY is a one-year personal accident insurance cover that can be renewed each year. It covers
+death or disability caused by an accident.
 
 ## Benefits
 
-₹2 lakh for accidental death or total permanent disability, and ₹1 lakh for partial permanent
-disability. The cover runs for one year, from 1 June to 31 May, and is renewed every year.
+The official FAQ lists ₹2 lakh for accidental death and ₹2 lakh for total and irrecoverable
+loss of both eyes, both hands or feet, or one eye together with one hand or foot. It lists
+₹1 lakh for total and irrecoverable loss of sight in one eye or use of one hand or foot.
 
 ## Premium
 
-₹20 per year, auto-debited once a year from the member's bank or post office account.
+The FAQ lists a premium of ₹20 per member per year. It is deducted from the member's bank or
+post-office account in one instalment by automatic debit, with the subscriber's consent.
 
 ## Eligibility
 
-People aged 18 to 70 years with a savings bank or post office account can join. A person can be
-covered through only one account.
+Individual account holders of participating banks or post offices aged 18 to 70 can join. A
+person with multiple accounts can join through only one bank or post-office account.
 
 ## How to apply
 
-Join at your bank branch or post office, or through net banking or the bank's mobile app, and
-give consent for the yearly auto-debit.
-
-## Documents needed
-
-Savings bank or post office account, Aadhaar for KYC, and nominee details.
+Ask a participating bank or post office to enrol. The FAQ says the premium is collected by
+automatic debit after the subscriber gives consent.

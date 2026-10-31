@@ -95,7 +95,7 @@ describe('dialect registry', () => {
 
       expect(results[0].dialect?.confidence).toBe('high');
       expect(results[0].dialectCandidates).toBeUndefined();
-      expect(results[1].dialect?.confidence).toBe('medium');
+      expect(results[1].dialect).toBeNull();
       expect(results[1].dialectCandidates?.length).toBeGreaterThan(0);
       expect(results[2].dialect).toBeNull();
       expect(results[2].dialectCandidates?.length).toBeGreaterThan(0);

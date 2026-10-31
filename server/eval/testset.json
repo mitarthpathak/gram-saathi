@@ -1,0 +1,32 @@
+{
+  "schemeQuestions": [
+    { "id": "pm-kisan-eligibility", "question": "What does PM-KISAN say about eligibility?", "schemeId": "pm-kisan" },
+    { "id": "pm-kisan-benefit", "question": "What does PM-KISAN say about its benefit?", "schemeId": "pm-kisan" },
+    { "id": "pm-kisan-application", "question": "How does PM-KISAN explain how to apply?", "schemeId": "pm-kisan" },
+    { "id": "pmjay-coverage", "question": "What does Ayushman Bharat PM-JAY say about coverage?", "schemeId": "ayushman-bharat-pmjay" },
+    { "id": "pmjay-card", "question": "What does Ayushman Bharat PM-JAY say about its card?", "schemeId": "ayushman-bharat-pmjay" },
+    { "id": "atal-pension", "question": "What does Atal Pension Yojana say about the scheme?", "schemeId": "atal-pension-yojana" },
+    { "id": "mgnrega-work", "question": "What does MGNREGA say about work?", "schemeId": "mgnrega" },
+    { "id": "ujjwala-application", "question": "How does PM Ujjwala Yojana explain how to apply?", "schemeId": "pm-ujjwala-yojana" },
+    { "id": "pmay-application", "question": "What does PMAY-Gramin say about applying?", "schemeId": "pmay-gramin" },
+    { "id": "suraksha-bima", "question": "What does PM Suraksha Bima Yojana say about the scheme?", "schemeId": "pm-suraksha-bima-yojana" }
+  ],
+  "languages": {
+    "hi": { "expectedScript": "devanagari" },
+    "mr": { "expectedScript": "devanagari" },
+    "ta": { "expectedScript": "tamil" },
+    "en": { "expectedScript": "latin" }
+  },
+  "nonSchemeMessages": [
+    { "id": "hello", "text": "hello", "language": "en", "expectedIntent": "smalltalk" },
+    { "id": "thanks", "text": "thank you", "language": "en", "expectedIntent": "smalltalk" },
+    { "id": "who-are-you", "text": "kaun ho tum", "language": "hi", "expectedIntent": "smalltalk" },
+    { "id": "clarify-provided-phrase", "text": "ki keh raho he", "language": "hi", "expectedIntent": "clarify" },
+    { "id": "did-not-understand", "text": "samajh nahi aaya", "language": "hi", "expectedIntent": "clarify" },
+    { "id": "weather", "text": "What is the weather today?", "language": "en", "expectedIntent": "out_of_scope" },
+    { "id": "sports", "text": "Who won the cricket match?", "language": "en", "expectedIntent": "out_of_scope" },
+    { "id": "recipe", "text": "How do I cook rice?", "language": "en", "expectedIntent": "out_of_scope" },
+    { "id": "directions", "text": "How do I reach the railway station?", "language": "en", "expectedIntent": "out_of_scope" },
+    { "id": "capital", "text": "What is the capital of France?", "language": "en", "expectedIntent": "out_of_scope" }
+  ]
+}

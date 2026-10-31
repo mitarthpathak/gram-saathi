@@ -1,5 +1,19 @@
 # Workstreams
 
+## Current status — 2026-10-31
+
+The conversation layer, shared text/voice routing, intent response contract, optional Gemini TTS,
+score calibration script, offline/live eval harness and health capability flags are implemented.
+Client typecheck/build and the mock API smoke test passed. The full automated suite still has three
+known eligibility failures because unverified eligibility rules intentionally disable that flow.
+These statuses supersede the historical step-2/step-3 checklist below where they conflict.
+
+Owner work remaining: verify scheme documents and eligibility rules against official sources,
+regenerate the vector store and FAQ cache, run live calibration and evaluation on a configured
+machine, collect consented dialect examples, and review replies with native speakers. See
+[`RUNBOOK.md`](RUNBOOK.md) for the exact sequence and [`FINAL_REPORT.md`](FINAL_REPORT.md) for
+verification results.
+
 Four workstreams, each owning its own folders, so 3–4 people can work in parallel with few
 merge conflicts. Everything already runs on mock data, so nobody waits for anybody: build your
 part behind the mocks, then switch it on (`USE_MOCKS` takes a list of modules that stay mocked).
@@ -36,7 +50,7 @@ Step 2
       the mic is released after each question.
 - [x] Recording feedback: timer and live level meter. Still open: vibration on start/stop.
 - [x] Friendly messages for `NO_SPEECH_DETECTED`, `AI_*` and setup errors (`ChatProvider`).
-- [ ] Play `audioUrl` when the server sends one; setting to auto-read answers on or off.
+- [x] Listen tries server `audioUrl` first and falls back to browser speech; no auto-read setting.
 - [ ] Retry button on error bubbles; disable input while offline.
 - [ ] Native speakers check every `strings.ts` in hi / mr / ta.
 
@@ -64,13 +78,15 @@ Step 2
       then add PM Fasal Bima, Sukanya Samriddhi, PMJJBY and the NFSA ration card.
 - [ ] With the real documents ingested, calibrate `RAG_MIN_SCORE` using the scores that
       `npm run query` prints (unrelated questions must fall below it).
-- [ ] Optional: `tts` with Gemini or Cloud TTS for languages phones lack (Marathi).
+- [x] Optional Gemini TTS with browser fallback; server-side language voice support still depends
+      on configured model capability.
 
 Step 3
 
 - [ ] Vector DB for embeddings (replace the in-memory index).
 - [ ] Semantic cache in `lib/cache.ts` (hit on paraphrases).
-- [ ] Small eval set: 10 questions per language with expected scheme and section.
+- [x] Conversation eval harness: 10 scheme question templates across each answer language plus
+      10 non-scheme intent cases. Current language-specific input coverage needs native examples.
 
 ## 3. Eligibility + SMS
 
