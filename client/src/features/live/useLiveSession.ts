@@ -70,18 +70,21 @@ export function useLiveSession() {
       ...(dialectHint ? { dialectHint } : {}),
     };
 
+    const startMockedSession = () => {
+      const fake = new FakeLiveClient({
+        onEvent: reportEvent,
+        onPlaybackEnded: () => setStatus('listening'),
+        onSpeaking: () => setStatus('speaking'),
+        onListening: () => setStatus('listening'),
+      });
+      clientRef.current = fake;
+      fake.start({ input: t.mockInput, output: t.mockOutput });
+    };
+
     try {
-      const token = config.useMocks ? null : await requestLiveToken(request);
-      if (config.useMocks || token?.mock) {
-        const fake = new FakeLiveClient({
-          onEvent: reportEvent,
-          onPlaybackEnded: () => setStatus('listening'),
-          onSpeaking: () => setStatus('speaking'),
-          onListening: () => setStatus('listening'),
-        });
-        clientRef.current = fake;
-        fake.start({ input: t.mockInput, output: t.mockOutput });
-      } else if (token) {
+      if (config.useMocks) {
+        startMockedSession();
+      } else {
         const client = new LiveClient({
           onEvent: reportEvent,
           onPlaybackEnded: () => setStatus('listening'),
@@ -96,10 +99,19 @@ export function useLiveSession() {
           },
         });
         clientRef.current = client;
-        await client.prepareAudio();
-        await client.connect(token);
-        client.startMicrophone();
-        setStatus('listening');
+        // Resume output audio while the button's user activation is still active.
+        client.activateOutput();
+        const token = await requestLiveToken(request);
+        if (token.mock) {
+          client.close();
+          clientRef.current = null;
+          startMockedSession();
+        } else {
+          await client.prepareAudio();
+          await client.connect(token);
+          client.startMicrophone();
+          setStatus('listening');
+        }
       }
       endTimer.current = window.setTimeout(
         () => {

@@ -29,6 +29,11 @@ export class LiveClient {
     this.callbacks = callbacks;
   }
 
+  activateOutput(): void {
+    this.outputContext ??= new AudioContext({ sampleRate: LIVE_OUTPUT_RATE });
+    void this.outputContext.resume();
+  }
+
   async connect(token: LiveTokenResponse): Promise<void> {
     const url = new URL(
       'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained',
@@ -88,7 +93,7 @@ export class LiveClient {
       },
     });
     this.inputContext = new AudioContext({ sampleRate: 16_000 });
-    this.outputContext = new AudioContext({ sampleRate: LIVE_OUTPUT_RATE });
+    this.outputContext ??= new AudioContext({ sampleRate: LIVE_OUTPUT_RATE });
     await Promise.all([
       this.inputContext.audioWorklet.addModule(captureWorkletUrl),
       this.inputContext.resume(),
