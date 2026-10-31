@@ -65,3 +65,10 @@
 - Results: added 10 scheme question templates expanded across hi/mr/ta/en (40 cases) and 10 non-scheme cases. Offline fake-dependency mode passed 50/50 plumbing checks and prints the requested pass/fail table. Live mode checks intent, expected citations, script, Roman text outside preserved scheme names/URLs, and numbers/rupee amounts against cited snippets; live quality does not set the build exit status. Scheme ids match the repo's scheme filenames.
 - Open issues: live model evaluation was not run. Input questions are English with answer-language hints, because R6 prohibits inventing Marathi/Tamil sample sentences and there are no consented multilingual exemplars. The `tsx` runtime issue from Phase 7 still prevents the calibration CLI from running in this environment.
 - Commit note: the `eval` and `calibrate` npm scripts share `server/package.json`; that file is committed with this phase after the Phase 7 calibration command's first staging attempt failed.
+
+## Phase 9 — scheme data audit
+
+- Files changed: `docs/AGENT_LOG.md` only; no scheme document was modified.
+- Commands run: inspected verification front matter in `data/schemes/*.md`; browsed official PMAY-G Department of Rural Development government sources on 2026-10-31: `https://pmayg.dord.gov.in/netiay/writereaddata/Circulars/Letter%20to%20all%20States%2014%20Aug%20%281%29.pdf`, `https://pmayg.dord.gov.in/netiayHome/Uploaded/Guidelines-English_Book_Final.pdf`, and `https://pmayg.nic.in`.
+- Results: PMAY-Gramin is the only scheme data file still marked `sample: true` and `verified: false`. Official government sources were fetched; the 2024 continuation circular and guidelines are available.
+- Open issues: every `data/schemes/*.md` file already had uncommitted changes before work began. R3 requires leaving those owner changes untouched, so the PMAY-Gramin file could not be updated with verified text/sourceUrl/access date. It is listed for human review. No scheme file changed, so ingest was not rerun; the generated vector store may be stale relative to the owner's pending data edits.
