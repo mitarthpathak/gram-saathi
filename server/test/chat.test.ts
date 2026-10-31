@@ -1,6 +1,13 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { embedTexts, setGeminiBackend } from '../src/lib/geminiClient';
-import { MESSAGES } from '../src/modules/chat/messages';
+import { getGreetingReply, MESSAGES } from '../src/modules/chat/messages';
+import {
+  mockDetectLanguage,
+  mockGenerateAnswer,
+  mockGreeting,
+  mockSmallTalk,
+  mockSearchSchemes,
+} from '../src/mocks/query';
 import {
   answerQuestion,
   clearAnswerCache,
@@ -11,7 +18,7 @@ import { DEFAULT_CHUNKING, type DocumentChunk } from '../src/modules/rag/chunkin
 import { ANSWER_SYSTEM_PROMPT } from '../src/modules/rag/prompts';
 import { setKnowledgeBase } from '../src/modules/rag/service';
 import { buildVectorStoreFile, VectorStore } from '../src/modules/rag/vectorStore';
-import { SMS_SYSTEM_PROMPT } from '../src/modules/sms/prompts';
+import { buildSmsInput, SMS_SYSTEM_PROMPT } from '../src/modules/sms/prompts';
 import { type FakeGemini, fakeGemini, passageIds } from './fakeGemini';
 
 const chunk = (
@@ -93,6 +100,134 @@ beforeEach(() => {
 });
 
 describe('answerQuestion (grounded pipeline)', () => {
+  it('answers exact greetings without searching scheme documents', async () => {
+    const greetings = [
+      { text: 'Hi!', language: 'en' as const },
+      { text: 'नमस्ते।', language: 'hi' as const },
+      { text: 'नमस्कार!', language: 'mr' as const },
+      { text: 'வணக்கம்!', language: 'ta' as const },
+    ];
+
+    for (const { text, language } of greetings) {
+      const response = await answerQuestion({ text, language, sessionId: 'greeting' });
+      expect(response).toMatchObject({
+        detectedLanguage: language,
+        answer: MESSAGES[language].greeting,
+        sources: [],
+        notFound: false,
+        usedCache: false,
+      });
+      expect(response.smsText).toBe(MESSAGES[language].greetingSms);
+    }
+
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it('does not treat a scheme question that starts with a greeting as small talk', () => {
+    expect(getGreetingReply('Hi, how much does PM-KISAN give?', 'en')).toBeUndefined();
+  });
+
+  it('answers a Romanised Hindi greeting in Roman script without retrieving or calling Gemini', async () => {
+    const response = await answerQuestion({ text: 'Namaste!', sessionId: 'roman-greeting' });
+
+    expect(response).toMatchObject({
+      detectedLanguage: 'hi',
+      answer: expect.stringMatching(/^Namaste!/),
+      sources: [],
+      notFound: false,
+      fraudWarning: expect.stringMatching(/^Dhokhadhadi/),
+    });
+    expect(response.answer).not.toMatch(/[ऀ-ॿ]/);
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it('answers Roman Hindi small talk in the same language and script without scheme retrieval', async () => {
+    const response = await answerQuestion({
+      text: 'nu keh rahi kaha se ho',
+      language: 'en',
+      sessionId: 'roman-hindi-small-talk',
+    });
+
+    expect(response).toMatchObject({
+      detectedLanguage: 'hi',
+      answer: expect.stringMatching(/^Main Gram Saathi hoon/),
+      sources: [],
+      notFound: false,
+    });
+    expect(response.answer).not.toMatch(/[\u0900-\u097f]/);
+    expect(fake.calls).toHaveLength(0);
+
+    const selectedDialectReply = await answerQuestion({
+      text: 'nu keh rahi kaha se ho',
+      language: 'en',
+      dialectHint: 'wagdi',
+      sessionId: 'wagdi-small-talk',
+    });
+    expect(selectedDialectReply.detectedLanguage).toBe('hi');
+    expect(selectedDialectReply.answer).toMatch(/^Main Gram Saathi hoon/);
+    expect(selectedDialectReply.dialect?.id).toBe('wagdi');
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it('keeps the parent language and selected variety in priority over voice language detection', async () => {
+    for (const [dialectHint, nativeName] of [
+      ['braj', 'ब्रज'],
+      ['wagdi', 'वागड़ी'],
+    ] as const) {
+      const response = await answerQuestion({
+        text: 'PM-KISAN amount?',
+        language: 'ta',
+        detectedLanguage: 'ta',
+        dialectHint,
+        sessionId: `dialect-${dialectHint}`,
+      });
+
+      expect(response).toMatchObject({
+        detectedLanguage: 'hi',
+        dialect: { id: dialectHint, confidence: 'high' },
+      });
+      const answerCall = [...fake.calls].reverse().find((call) => call.system === ANSWER_SYSTEM_PROMPT);
+      expect(String(answerCall?.input)).toContain(`Hindi (Latin script), using the ${nativeName}`);
+    }
+  });
+
+  it('abstains from an automatic medium-confidence dialect and answers in the parent language', async () => {
+    let dialectVotes = 0;
+    fake = fakeGemini((request) => {
+      if (request.system === ANSWER_SYSTEM_PROMPT) {
+        return {
+          answer: 'PM-KISAN mein ₹6,000 saal ke milte hain.',
+          usedChunkIds: passageIds(request as never).slice(0, 1),
+        };
+      }
+      if (request.system === SMS_SYSTEM_PROMPT) {
+        return { sms: 'PM-KISAN: ₹6,000 saalana.' };
+      }
+      if (request.system?.startsWith('Identify the spoken language')) {
+        dialectVotes += 1;
+        return { label: dialectVotes < 3 ? 'braj' : 'marwari', reason: 'mixed dialect evidence' };
+      }
+      throw new Error('unexpected prompt');
+    });
+    setGeminiBackend(fake);
+
+    const response = await answerQuestion({
+      text: 'PM-KISAN amount?',
+      detectedLanguage: 'hi',
+      dialectEvidence: {
+        audio: { data: 'AA==', mimeType: 'audio/wav' },
+        text: 'mixed dialect transcript',
+      },
+      sessionId: 'uncertain-dialect',
+    });
+
+    expect(response).toMatchObject({ detectedLanguage: 'hi', dialect: null });
+    expect(response.dialectCandidates?.map(({ id }) => id)).toContain('braj');
+    const answerCall = fake.calls.find((call) => call.system === ANSWER_SYSTEM_PROMPT);
+    expect(String(answerCall?.input)).toContain('REPLY LANGUAGE: Hindi (Latin script)');
+    expect(String(answerCall?.input)).not.toContain('variety');
+  });
+
   it('answers from the retrieved passages and cites only the passages it used', async () => {
     const response = await answerQuestion({
       text: 'How much money does PM-KISAN give?',
@@ -121,6 +256,38 @@ describe('answerQuestion (grounded pipeline)', () => {
     // Only passages above RAG_MIN_SCORE reach the model: the PM-JAY passage scored 0.
     expect(passageIds(fake.calls[0])).toEqual(['pm-kisan:benefits:0', 'pm-kisan:how-to-apply:0']);
     expect(String(fake.calls[0].input)).toContain('REPLY LANGUAGE: English');
+  });
+
+  it('preserves the source amount and refuses a generated amount absent from its cited passages', async () => {
+    fake = fakeGemini(groundedReply('PM-KISAN gives ₹5,000 a year.'));
+    setGeminiBackend(fake);
+    const response = await answerQuestion({
+      text: 'How much money does PM-KISAN give?',
+      sessionId: 'wrong-number',
+    });
+
+    expect(response).toMatchObject({ notFound: true, answer: MESSAGES.en.notFound, sources: [] });
+    expect(fake.calls).toHaveLength(1);
+  });
+
+  it('uses Roman script for RAG answers and not-found messages when the user types in Roman letters', async () => {
+    fake = fakeGemini(groundedReply('PM-KISAN mein ₹6,000 saal ke milte hain.'));
+    setGeminiBackend(fake);
+    const found = await answerQuestion({
+      text: 'PM Kisan ke liye kitna paisa milta hai?',
+      sessionId: 'roman-answer',
+    });
+    expect(found.detectedLanguage).toBe('hi');
+    expect(found.answer).toContain('₹6,000');
+    expect(found.answer).not.toMatch(/[ऀ-ॿ]/);
+    expect(found.smsText).not.toMatch(/[ऀ-ॿ]/);
+    expect(found.fraudWarning).not.toMatch(/[ऀ-ॿ]/);
+    expect(String(fake.calls[0].input)).toContain('Hindi (Latin script)');
+
+    const missing = await answerQuestion({ text: 'kya aaj barish hogi?', sessionId: 'roman-missing' });
+    expect(missing).toMatchObject({ notFound: true, detectedLanguage: 'hi' });
+    expect(missing.answer).toMatch(/^Maaf kijiye/);
+    expect(missing.fraudWarning).toMatch(/^Dhokhadhadi/);
   });
 
   it('says "not found" without calling the model when nothing is relevant enough', async () => {
@@ -201,13 +368,16 @@ describe('answerQuestion (grounded pipeline)', () => {
     };
     const first = await answerQuestion({ ...input, sessionId: 'dialect-a' });
     const second = await answerQuestion({ ...input, sessionId: 'dialect-b' });
+    const third = await answerQuestion({ ...input, sessionId: 'dialect-c' });
 
     expect(first).toMatchObject({ usedCache: false, dialect: { id: 'braj', confidence: 'high' } });
     expect(second).toMatchObject({
-      usedCache: true,
+      usedCache: false,
       dialect: { id: 'marwari', confidence: 'high' },
     });
-    expect(dialectCalls).toBe(6);
+    expect(third).toMatchObject({ usedCache: true, dialect: { id: 'marwari', confidence: 'high' } });
+    expect(dialectCalls).toBe(9);
+    expect(fake.calls.filter((call) => call.system === ANSWER_SYSTEM_PROMPT)).toHaveLength(2);
   });
 
   it('a confirmed dialect skips detection and makes the parent language the answer language', async () => {
@@ -289,10 +459,35 @@ describe('answerQuestion (grounded pipeline)', () => {
 });
 
 describe('text helpers', () => {
+  it('keeps the fixed and generated mock replies friendly and in Roman script', () => {
+    expect(mockDetectLanguage('Hi!', 'hi')).toBe('en');
+    expect(mockDetectLanguage('nu keh ki kaha se ho', 'en')).toBe('hi');
+    expect(mockDetectLanguage('nu keh rahi kaha se ho', 'en')).toBe('hi');
+    expect(mockDetectLanguage('नमस्कार!', 'mr')).toBe('mr');
+    expect(mockGreeting('Hi!', 'en')?.answer).toMatch(/^Hi!/);
+    expect(mockGreeting('Namaste!', 'hi', 'roman')?.answer).toMatch(/^Namaste!/);
+    const mock = mockGenerateAnswer(mockSearchSchemes('PM-KISAN amount', 3), 'hi', 'roman');
+    expect(mock.answer).toContain('₹6,000');
+    expect(mock.answer).not.toMatch(/[ऀ-ॿ]/);
+    expect(mockGenerateAnswer([], 'hi', 'roman').answer).toMatch(/^Maaf kijiye/);
+    expect(mockSmallTalk('nu keh ki kaha se ho', 'hi', 'roman')?.answer).toMatch(
+      /^Main Gram Saathi hoon/,
+    );
+    expect(mockSmallTalk('nu keh rahi kaha se ho', 'hi', 'roman')?.answer).toMatch(
+      /^Main Gram Saathi hoon/,
+    );
+  });
+
   it('turns Markdown into one plain line', () => {
     expect(
       toPlainText('## Benefits\n- **₹6,000** a year\n- see [the site](https://pmkisan.gov.in)'),
     ).toBe('Benefits ₹6,000 a year see the site');
+  });
+
+  it('keeps the requested script in the SMS shortening prompt', () => {
+    expect(buildSmsInput('PM-KISAN mein ₹6,000 milte hain.', 'hi', 140, 'Latin')).toContain(
+      'LANGUAGE: Hindi (Latin script)',
+    );
   });
 
   it('shortens long snippets at a sentence, else a word, boundary', () => {

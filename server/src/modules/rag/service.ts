@@ -4,7 +4,7 @@ import { embedTexts, generateJson } from '../../lib/geminiClient';
 import { HttpError } from '../../lib/httpError';
 import { logger } from '../../lib/logger';
 import { mockSearchSchemes } from '../../mocks';
-import { slugify } from './documents';
+import { isOfficialSourceUrl, slugify } from './documents';
 import { TRANSLATE_QUERY_PROMPT, translateQuerySchema } from './prompts';
 import { VectorStore, type ScoredChunk } from './vectorStore';
 
@@ -46,6 +46,18 @@ export async function searchSchemes(input: SearchInput): Promise<ScoredChunk[]> 
       503,
       'KNOWLEDGE_BASE_MISSING',
       'No knowledge base: run `npm run ingest -w server` (server/data/vectorstore.json).',
+    );
+  }
+  const unverified = store.meta.documents.filter(
+    (document) =>
+      document.sample || !document.verified || !isOfficialSourceUrl(document.officialUrl),
+  );
+  if (unverified.length > 0) {
+    throw new HttpError(
+      503,
+      'KNOWLEDGE_BASE_UNVERIFIED',
+      'The knowledge base includes documents that are not verified official sources. ' +
+        'Rebuild it with `npm run ingest -w server` after verifying the source files.',
     );
   }
   const query =

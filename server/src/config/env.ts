@@ -78,6 +78,8 @@ const envSchema = z.object({
   // Gemini. Model ids: https://ai.google.dev/gemini-api/docs/models
   GEMINI_API_KEY: fromEnv(z.string().optional()),
   GEMINI_CHAT_MODEL: fromEnv(z.string().default('gemini-3.8-flash')),
+  /** Used for transient model overloads; set to `none` to disable model fallback. */
+  GEMINI_FALLBACK_MODEL: fromEnv(z.string().trim().default('gemini-3.6-flash')),
   /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
   GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
   GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
