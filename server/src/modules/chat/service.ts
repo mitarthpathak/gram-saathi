@@ -179,8 +179,9 @@ async function answerConversation(
       ...dialect,
       detectedLanguage: result.language,
       answer: result.answer,
+      intent: result.intent,
       sources: [],
-      fraudWarning: getFraudWarning(result.language),
+      fraudWarning: '',
       smsText,
       smsSegments: countSmsSegments(smsText),
       audioUrl: null,
@@ -191,9 +192,10 @@ async function answerConversation(
     response = {
       sessionId: input.sessionId ?? '',
       transcript: input.transcript,
-      ...dialect,
-      ...notFoundAnswer(result.language ?? fallbackLanguage),
-      usedCache: false,
+        ...dialect,
+        ...notFoundAnswer(result.language ?? fallbackLanguage),
+        intent: result.intent,
+        usedCache: false,
     };
   } else {
     const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
@@ -203,6 +205,7 @@ async function answerConversation(
         transcript: input.transcript,
         ...dialect,
         ...notFoundAnswer(result.language),
+        intent: result.intent,
         usedCache: false,
       };
     } else {
@@ -212,6 +215,7 @@ async function answerConversation(
         transcript: input.transcript,
         ...dialect,
         ...foundAnswer(result.language, result.answer, usedChunks, sms),
+        intent: result.intent,
         usedCache: false,
       };
     }

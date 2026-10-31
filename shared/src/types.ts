@@ -99,6 +99,9 @@ export interface VoiceQueryFields {
   sessionId: string;
 }
 
+/** Optional conversation route chosen by the server's intent-understanding step. */
+export type ConversationIntent = 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope';
+
 export interface QueryResponse {
   sessionId: string;
   /** What the user said. Present for voice queries only. */
@@ -114,9 +117,11 @@ export interface QueryResponse {
   dialectCandidates?: DialectOption[];
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;
+  /** Route for rendering or follow-up behavior; absent on older servers and mock fixtures. */
+  intent?: ConversationIntent;
   /** The passages the answer uses. Empty when `notFound`. */
   sources: Source[];
-  /** Anti-fraud reminder shown with every answer, in the user's language. */
+  /** Anti-fraud reminder; empty for direct conversational replies. */
   fraudWarning: string;
   /** SMS-length version of the answer. */
   smsText: string;

@@ -28,3 +28,10 @@
 - Commands run: `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test -w server -- --run test/voiceConversation.test.ts`; `npm.cmd run build`.
 - Results: STT output continues into `answerQuestion`, which now routes through the same `handleTurn` path as typed text. Explicit dialect selection is retained. The repo's confidence policy is explicit: high-confidence classification can inform the reply prompt, while medium confidence and abstention are omitted. Fake-STT coverage verifies transcript, language, and selected dialect are carried through.
 - Open issues: automatic real-audio dialect confidence is not live-tested; the focused fake-STT suite passed. Full server suite retains 3 pre-existing eligibility failures.
+
+## Phase 4 — response mapping and contract
+
+- Files changed: `shared/src/types.ts`, `server/src/modules/chat/service.ts`, `docs/API_CONTRACT.md`.
+- Commands run: `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test -w server -- --run test/chat.test.ts test/conversation.test.ts test/voiceConversation.test.ts`; `npm.cmd run build`.
+- Results: the optional `intent` field is typed and documented. Direct replies have no citations, return `fraudWarning: ''`, and map the intent. Grounded and not-found replies preserve the existing source, fraud, SMS, and fixed-text mapping. The pre-existing client change hides fraud warnings for direct responses because they have no sources and are not not-found.
+- Open issues: none for this phase; all focused tests, typecheck, lint, and build passed.
