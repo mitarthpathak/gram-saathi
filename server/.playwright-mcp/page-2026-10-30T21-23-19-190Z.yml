@@ -1,0 +1,83 @@
+- generic [ref=f3e77]:
+  - banner [ref=f3e79]:
+    - generic [ref=f3e82]:
+      - link "Gram Saathi Your scheme helper" [ref=f3e83] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e89]:
+          - generic [ref=f3e90]: Gram Saathi
+          - generic [ref=f3e91]: Your scheme helper
+      - generic [ref=f3e92]:
+        - generic [ref=f3e93]: Language
+        - combobox "Language" [ref=f3e94]:
+          - option "Auto detect" [selected]
+          - option "हिन्दी"
+          - option "मराठी"
+          - option "தமிழ்"
+          - option "English"
+    - generic [ref=f3e240]: Demo data
+  - main [ref=f3e95]:
+    - generic [ref=f3e96]:
+      - list [ref=f3e270]:
+        - listitem [ref=f3e271]:
+          - generic [ref=f3e272]:
+            - paragraph [ref=f3e273]: You said
+            - text: पीएम किसान योजना में साल में कितना पैसा मिलता है?
+        - listitem [ref=f3e298]:
+          - article [ref=f3e299]:
+            - generic [ref=f3e305]:
+              - generic [ref=f3e306]: PM-KISAN Samman Nidhi
+              - paragraph [ref=f3e308]: पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in पर या नज़दीकी CSC केंद्र पर मुफ़्त है।
+              - generic [ref=f3e309]:
+                - button "Listen" [ref=f3e310]
+                - link "View as SMS · 2" [ref=f3e315] [cursor=pointer]:
+                  - /url: /sms
+              - generic [ref=f3e318]:
+                - heading "Official sources" [level=3] [ref=f3e319]
+                - list [ref=f3e323]:
+                  - listitem [ref=f3e324]:
+                    - generic [ref=f3e325]:
+                      - generic [ref=f3e326]:
+                        - generic [aria-hidden] [ref=f3e327]: "1"
+                        - generic [ref=f3e328]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f3e329]: · Benefits
+                      - blockquote [ref=f3e330]: “Eligible landholding farmer families get ₹6,000 per year, paid in three equal instalments of ₹2,000 directly into their Aadhaar-seeded bank account (DBT).”
+                      - button "Show more" [ref=f3e331]
+                  - listitem [ref=f3e334]:
+                    - generic [ref=f3e335]:
+                      - generic [ref=f3e336]:
+                        - generic [aria-hidden] [ref=f3e337]: "2"
+                        - generic [ref=f3e338]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f3e339]: · Eligibility
+                      - blockquote [ref=f3e340]: "“All landholding farmer families whose names are in the land records are eligible. Excluded: institutional landholders, families with an income-tax payer, serving or retired government employees (except Group D / MTS), registered professionals such as doctors, engineers and lawyers, and pensioners getting ₹10,000 or more per month.”"
+                      - button "Show more" [ref=f3e341]
+                  - listitem [ref=f3e344]:
+                    - generic [ref=f3e345]:
+                      - generic [ref=f3e346]:
+                        - generic [aria-hidden] [ref=f3e347]: "3"
+                        - generic [ref=f3e348]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f3e349]: · How to apply
+                      - blockquote [ref=f3e350]: “Registration is free. Apply at pmkisan.gov.in (New Farmer Registration), at a Common Service Centre (CSC) or through the local Patwari / revenue officer. eKYC with Aadhaar is mandatory to receive instalments.”
+                      - button "Show more" [ref=f3e351]
+              - note [ref=f3e354]:
+                - paragraph [ref=f3e357]: "धोखाधड़ी से सावधान: सरकारी योजनाओं में आवेदन मुफ़्त है। अपना OTP या बैंक PIN किसी को न बताएं। केवल .gov.in वेबसाइट या नज़दीकी CSC केंद्र का ही उपयोग करें।"
+      - generic [ref=f3e200]:
+        - generic [ref=f3e201]:
+          - button "Hold to speak" [ref=f3e293]
+          - status [ref=f3e211]: Speaking the answer…
+        - generic [ref=f3e212]:
+          - generic [ref=f3e213]: Your question
+          - textbox "Your question" [ref=f3e214]:
+            - /placeholder: Type your question…
+          - button "Send" [disabled] [ref=f3e215]
+  - navigation "Main" [ref=f3e219]:
+    - link [ref=f3e220] [cursor=pointer]:
+      - /url: /
+    - link [ref=f3e224] [cursor=pointer]:
+      - /url: /eligibility
+    - link [ref=f3e230] [cursor=pointer]:
+      - /url: /sms
+    - link [ref=f3e234] [cursor=pointer]:
+      - /url: /dialects

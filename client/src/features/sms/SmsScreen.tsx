@@ -47,20 +47,20 @@ export function SmsScreen() {
   };
 
   return (
-    <div className="flex animate-fade-up flex-col gap-6 px-4 py-5">
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-800 to-brand-950 p-5 text-white shadow-lift">
+    <div className="flex animate-fade-up flex-col gap-5 px-4 py-5">
+      <section className="relative overflow-hidden rounded-[2rem] bg-brand-950 p-5 text-white shadow-lift">
         <div aria-hidden className="absolute inset-0 bg-kolam opacity-40" />
         <span className="relative flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
           <MessageSquareText aria-hidden className="size-6 text-marigold-300" />
         </span>
         <h1 className="relative mt-3 text-2xl font-extrabold tracking-tight">{t.title}</h1>
-        <p className="relative mt-1 text-base text-slate-300">{t.subtitle}</p>
+        <p className="relative mt-2 text-lg leading-relaxed text-brand-100">{t.subtitle}</p>
       </section>
 
       <LowBandwidthToggle />
 
       <section className="flex flex-col gap-3">
-        <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+        <h2 className="px-1 text-base font-extrabold tracking-wide text-brand-800">
           {t.previewTitle}
         </h2>
         <FeaturePhoneMock sms={preview?.sms ?? null} segments={preview?.segments ?? 0} />

@@ -1,0 +1,120 @@
+- generic [ref=f1e3]:
+  - region "About Gram Saathi" [ref=f1e4]:
+    - generic [ref=f1e11]:
+      - paragraph [ref=f1e12]: Gram Saathi
+      - paragraph [ref=f1e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f1e14]
+    - paragraph [ref=f1e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f1e16]:
+      - listitem [ref=f1e17]: हिन्दी
+      - listitem [ref=f1e18]: मराठी
+      - listitem [ref=f1e19]: தமிழ்
+      - listitem [ref=f1e20]: English
+    - list [ref=f1e21]:
+      - listitem [ref=f1e22]:
+        - generic [ref=f1e23]: You ask by voice
+      - listitem [ref=f1e27]:
+        - generic [ref=f1e30]: Official documents are searched
+      - listitem [ref=f1e36]:
+        - generic [ref=f1e39]: Short answer, read aloud + SMS
+    - list [ref=f1e42]:
+      - listitem [ref=f1e43]:
+        - paragraph [ref=f1e48]: Only official answers
+        - paragraph [ref=f1e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f1e50]:
+        - paragraph [ref=f1e54]: Works on any phone
+        - paragraph [ref=f1e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f1e56]:
+        - paragraph [ref=f1e62]: Eligibility in a minute
+        - paragraph [ref=f1e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f1e64]:
+        - paragraph [ref=f1e68]: Fraud shield
+        - paragraph [ref=f1e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f1e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f1e77]:
+    - banner [ref=f1e79]:
+      - generic [ref=f1e82]:
+        - link "Gram Saathi Your scheme helper" [ref=f1e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f1e89]:
+            - generic [ref=f1e90]: Gram Saathi
+            - generic [ref=f1e91]: Your scheme helper
+        - generic [ref=f1e92]:
+          - generic [ref=f1e93]: Language
+          - combobox "Language" [ref=f1e94]:
+            - option "Auto detect" [selected]
+            - option "हिन्दी"
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+      - generic [ref=f1e240]: Demo data
+    - main [ref=f1e95]:
+      - generic [ref=f1e96]:
+        - generic [ref=f1e98]:
+          - generic [ref=f1e99]:
+            - paragraph [ref=f1e101]: Namaste 🙏
+            - heading "Ask about any government scheme" [level=1] [ref=f1e102]
+            - paragraph [ref=f1e103]: Hold the green button and speak, or type below.
+            - radiogroup "Language" [ref=f1e104]:
+              - radio "हिन्दी" [ref=f1e105]
+              - radio "मराठी" [ref=f1e106]
+              - radio "தமிழ்" [ref=f1e107]
+              - radio "English" [checked] [ref=f1e108]
+            - link "Our dialects" [ref=f1e109] [cursor=pointer]:
+              - /url: /dialects
+          - generic [ref=f1e114]:
+            - heading "Popular schemes" [level=2] [ref=f1e115]
+            - generic [ref=f1e116]:
+              - button "PM-KISAN Farmers" [ref=f1e117]:
+                - generic [ref=f1e128]:
+                  - generic [ref=f1e129]: PM-KISAN
+                  - generic [ref=f1e130]: Farmers
+              - button "Ayushman card Health" [ref=f1e131]:
+                - generic [ref=f1e136]:
+                  - generic [ref=f1e137]: Ayushman card
+                  - generic [ref=f1e138]: Health
+              - button "Atal Pension Pension" [ref=f1e139]:
+                - generic [ref=f1e144]:
+                  - generic [ref=f1e145]: Atal Pension
+                  - generic [ref=f1e146]: Pension
+              - button "Ujjwala gas Cooking gas" [ref=f1e147]:
+                - generic [ref=f1e151]:
+                  - generic [ref=f1e152]: Ujjwala gas
+                  - generic [ref=f1e153]: Cooking gas
+              - button "Housing (PMAY-G) Housing" [ref=f1e154]:
+                - generic [ref=f1e159]:
+                  - generic [ref=f1e160]: Housing (PMAY-G)
+                  - generic [ref=f1e161]: Housing
+              - button "MGNREGA work Work" [ref=f1e162]:
+                - generic [ref=f1e168]:
+                  - generic [ref=f1e169]: MGNREGA work
+                  - generic [ref=f1e170]: Work
+          - generic [ref=f1e171]:
+            - heading "How it works" [level=2] [ref=f1e172]
+            - list [ref=f1e173]:
+              - listitem [ref=f1e174]:
+                - generic [ref=f1e175]: Speak your question
+              - listitem [ref=f1e183]:
+                - generic [ref=f1e184]: We check official documents
+              - listitem [ref=f1e194]:
+                - generic [ref=f1e195]: Short answer + SMS
+        - generic [ref=f1e200]:
+          - generic [ref=f1e201]:
+            - button "Stop recording" [pressed] [ref=f1e243]
+            - generic [ref=f1e210]:
+              - generic [ref=f1e269]: 0:15
+              - status [ref=f1e211]: Listening… release or tap to send
+          - generic [ref=f1e212]:
+            - generic [ref=f1e213]: Your question
+            - textbox "Your question" [ref=f1e214]:
+              - /placeholder: Type your question…
+            - button "Send" [disabled] [ref=f1e215]
+    - navigation "Main" [ref=f1e219]:
+      - link [ref=f1e220] [cursor=pointer]:
+        - /url: /
+      - link [ref=f1e224] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f1e230] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f1e234] [cursor=pointer]:
+        - /url: /dialects

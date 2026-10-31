@@ -1,0 +1,87 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e9]:
+      - link "Gram Saathi Your scheme helper" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e16]:
+          - generic [ref=e17]: Gram Saathi
+          - generic [ref=e18]: Your scheme helper
+      - generic [ref=e19]:
+        - generic [ref=e20]: Language
+        - combobox "Language" [ref=e21]:
+          - option "Auto detect" [selected]
+          - option "हिन्दी"
+          - option "मराठी"
+          - option "தமிழ்"
+          - option "English"
+    - generic [ref=e167]: Demo data
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - paragraph [ref=e28]: Namaste 🙏
+          - heading "Ask about any government scheme" [level=1] [ref=e29]
+          - paragraph [ref=e30]: Hold the green button and speak, or type below.
+          - radiogroup "Language" [ref=e31]:
+            - radio "हिन्दी" [ref=e32]
+            - radio "मराठी" [ref=e33]
+            - radio "தமிழ்" [ref=e34]
+            - radio "English" [checked] [ref=e35]
+          - link "Our dialects" [ref=e36] [cursor=pointer]:
+            - /url: /dialects
+        - generic [ref=e41]:
+          - heading "Popular schemes" [level=2] [ref=e42]
+          - generic [ref=e43]:
+            - button "PM-KISAN Farmers" [ref=e44]:
+              - generic [ref=e55]:
+                - generic [ref=e56]: PM-KISAN
+                - generic [ref=e57]: Farmers
+            - button "Ayushman card Health" [ref=e58]:
+              - generic [ref=e63]:
+                - generic [ref=e64]: Ayushman card
+                - generic [ref=e65]: Health
+            - button "Atal Pension Pension" [ref=e66]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: Atal Pension
+                - generic [ref=e73]: Pension
+            - button "Ujjwala gas Cooking gas" [ref=e74]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: Ujjwala gas
+                - generic [ref=e80]: Cooking gas
+            - button "Housing (PMAY-G) Housing" [ref=e81]:
+              - generic [ref=e86]:
+                - generic [ref=e87]: Housing (PMAY-G)
+                - generic [ref=e88]: Housing
+            - button "MGNREGA work Work" [ref=e89]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: MGNREGA work
+                - generic [ref=e97]: Work
+        - generic [ref=e98]:
+          - heading "How it works" [level=2] [ref=e99]
+          - list [ref=e100]:
+            - listitem [ref=e101]:
+              - generic [ref=e102]: Speak your question
+            - listitem [ref=e110]:
+              - generic [ref=e111]: We check official documents
+            - listitem [ref=e121]:
+              - generic [ref=e122]: Short answer + SMS
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - button "Hold to speak" [disabled] [ref=e133]:
+            - status [ref=e170]:
+              - generic [ref=e173]: Loading
+          - status [ref=e138]: Allow microphone access…
+        - generic [ref=e139]:
+          - generic [ref=e140]: Your question
+          - textbox "Your question" [ref=e141]:
+            - /placeholder: Type your question…
+          - button "Send" [disabled] [ref=e142]
+  - navigation "Main" [ref=e146]:
+    - link [ref=e147] [cursor=pointer]:
+      - /url: /
+    - link [ref=e151] [cursor=pointer]:
+      - /url: /eligibility
+    - link [ref=e157] [cursor=pointer]:
+      - /url: /sms
+    - link [ref=e161] [cursor=pointer]:
+      - /url: /dialects

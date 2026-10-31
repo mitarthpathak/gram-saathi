@@ -5,6 +5,12 @@ import { createContext, useContext } from 'react';
 export interface Settings {
   language: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
+  /** Voice-language hint. null means auto-detect. */
+  languageHint: LanguageCode | null;
+  setLanguageHint: (language: LanguageCode | null) => void;
+  /** Remembered dialect correction for subsequent voice questions. */
+  dialectHint: string | null;
+  setDialectHint: (dialectId: string | null) => void;
   /** Text-first mode for slow networks: no server audio, top answers saved for offline use. */
   lowBandwidth: boolean;
   setLowBandwidth: (on: boolean) => void;

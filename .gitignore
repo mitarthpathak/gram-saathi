@@ -3,6 +3,8 @@ node_modules/
 
 # build output
 dist/
+dist-ssr/
+client/dev-dist/
 *.tsbuildinfo
 .vite/
 coverage/
@@ -23,9 +25,3 @@ Thumbs.db
 
 # Vercel CLI (project link, local build output)
 .vercel/
-
-# Private/large contributed audio and generated dialect evaluation artifacts
-data/eval/dialect/audio/*
-!data/eval/dialect/audio/.gitkeep
-server/data/eval-cache/
-server/data/eval-report/

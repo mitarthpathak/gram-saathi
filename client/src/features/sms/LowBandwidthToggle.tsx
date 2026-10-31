@@ -15,7 +15,7 @@ export function LowBandwidthToggle() {
       </span>
       <span className="flex-1">
         <span className="block text-base font-extrabold">{t.lowBandwidth}</span>
-        <span className="block text-sm leading-snug text-slate-600">{t.lowBandwidthHint}</span>
+        <span className="block text-base leading-snug text-slate-700">{t.lowBandwidthHint}</span>
       </span>
       <input
         type="checkbox"

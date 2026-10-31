@@ -227,19 +227,41 @@ eligibility rules, SMS segment counting and the sentence-boundary fallback, the 
 
 ```
 client/src/
-  app/              shell: App, router, providers, Layout (header + bottom nav)
+  app/              shell: App, routes, SiteShell (landing + app modal), Dock, providers
+  features/landing/ the scrollytelling landing page: hero/, chapters/, intro, sky, strings.ts
+  features/app-shell/ the app's frame: desktop phone sheet, phone full screen, 3-tab nav
   features/<name>/  screens and components of one feature, its strings.ts, its hooks
   components/ui/    Button, Card, Badge, Spinner, Toast
+  components/art/   Saathi the mascot, PhoneFrame, hand-drawn doodles (all inline SVG / CSS)
+  components/motion/ MaskedLines, CyclingText, reveal props
   lib/              api.ts (typed client), config.ts, i18n.ts, settings.ts, storage.ts
+  lib/motion/       easings, useMotionTier, MotionProvider, GSAP and Lenis loaders
   mocks/            in-browser API used when VITE_USE_MOCKS=true
+  prerender.tsx     build-time render of "/" (see below)
 ```
 
-- **Screens:** `/` chat (voice + text), `/eligibility` wizard, `/sms` SMS preview, low-bandwidth
-  mode and offline FAQ. On screens 1024 px and wider (laptops, projectors) the app sits in a phone
-  frame next to a pitch panel (`app/Showcase.tsx`); phones get the app full screen.
-- **Look:** colour tokens (`brand` green, `marigold` accent, `cream` paper) and animations live in
-  `src/index.css` (`@theme`); change them there to re-theme everything. Motion respects
-  `prefers-reduced-motion`.
+- **Routes:** `/` is the landing page. `/app`, `/app/eligibility` and `/app/sms` are the app
+  (chat, eligibility wizard, SMS preview with low-bandwidth mode and offline FAQ), loaded as
+  separate chunks. Desktop (1024 px and wider): the app is a route modal over the landing page,
+  in a phone frame that the dock's "Open app" pill morphs into (backgroundLocation state: Back
+  closes it, tab switches replace history). Phones: the app is full screen and slides up. The
+  old `/chat`, `/eligibility` and `/sms` paths redirect.
+- **Look:** "Leaf & Marigold" tokens (paper, ink, leaf, marigold, accent text, dusk, pastels),
+  radii, warm shadows, easings and keyframes live in `src/index.css` (`@theme`); change them
+  there to re-theme everything. Display text uses self-hosted, subset variable fonts
+  (Bricolage Grotesque, Anek Devanagari / Tamil, built by `client/scripts/subset-fonts.py`);
+  body text stays on system fonts.
+- **Motion:** `useMotionTier()` is `full` (desktop with a mouse: pinned story, parallax, Lenis
+  smooth scroll), `lite` (phones and low-end devices: no pinning, no blur) or `reduced`
+  (`prefers-reduced-motion` or low-bandwidth mode: fades only). Motion (`motion/react`, lazily
+  loaded features) for components; GSAP + ScrollTrigger only for the pinned story, loaded with it.
+  Animations use transform, opacity and clip-path. Indic text is animated per word or line,
+  never per character.
+- **Prerendering:** `npm run build` also renders `/` to HTML (`src/prerender.tsx` +
+  `scripts/prerender.mjs`), so the landing page paints before any JavaScript; the intro and the
+  hero entrance are pure CSS for the same reason, and the JS is requested after the first paint.
+  A head script in `index.html` hides that HTML when it cannot match the visit (another
+  language, low-data mode, another path) and the app renders from scratch instead.
 - **State:** `SettingsContext` (language, low-bandwidth mode, session id; saved in localStorage),
   `ChatContext` (the conversation; survives switching screens), `ToastContext`.
 - **API:** components never call `fetch`; they use `api` from `lib/api.ts`, which is typed with
@@ -248,8 +270,8 @@ client/src/
   (`Strings<typeof en>` makes the build fail if a key is missing). Use
   `const t = useStrings(myStrings)`. Answers come from the API already translated.
 - **Accessibility for low-literacy users:** big touch targets (48 px or more), icons with every
-  label, language names in their own script, read-aloud buttons, high contrast, and system fonts
-  only (no font download).
+  label, language names in their own script, read-aloud buttons, WCAG AA contrast, visible focus,
+  and system fonts for all body text.
 - **Low-bandwidth mode:** text first, no server audio, top answers cached on the device. The
   service worker and offline shell come in step 3.
 

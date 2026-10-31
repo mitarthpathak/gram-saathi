@@ -129,3 +129,10 @@
 - Commands run: GitHub REST API GET for PR #9 using the configured credential helper; credential values were not printed.
 - Results: PR #9 is open and `mergeable: true` against `main` at `34dac54`.
 - Open issues: none for conflict resolution; outstanding product verification tasks remain documented in `FINAL_REPORT.md`.
+
+## Phase 18 — sync latest main and compact phone layout
+
+- Files changed: latest `origin/main` tree (merge commit pending), `client/src/index.css`, `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`.
+- Commands run: `git fetch origin main`; verified staged index tree equals `git merge-tree --write-tree HEAD origin/main` and has no unmerged paths; `npm.cmd install`; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`.
+- Results: latest main is `698b211`; merge result has no conflicts. The mobile layout now uses a 92% root rem scale at widths up to 480px, leaving desktop sizing and browser zoom unchanged. Typecheck, lint and build passed; 132 server tests and 8 client tests passed. Three eligibility tests fail because the eligibility rules are unverified.
+- Open issues: write the merge commit with both parents and push the feature branch. The three eligibility failures remain due to unverified rules.

@@ -10,6 +10,14 @@ rebase or merge was performed. Typecheck, lint and build pass on the resolution;
 baseline eligibility tests remain failing because the rules are unverified. GitHub reports PR #9
 as mergeable against `main` at base commit `34dac54`.
 
+## Latest main sync and mobile layout
+
+The feature branch is being synchronized with `origin/main` at `698b211` using a merge commit.
+Phone layouts up to 480px now use a 92% root rem scale to make spacing and type slightly more
+compact; browser zoom and desktop sizing are unchanged. After installing dependencies introduced
+by main, typecheck, lint and build passed; 132 server tests and 8 client tests passed. The same 3
+eligibility tests remain failing because the rules are unverified.
+
 ## Work completed by phase
 
 - **0 — Recon:** documented the original text, voice, dialect and Listen flows, configuration,

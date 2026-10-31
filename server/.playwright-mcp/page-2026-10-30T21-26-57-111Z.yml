@@ -1,0 +1,138 @@
+- generic [ref=f7e3]:
+  - region "About Gram Saathi" [ref=f7e4]:
+    - generic [ref=f7e11]:
+      - paragraph [ref=f7e12]: Gram Saathi
+      - paragraph [ref=f7e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f7e14]
+    - paragraph [ref=f7e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f7e16]:
+      - listitem [ref=f7e17]: हिन्दी
+      - listitem [ref=f7e18]: मराठी
+      - listitem [ref=f7e19]: தமிழ்
+      - listitem [ref=f7e20]: English
+    - list [ref=f7e21]:
+      - listitem [ref=f7e22]:
+        - generic [ref=f7e23]: You ask by voice
+      - listitem [ref=f7e27]:
+        - generic [ref=f7e30]: Official documents are searched
+      - listitem [ref=f7e36]:
+        - generic [ref=f7e39]: Short answer, read aloud + SMS
+    - list [ref=f7e42]:
+      - listitem [ref=f7e43]:
+        - paragraph [ref=f7e48]: Only official answers
+        - paragraph [ref=f7e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f7e50]:
+        - paragraph [ref=f7e54]: Works on any phone
+        - paragraph [ref=f7e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f7e56]:
+        - paragraph [ref=f7e62]: Eligibility in a minute
+        - paragraph [ref=f7e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f7e64]:
+        - paragraph [ref=f7e68]: Fraud shield
+        - paragraph [ref=f7e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f7e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f7e77]:
+    - banner [ref=f7e79]:
+      - generic [ref=f7e82]:
+        - link "Gram Saathi Your scheme helper" [ref=f7e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f7e89]:
+            - generic [ref=f7e90]: Gram Saathi
+            - generic [ref=f7e91]: Your scheme helper
+        - generic [ref=f7e92]:
+          - generic [ref=f7e93]: Language
+          - combobox "Language" [ref=f7e94]:
+            - option "Auto detect" [selected]
+            - option "हिन्दी"
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+      - generic [ref=f7e245]: Demo data
+    - main [ref=f7e95]:
+      - generic [ref=f7e96]:
+        - list [ref=f7e275]:
+          - listitem [ref=f7e276]:
+            - generic [ref=f7e277]:
+              - paragraph [ref=f7e278]: You said
+              - text: पीएम किसान योजना में साल में कितना पैसा मिलता है?
+          - listitem [ref=f7e282]:
+            - article [ref=f7e283]:
+              - generic [ref=f7e289]:
+                - generic [ref=f7e290]: PM-KISAN Samman Nidhi
+                - generic [active] [ref=f7e292]:
+                  - paragraph [ref=f7e293]: Maybe you speak वागड़ी. Is that right?
+                  - generic [ref=f7e294]:
+                    - button "Wagdi · वागड़ी Remembered for future voice questions" [ref=f7e295]:
+                      - generic [ref=f7e296]: Wagdi · वागड़ी
+                      - generic [ref=f7e297]: Remembered for future voice questions
+                    - button "Marwari · मारवाड़ी Choose" [ref=f7e298]:
+                      - generic [ref=f7e299]: Marwari · मारवाड़ी
+                      - generic [ref=f7e300]: Choose
+                    - button "Dhundhari/Jaipuri · ढूंढाड़ी/जयपुरी Choose" [ref=f7e301]:
+                      - generic [ref=f7e302]: Dhundhari/Jaipuri · ढूंढाड़ी/जयपुरी
+                      - generic [ref=f7e303]: Choose
+                    - generic [ref=f7e304]:
+                      - link "Another dialect" [ref=f7e305] [cursor=pointer]:
+                        - /url: /dialects
+                      - button "Plain Hindi" [ref=f7e306]
+                - paragraph [ref=f7e307]: पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in पर या नज़दीकी CSC केंद्र पर मुफ़्त है।
+                - generic [ref=f7e308]:
+                  - button "Listen" [ref=f7e309]
+                  - link "View as SMS · 2" [ref=f7e314] [cursor=pointer]:
+                    - /url: /sms
+                - generic [ref=f7e317]:
+                  - heading "Official sources" [level=3] [ref=f7e318]
+                  - list [ref=f7e322]:
+                    - listitem [ref=f7e323]:
+                      - generic [ref=f7e324]:
+                        - generic [ref=f7e325]:
+                          - generic [aria-hidden] [ref=f7e326]: "1"
+                          - generic [ref=f7e327]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f7e328]: · Benefits
+                        - blockquote [ref=f7e329]: “Eligible landholding farmer families get ₹6,000 per year, paid in three equal instalments of ₹2,000 directly into their Aadhaar-seeded bank account (DBT).”
+                        - button "Show more" [ref=f7e330]
+                    - listitem [ref=f7e333]:
+                      - generic [ref=f7e334]:
+                        - generic [ref=f7e335]:
+                          - generic [aria-hidden] [ref=f7e336]: "2"
+                          - generic [ref=f7e337]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f7e338]: · Eligibility
+                        - blockquote [ref=f7e339]: "“All landholding farmer families whose names are in the land records are eligible. Excluded: institutional landholders, families with an income-tax payer, serving or retired government employees (except Group D / MTS), registered professionals such as doctors, engineers and lawyers, and pensioners getting ₹10,000 or more per month.”"
+                        - button "Show more" [ref=f7e340]
+                    - listitem [ref=f7e343]:
+                      - generic [ref=f7e344]:
+                        - generic [ref=f7e345]:
+                          - generic [aria-hidden] [ref=f7e346]: "3"
+                          - generic [ref=f7e347]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f7e348]: · How to apply
+                        - blockquote [ref=f7e349]: “Registration is free. Apply at pmkisan.gov.in (New Farmer Registration), at a Common Service Centre (CSC) or through the local Patwari / revenue officer. eKYC with Aadhaar is mandatory to receive instalments.”
+                        - button "Show more" [ref=f7e350]
+                - note [ref=f7e353]:
+                  - paragraph [ref=f7e356]: "धोखाधड़ी से सावधान: सरकारी योजनाओं में आवेदन मुफ़्त है। अपना OTP या बैंक PIN किसी को न बताएं। केवल .gov.in वेबसाइट या नज़दीकी CSC केंद्र का ही उपयोग करें।"
+        - generic [ref=f7e200]:
+          - status [ref=f7e201]:
+            - generic [ref=f7e202]: "Remembered: Wagdi (वागड़ी)"
+            - generic [aria-hidden] [ref=f7e203]: ·
+            - link "Change" [ref=f7e204] [cursor=pointer]:
+              - /url: /dialects
+            - button "Clear" [ref=f7e205]
+          - generic [ref=f7e206]:
+            - button "Hold to speak" [ref=f7e357]
+            - status [ref=f7e216]: Speaking the answer…
+          - generic [ref=f7e217]:
+            - generic [ref=f7e218]: Your question
+            - textbox "Your question" [ref=f7e219]:
+              - /placeholder: Type your question…
+            - button "Send" [disabled] [ref=f7e220]
+    - navigation "Main" [ref=f7e224]:
+      - link [ref=f7e225] [cursor=pointer]:
+        - /url: /
+      - link [ref=f7e229] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f7e235] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f7e239] [cursor=pointer]:
+        - /url: /dialects
