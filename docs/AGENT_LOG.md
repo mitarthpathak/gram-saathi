@@ -72,3 +72,10 @@
 - Commands run: inspected verification front matter in `data/schemes/*.md`; browsed official PMAY-G Department of Rural Development government sources on 2026-10-31: `https://pmayg.dord.gov.in/netiay/writereaddata/Circulars/Letter%20to%20all%20States%2014%20Aug%20%281%29.pdf`, `https://pmayg.dord.gov.in/netiayHome/Uploaded/Guidelines-English_Book_Final.pdf`, and `https://pmayg.nic.in`.
 - Results: PMAY-Gramin is the only scheme data file still marked `sample: true` and `verified: false`. Official government sources were fetched; the 2024 continuation circular and guidelines are available.
 - Open issues: every `data/schemes/*.md` file already had uncommitted changes before work began. R3 requires leaving those owner changes untouched, so the PMAY-Gramin file could not be updated with verified text/sourceUrl/access date. It is listed for human review. No scheme file changed, so ingest was not rerun; the generated vector store may be stale relative to the owner's pending data edits.
+
+## Phase 10 — client polish
+
+- Files changed: `docs/AGENT_LOG.md` only; existing owner client changes already provide the requested presentation behavior.
+- Commands run: inspected `ChatProvider.tsx`, `ChatScreen.tsx`, `ChatWindow.tsx`, `MessageBubble.tsx`, `useChat.ts`, and API routing; `npm.cmd run typecheck -w client`; `npm.cmd run build -w client`.
+- Results: client typecheck and production build passed. The existing busy/thinking indicator covers the added understand step; direct responses have no sources and the existing message bubble hides the empty fraud warning; both typed and transcribed voice input call the same server chat flow.
+- Open issues: none for this phase; pre-existing owner edits in client files remain unstaged and unchanged by this phase.
