@@ -93,3 +93,10 @@
 - Commands run: inspected README, architecture, task list, runbook, decisions, API contract, environment template, deployment config, scripts and health fields; no code changed in this phase.
 - Results: architecture now documents understand → route → retrieve → answer → response mapping → optional TTS/browser fallback; task status reflects delivered work; runbook gives the requested owner sequence, commands, dialect exemplar counts and human review checklist; decisions capture conservative choices and limits.
 - Open issues: README was already modified in the starting working tree by the owner. R3 requires leaving it untouched; its current status/configuration/limitations text still needs owner reconciliation with this runbook. See `docs/DECISIONS.md`.
+
+## Phase 13 — final verification and report
+
+- Files changed: `docs/FINAL_REPORT.md`, `docs/AGENT_LOG.md`.
+- Commands run: `npm.cmd install`; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`; `npm.cmd run eval -w server`; client typecheck/build; checked `.env` configuration using booleans only; attempted one real query; started compiled server with `USE_MOCKS=true` and called every documented endpoint plus `/`.
+- Results: install, typecheck, lint, build and offline eval passed; offline eval 50/50. Full tests remain 132 passed/3 failed, matching baseline eligibility failures. Final mock smoke passed all 12 API routes plus root; health returned `mocks=true`, `dialectConfigured=false`, `ttsConfigured=false`. Gemini key is configured but `GEMINI_TTS_MODEL` is not; live PM-KISAN query returned `AI_UNAVAILABLE` 503 and an approved-network retry yielded no inspectable result. No live TTS call was configured or run.
+- Open issues: calibration CLI remains unable to start because of `tsx`/Node `uv_os_get_passwd returned ENOMEM`; live eval, real text, TTS and phone/native-speaker checks remain unverified. Scheme/eligibility verification, generated FAQ, calibration threshold, native dialect exemplars and README reconciliation remain listed in `FINAL_REPORT.md`.
