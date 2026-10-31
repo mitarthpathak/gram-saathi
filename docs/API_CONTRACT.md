@@ -426,6 +426,33 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 `topK` is 1–10 (default `RAG_TOP_K`). `score` is the cosine similarity, best first, before the
 `RAG_MIN_SCORE` filter that the answer pipeline applies.
 
+---
+
+### `POST /api/live/token` (Gemini Live voice session)
+
+Mints a single-use Gemini Live ephemeral token. The client connects to Gemini Live directly using
+this token; it must start the session within 60 seconds. Session credentials/config are locked by
+the server. For scheme questions, the Live model calls `ask_gram_saathi({ question })`; the client
+fulfils it through the existing `POST /api/chat/query` and returns `{ answer, fraudWarning? }`.
+
+```json
+{ "sessionId": "session-123", "language": "hi", "dialectHint": "braj" }
+```
+
+```json
+{
+  "token": "<single-use-ephemeral-token>",
+  "model": "gemini-3.8-live",
+  "expiresAt": "2026-10-31T10:10:00.000Z",
+  "newSessionExpiresAt": "2026-10-31T10:01:00.000Z",
+  "mock": false
+}
+```
+
+With `USE_MOCKS=true`, returns `token: "mock"`, `model: "mock"`, and `mock: true`; no Gemini
+request is made. Ephemeral tokens are Preview and currently use Google's documented `v1beta`
+token API. See [GEMINI_LIVE.md](GEMINI_LIVE.md) for constraints and limitations.
+
 ## Changelog
 
 | Version | Change                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -433,3 +460,4 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 | 1       | Initial contract. Additions to the original brief: optional eligibility `progress`, the standard error body, `/api/rag/search` (internal).                                                                                                                                                                                                                                                  |
 | 2       | No type changes. Eligibility answers may be free-form text (`422 UNCLEAR_ANSWER` if unreadable); questions come from data and may be skipped, so `progress.total` can shrink. `detectedLanguage` is always a `LanguageCode`. New error codes: `NO_SPEECH_DETECTED`, `UNCLEAR_ANSWER`, `AI_*`, `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY`, `RATE_LIMITED` (per-IP limit on the AI endpoints). |
 | 3       | Add optional dialect results and candidates, dialect hints, and `GET /api/dialects`. Dialect ids map to parent answer languages; voice transcripts remain verbatim.                                                                                                                                                                                                                         |
+| 4       | Add `POST /api/live/token` for constrained, single-use Gemini Live ephemeral tokens. |

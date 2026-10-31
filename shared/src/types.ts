@@ -259,3 +259,25 @@ export interface RetrievedChunk {
 export interface RagSearchResponse {
   chunks: RetrievedChunk[];
 }
+
+// ---------------------------------------------------------------------------
+// POST /api/live/token (Gemini Live ephemeral token)
+// ---------------------------------------------------------------------------
+
+export interface LiveTokenRequest {
+  /** Client-generated session identifier; it is validated but never sent to Gemini. */
+  sessionId: string;
+  language?: LanguageCode;
+  dialectHint?: string;
+}
+
+export interface LiveTokenResponse {
+  /** Single-use ephemeral token. The server's Gemini API key is never returned. */
+  token: string;
+  model: string;
+  expiresAt: string;
+  newSessionExpiresAt: string;
+  mock: boolean;
+  /** Setup fallback only when Gemini cannot lock config fields into the token. */
+  setup?: Record<string, unknown>;
+}
