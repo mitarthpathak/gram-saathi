@@ -76,6 +76,10 @@ export interface HealthResponse {
   status: 'ok';
   /** true when the server runs with USE_MOCKS=true. */
   mocks: boolean;
+  /** Whether non-mocked dialect classification can call the configured model. */
+  dialectConfigured?: boolean;
+  /** Whether server-side Gemini speech generation has a key and model configured. */
+  ttsConfigured?: boolean;
 }
 
 // ---------------------------------------------------------------------------

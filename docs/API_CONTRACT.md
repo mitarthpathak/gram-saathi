@@ -87,10 +87,13 @@ try again" (also `RATE_LIMITED`); `KNOWLEDGE_BASE_MISSING`, `FAQ_NOT_READY` and 
 ### `GET /api/health`
 
 ```json
-{ "status": "ok", "mocks": true }
+{ "status": "ok", "mocks": true, "dialectConfigured": false, "ttsConfigured": false }
 ```
 
 `mocks` is `true` when any module serves mock data. The UI shows a "demo data" badge.
+`dialectConfigured` and `ttsConfigured` are booleans indicating whether the respective
+non-mocked feature has its required Gemini credentials/configuration. They never expose secrets.
+They are optional for compatibility with older servers and local mock fixtures.
 
 ---
 
