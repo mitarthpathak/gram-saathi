@@ -1,0 +1,110 @@
+- generic [ref=f2e3]:
+  - region "About Gram Saathi" [ref=f2e4]:
+    - generic [ref=f2e11]:
+      - paragraph [ref=f2e12]: Gram Saathi
+      - paragraph [ref=f2e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f2e14]
+    - paragraph [ref=f2e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f2e16]:
+      - listitem [ref=f2e17]: हिन्दी
+      - listitem [ref=f2e18]: मराठी
+      - listitem [ref=f2e19]: தமிழ்
+      - listitem [ref=f2e20]: English
+    - list [ref=f2e21]:
+      - listitem [ref=f2e22]:
+        - generic [ref=f2e23]: You ask by voice
+      - listitem [ref=f2e27]:
+        - generic [ref=f2e30]: Official documents are searched
+      - listitem [ref=f2e36]:
+        - generic [ref=f2e39]: Short answer, read aloud + SMS
+    - list [ref=f2e42]:
+      - listitem [ref=f2e43]:
+        - paragraph [ref=f2e48]: Only official answers
+        - paragraph [ref=f2e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f2e50]:
+        - paragraph [ref=f2e54]: Works on any phone
+        - paragraph [ref=f2e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f2e56]:
+        - paragraph [ref=f2e62]: Eligibility in a minute
+        - paragraph [ref=f2e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f2e64]:
+        - paragraph [ref=f2e68]: Fraud shield
+        - paragraph [ref=f2e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f2e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f2e77]:
+    - banner [ref=f2e79]:
+      - generic [ref=f2e82]:
+        - link "Gram Saathi योजनाओं का साथी" [ref=f2e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f2e89]:
+            - generic [ref=f2e90]: Gram Saathi
+            - generic [ref=f2e91]: योजनाओं का साथी
+        - generic [ref=f2e92]:
+          - generic [ref=f2e93]: भाषा
+          - combobox "भाषा" [ref=f2e94]:
+            - option "अपने आप पहचानें"
+            - option "हिन्दी" [selected]
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+    - main [ref=f2e95]:
+      - generic [ref=f2e96]:
+        - generic [ref=f2e97]:
+          - heading "SMS और कम डेटा" [level=1] [ref=f2e102]
+          - paragraph [ref=f2e103]: हर जवाब छोटे SMS में भी आता है, कीपैड फ़ोन और कमज़ोर नेटवर्क के लिए।
+        - generic [ref=f2e104] [cursor=pointer]:
+          - generic [ref=f2e113]:
+            - generic [ref=f2e114]: कम डेटा मोड
+            - generic [ref=f2e115]: पहले टेक्स्ट, ऑडियो डाउनलोड नहीं। मुख्य जवाब ऑफ़लाइन के लिए सहेजे जाते हैं।
+          - switch "कम डेटा मोड पहले टेक्स्ट, ऑडियो डाउनलोड नहीं। मुख्य जवाब ऑफ़लाइन के लिए सहेजे जाते हैं।" [ref=f2e116]
+        - generic [ref=f2e118]:
+          - heading "SMS झलक" [level=2] [ref=f2e119]
+          - figure [ref=f2e120]:
+            - generic [ref=f2e128]:
+              - generic [ref=f2e129]: VM-GSATHI
+              - paragraph [ref=f2e135]: पहले एक सवाल पूछें। उसका SMS रूप यहाँ दिखेगा।
+            - generic [aria-hidden] [ref=f2e141]:
+              - generic [ref=f2e142]: "1"
+              - generic [ref=f2e144]:
+                - generic [ref=f2e145]: "2"
+                - generic [ref=f2e146]: abc
+              - generic [ref=f2e147]:
+                - generic [ref=f2e148]: "3"
+                - generic [ref=f2e149]: def
+              - generic [ref=f2e150]:
+                - generic [ref=f2e151]: "4"
+                - generic [ref=f2e152]: ghi
+              - generic [ref=f2e153]:
+                - generic [ref=f2e154]: "5"
+                - generic [ref=f2e155]: jkl
+              - generic [ref=f2e156]:
+                - generic [ref=f2e157]: "6"
+                - generic [ref=f2e158]: mno
+              - generic [ref=f2e159]:
+                - generic [ref=f2e160]: "7"
+                - generic [ref=f2e161]: pqrs
+              - generic [ref=f2e162]:
+                - generic [ref=f2e163]: "8"
+                - generic [ref=f2e164]: tuv
+              - generic [ref=f2e165]:
+                - generic [ref=f2e166]: "9"
+                - generic [ref=f2e167]: wxyz
+              - generic [ref=f2e168]: "*"
+              - generic [ref=f2e170]:
+                - generic [ref=f2e171]: "0"
+                - generic [ref=f2e172]: +
+              - generic [ref=f2e173]: "#"
+        - generic [ref=f2e175]:
+          - generic [ref=f2e176]: किसी भी टेक्स्ट को SMS में बदलें
+          - textbox "किसी भी टेक्स्ट को SMS में बदलें" [ref=f2e177]:
+            - /placeholder: यहाँ टेक्स्ट लिखें या चिपकाएं
+          - button "SMS बनाएं" [disabled] [ref=f2e179]
+    - navigation "मुख्य" [ref=f2e183]:
+      - link [ref=f2e184] [cursor=pointer]:
+        - /url: /
+      - link [ref=f2e188] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f2e194] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f2e198] [cursor=pointer]:
+        - /url: /dialects

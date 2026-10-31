@@ -8,7 +8,14 @@ Devanagari speech. Preserve the speaker's words and script exactly.
 One JSON object per line:
 
 ```json
-{"text":"<verbatim native-speaker words>","hindiMeaning":"<Hindi meaning>","script":"devanagari","speakerAnonId":"<stable anonymous speaker id>","consent":true,"notes":"<optional>"}
+{
+  "text": "<verbatim native-speaker words>",
+  "hindiMeaning": "<Hindi meaning>",
+  "script": "devanagari",
+  "speakerAnonId": "<stable anonymous speaker id>",
+  "consent": true,
+  "notes": "<optional>"
+}
 ```
 
 `script` is `devanagari`, `roman`, `mixed`, or `other`. `consent` must be `true`. Keep each speaker

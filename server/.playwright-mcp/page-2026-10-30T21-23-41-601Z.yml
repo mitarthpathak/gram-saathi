@@ -1,0 +1,219 @@
+- generic [ref=f4e3]:
+  - region "About Gram Saathi" [ref=f4e4]:
+    - generic [ref=f4e11]:
+      - paragraph [ref=f4e12]: Gram Saathi
+      - paragraph [ref=f4e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f4e14]
+    - paragraph [ref=f4e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f4e16]:
+      - listitem [ref=f4e17]: हिन्दी
+      - listitem [ref=f4e18]: मराठी
+      - listitem [ref=f4e19]: தமிழ்
+      - listitem [ref=f4e20]: English
+    - list [ref=f4e21]:
+      - listitem [ref=f4e22]:
+        - generic [ref=f4e23]: You ask by voice
+      - listitem [ref=f4e27]:
+        - generic [ref=f4e30]: Official documents are searched
+      - listitem [ref=f4e36]:
+        - generic [ref=f4e39]: Short answer, read aloud + SMS
+    - list [ref=f4e42]:
+      - listitem [ref=f4e43]:
+        - paragraph [ref=f4e48]: Only official answers
+        - paragraph [ref=f4e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f4e50]:
+        - paragraph [ref=f4e54]: Works on any phone
+        - paragraph [ref=f4e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f4e56]:
+        - paragraph [ref=f4e62]: Eligibility in a minute
+        - paragraph [ref=f4e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f4e64]:
+        - paragraph [ref=f4e68]: Fraud shield
+        - paragraph [ref=f4e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f4e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f4e77]:
+    - banner [ref=f4e79]:
+      - generic [ref=f4e82]:
+        - link "Gram Saathi Your scheme helper" [ref=f4e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f4e89]:
+            - generic [ref=f4e90]: Gram Saathi
+            - generic [ref=f4e91]: Your scheme helper
+        - generic [ref=f4e92]:
+          - generic [ref=f4e93]: Language
+          - combobox "Language" [ref=f4e94]:
+            - option "Auto detect" [selected]
+            - option "हिन्दी"
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+    - main [ref=f4e95]:
+      - generic [ref=f4e96]:
+        - generic [ref=f4e97]:
+          - link "Our dialects" [ref=f4e98] [cursor=pointer]:
+            - /url: /
+          - heading "Our dialects" [level=1] [ref=f4e101]
+          - paragraph [ref=f4e102]: Choose a dialect to help us understand your next voice question.
+        - generic [ref=f4e103]:
+          - generic [ref=f4e104]: Search dialects
+          - textbox "Search dialects" [ref=f4e108]:
+            - /placeholder: Search by name or state
+        - 'region "State: Bihar" [ref=f4e109]':
+          - heading "Bihar" [level=2] [ref=f4e110]
+          - list [ref=f4e111]:
+            - listitem [ref=f4e112]:
+              - button "Bhojpuri भोजपुरी Experimental" [ref=f4e113]:
+                - generic [ref=f4e114]:
+                  - generic [ref=f4e115]: Bhojpuri
+                  - generic [ref=f4e116]: भोजपुरी
+                - generic [ref=f4e117]: Experimental
+        - 'region "State: Gujarat" [ref=f4e118]':
+          - heading "Gujarat" [level=2] [ref=f4e119]
+          - list [ref=f4e120]:
+            - listitem [ref=f4e121]:
+              - button "Wagdi वागड़ी Experimental" [ref=f4e122]:
+                - generic [ref=f4e123]:
+                  - generic [ref=f4e124]: Wagdi
+                  - generic [ref=f4e125]: वागड़ी
+                - generic [ref=f4e126]: Experimental
+        - 'region "State: Haryana" [ref=f4e127]':
+          - heading "Haryana" [level=2] [ref=f4e128]
+          - list [ref=f4e129]:
+            - listitem [ref=f4e130]:
+              - button "Bagri बागड़ी Experimental" [ref=f4e131]:
+                - generic [ref=f4e132]:
+                  - generic [ref=f4e133]: Bagri
+                  - generic [ref=f4e134]: बागड़ी
+                - generic [ref=f4e135]: Experimental
+            - listitem [ref=f4e136]:
+              - button "Mewati मेवाती Experimental" [ref=f4e137]:
+                - generic [ref=f4e138]:
+                  - generic [ref=f4e139]: Mewati
+                  - generic [ref=f4e140]: मेवाती
+                - generic [ref=f4e141]: Experimental
+            - listitem [ref=f4e142]:
+              - button "Haryanvi हरियाणवी Experimental" [ref=f4e143]:
+                - generic [ref=f4e144]:
+                  - generic [ref=f4e145]: Haryanvi
+                  - generic [ref=f4e146]: हरियाणवी
+                - generic [ref=f4e147]: Experimental
+        - 'region "State: Madhya Pradesh" [ref=f4e148]':
+          - heading "Madhya Pradesh" [level=2] [ref=f4e149]
+          - list [ref=f4e150]:
+            - listitem [ref=f4e151]:
+              - button "Malvi मालवी Experimental" [ref=f4e152]:
+                - generic [ref=f4e153]:
+                  - generic [ref=f4e154]: Malvi
+                  - generic [ref=f4e155]: मालवी
+                - generic [ref=f4e156]: Experimental
+            - listitem [ref=f4e157]:
+              - button "Braj ब्रज Experimental" [ref=f4e158]:
+                - generic [ref=f4e159]:
+                  - generic [ref=f4e160]: Braj
+                  - generic [ref=f4e161]: ब्रज
+                - generic [ref=f4e162]: Experimental
+            - listitem [ref=f4e163]:
+              - button "Bundeli बुंदेली Experimental" [ref=f4e164]:
+                - generic [ref=f4e165]:
+                  - generic [ref=f4e166]: Bundeli
+                  - generic [ref=f4e167]: बुंदेली
+                - generic [ref=f4e168]: Experimental
+        - 'region "State: Rajasthan" [ref=f4e169]':
+          - heading "Rajasthan" [level=2] [ref=f4e170]
+          - list [ref=f4e171]:
+            - listitem [ref=f4e172]:
+              - button "Marwari मारवाड़ी Experimental" [ref=f4e173]:
+                - generic [ref=f4e174]:
+                  - generic [ref=f4e175]: Marwari
+                  - generic [ref=f4e176]: मारवाड़ी
+                - generic [ref=f4e177]: Experimental
+            - listitem [ref=f4e178]:
+              - button "Dhundhari/Jaipuri ढूंढाड़ी/जयपुरी Experimental" [ref=f4e179]:
+                - generic [ref=f4e180]:
+                  - generic [ref=f4e181]: Dhundhari/Jaipuri
+                  - generic [ref=f4e182]: ढूंढाड़ी/जयपुरी
+                - generic [ref=f4e183]: Experimental
+            - listitem [ref=f4e184]:
+              - button "Shekhawati शेखावाटी Experimental" [ref=f4e185]:
+                - generic [ref=f4e186]:
+                  - generic [ref=f4e187]: Shekhawati
+                  - generic [ref=f4e188]: शेखावाटी
+                - generic [ref=f4e189]: Experimental
+            - listitem [ref=f4e190]:
+              - button "Bagri बागड़ी Experimental" [ref=f4e191]:
+                - generic [ref=f4e192]:
+                  - generic [ref=f4e193]: Bagri
+                  - generic [ref=f4e194]: बागड़ी
+                - generic [ref=f4e195]: Experimental
+            - listitem [ref=f4e196]:
+              - button "Mewari मेवाड़ी Experimental" [ref=f4e197]:
+                - generic [ref=f4e198]:
+                  - generic [ref=f4e199]: Mewari
+                  - generic [ref=f4e200]: मेवाड़ी
+                - generic [ref=f4e201]: Experimental
+            - listitem [ref=f4e202]:
+              - button "Mewati मेवाती Experimental" [ref=f4e203]:
+                - generic [ref=f4e204]:
+                  - generic [ref=f4e205]: Mewati
+                  - generic [ref=f4e206]: मेवाती
+                - generic [ref=f4e207]: Experimental
+            - listitem [ref=f4e208]:
+              - button "Harauti हाड़ौती Experimental" [ref=f4e209]:
+                - generic [ref=f4e210]:
+                  - generic [ref=f4e211]: Harauti
+                  - generic [ref=f4e212]: हाड़ौती
+                - generic [ref=f4e213]: Experimental
+            - listitem [ref=f4e214]:
+              - button "Malvi मालवी Experimental" [ref=f4e215]:
+                - generic [ref=f4e216]:
+                  - generic [ref=f4e217]: Malvi
+                  - generic [ref=f4e218]: मालवी
+                - generic [ref=f4e219]: Experimental
+            - listitem [ref=f4e220]:
+              - button "Wagdi वागड़ी Experimental" [ref=f4e221]:
+                - generic [ref=f4e222]:
+                  - generic [ref=f4e223]: Wagdi
+                  - generic [ref=f4e224]: वागड़ी
+                - generic [ref=f4e225]: Experimental
+            - listitem [ref=f4e226]:
+              - button "Braj ब्रज Experimental" [ref=f4e227]:
+                - generic [ref=f4e228]:
+                  - generic [ref=f4e229]: Braj
+                  - generic [ref=f4e230]: ब्रज
+                - generic [ref=f4e231]: Experimental
+        - 'region "State: Uttar Pradesh" [ref=f4e232]':
+          - heading "Uttar Pradesh" [level=2] [ref=f4e233]
+          - list [ref=f4e234]:
+            - listitem [ref=f4e235]:
+              - button "Braj ब्रज Experimental" [ref=f4e236]:
+                - generic [ref=f4e237]:
+                  - generic [ref=f4e238]: Braj
+                  - generic [ref=f4e239]: ब्रज
+                - generic [ref=f4e240]: Experimental
+            - listitem [ref=f4e241]:
+              - button "Bhojpuri भोजपुरी Experimental" [ref=f4e242]:
+                - generic [ref=f4e243]:
+                  - generic [ref=f4e244]: Bhojpuri
+                  - generic [ref=f4e245]: भोजपुरी
+                - generic [ref=f4e246]: Experimental
+            - listitem [ref=f4e247]:
+              - button "Awadhi अवधी Experimental" [ref=f4e248]:
+                - generic [ref=f4e249]:
+                  - generic [ref=f4e250]: Awadhi
+                  - generic [ref=f4e251]: अवधी
+                - generic [ref=f4e252]: Experimental
+            - listitem [ref=f4e253]:
+              - button "Bundeli बुंदेली Experimental" [ref=f4e254]:
+                - generic [ref=f4e255]:
+                  - generic [ref=f4e256]: Bundeli
+                  - generic [ref=f4e257]: बुंदेली
+                - generic [ref=f4e258]: Experimental
+    - navigation "Main" [ref=f4e259]:
+      - link [ref=f4e260] [cursor=pointer]:
+        - /url: /
+      - link [ref=f4e264] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f4e270] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f4e274] [cursor=pointer]:
+        - /url: /dialects

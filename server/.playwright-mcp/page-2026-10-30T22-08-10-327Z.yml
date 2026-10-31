@@ -1,0 +1,82 @@
+- generic [ref=f20e3]:
+  - region "About Gram Saathi" [ref=f20e4]:
+    - generic [ref=f20e11]:
+      - paragraph [ref=f20e12]: Gram Saathi
+      - paragraph [ref=f20e13]: ग्राम साथी · Your village helper
+    - generic [ref=f20e14]:
+      - heading "Ask in your own boli. Get a clear, trusted answer." [level=1] [ref=f20e15]:
+        - text: Ask in your own boli.
+        - generic [ref=f20e16]: Get a clear, trusted answer.
+      - paragraph [ref=f20e17]: Speak naturally. We check official scheme documents, then answer in your language with a source and a safety reminder.
+    - list "Languages" [ref=f20e18]:
+      - listitem [ref=f20e19]: हिन्दी
+      - listitem [ref=f20e20]: मराठी
+      - listitem [ref=f20e21]: தமிழ்
+      - listitem [ref=f20e22]: English
+    - generic [ref=f20e23]:
+      - paragraph [ref=f20e24]: A simple promise
+      - paragraph [ref=f20e25]: A useful answer, with a source you can check.
+      - generic [ref=f20e26]:
+        - paragraph [ref=f20e27]: Only official scheme information is used.
+        - paragraph [ref=f20e31]: Every answer carries a reminder about fraud.
+    - paragraph [ref=f20e34]: Hold the mic, or tap a question to begin.
+  - generic [ref=f20e44]:
+    - banner [ref=f20e46]:
+      - generic [ref=f20e49]:
+        - link "Gram Saathi योजनाओं का साथी" [ref=f20e50] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f20e56]:
+            - generic [ref=f20e57]: Gram Saathi
+            - generic [ref=f20e58]: योजनाओं का साथी
+        - generic [ref=f20e59]:
+          - generic [ref=f20e60]: भाषा
+          - combobox "भाषा" [ref=f20e61]:
+            - option "अपने आप पहचानें"
+            - option "हिन्दी" [selected]
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+    - main [ref=f20e62]:
+      - generic [ref=f20e63]:
+        - generic [ref=f20e65]:
+          - generic [ref=f20e66]:
+            - paragraph [ref=f20e68]: नमस्ते 🙏
+            - heading "किसी भी सरकारी योजना के बारे में पूछें" [level=1] [ref=f20e69]
+            - paragraph [ref=f20e70]: हरा बटन दबाकर बोलें, या नीचे लिखें।
+            - link "हमारी बोलियाँ" [ref=f20e71] [cursor=pointer]:
+              - /url: /dialects
+          - generic [ref=f20e76]:
+            - heading "लोकप्रिय योजनाएं" [level=2] [ref=f20e77]
+            - generic [ref=f20e78]:
+              - button "पीएम किसान में कितना पैसा मिलता है?" [ref=f20e79]
+              - button "आयुष्मान कार्ड कैसे बनवाएं?" [ref=f20e91]
+              - button "अटल पेंशन योजना में कितनी पेंशन मिलती है?" [ref=f20e97]
+          - generic [ref=f20e103]:
+            - heading "यह कैसे काम करता है" [level=2] [ref=f20e104]
+            - list [ref=f20e105]:
+              - listitem [ref=f20e106]:
+                - generic [ref=f20e107]: अपना सवाल बोलें
+              - listitem [ref=f20e115]:
+                - generic [ref=f20e116]: हम आधिकारिक दस्तावेज़ देखते हैं
+              - listitem [ref=f20e126]:
+                - generic [ref=f20e127]: छोटा जवाब + SMS
+        - generic [ref=f20e132]:
+          - generic [ref=f20e133]:
+            - button "दबाकर बोलें" [ref=f20e138]
+            - status [ref=f20e143]: दबाकर बोलें
+          - generic [ref=f20e144]:
+            - generic [ref=f20e145]: आपका सवाल
+            - textbox "आपका सवाल" [ref=f20e146]:
+              - /placeholder: अपना सवाल लिखें…
+            - button "भेजें" [disabled] [ref=f20e147]
+      - link "Contribute a dialect recording" [ref=f20e152] [cursor=pointer]:
+        - /url: /contribute
+    - navigation "मुख्य" [ref=f20e153]:
+      - link [ref=f20e154] [cursor=pointer]:
+        - /url: /
+      - link [ref=f20e158] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f20e164] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f20e168] [cursor=pointer]:
+        - /url: /dialects

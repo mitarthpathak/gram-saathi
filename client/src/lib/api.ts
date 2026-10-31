@@ -7,6 +7,7 @@ import type {
   EligibilityStartRequest,
   EligibilityStartResponse,
   FaqTopResponse,
+  DialectTranscribeResponse,
   HealthResponse,
   LanguageCode,
   QueryResponse,
@@ -17,9 +18,16 @@ import type {
   VoiceQueryFields,
 } from '@gram-saathi/shared';
 import { config } from './config';
+import { storage } from './storage';
 
 export interface VoiceQueryRequest extends VoiceQueryFields {
   audio: Blob;
+  signal?: AbortSignal;
+}
+
+export interface DialectTranscribeRequest {
+  audio: Blob;
+  language?: LanguageCode;
 }
 
 /** Every endpoint in docs/API_CONTRACT.md. Implemented by the HTTP client and by src/mocks. */
@@ -27,12 +35,13 @@ export interface Api {
   health(): Promise<HealthResponse>;
   chatQuery(request: ChatQueryRequest): Promise<QueryResponse>;
   voiceQuery(request: VoiceQueryRequest): Promise<QueryResponse>;
+  getDialects(): Promise<DialectsResponse>;
+  dialectTranscribe(request: DialectTranscribeRequest): Promise<DialectTranscribeResponse>;
   eligibilityStart(request: EligibilityStartRequest): Promise<EligibilityStartResponse>;
   eligibilityAnswer(request: EligibilityAnswerRequest): Promise<EligibilityAnswerResponse>;
   smsCompress(request: SmsCompressRequest): Promise<SmsCompressResponse>;
   faqTop(lang: LanguageCode): Promise<FaqTopResponse>;
   tts(request: TtsRequest): Promise<TtsResponse>;
-  dialects(): Promise<DialectsResponse>;
 }
 
 /** Thrown for non-2xx responses (status = HTTP status) and network failures (status 0). */
@@ -59,6 +68,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(`${config.apiUrl}${path}`, init);
   } catch (cause) {
+    if (init?.signal?.aborted) throw cause;
     throw new ApiError(0, 'NETWORK_ERROR', 'Could not reach the server', cause);
   }
   const body: unknown = await response.json().catch(() => null);
@@ -85,23 +95,46 @@ function postJson<T>(path: string, body: unknown): Promise<T> {
 const httpApi: Api = {
   health: () => request<HealthResponse>('/api/health'),
   chatQuery: (body) => postJson<QueryResponse>('/api/chat/query', body),
-  voiceQuery: ({ audio, language, dialectHint, sessionId }) => {
+  voiceQuery: ({ audio, language, sessionId, dialectHint, signal }) => {
     const form = new FormData();
-    form.append('audio', audio, `question.${audio.type.includes('wav') ? 'wav' : 'webm'}`);
+    const extension = audio.type.includes('wav')
+      ? 'wav'
+      : audio.type.includes('mp4')
+        ? 'mp4'
+        : audio.type.includes('ogg')
+          ? 'ogg'
+          : 'webm';
+    form.append('audio', audio, `question.${extension}`);
     if (language) form.append('language', language);
     if (dialectHint) form.append('dialectHint', dialectHint);
     form.append('sessionId', sessionId);
-    return request<QueryResponse>('/api/voice/query', { method: 'POST', body: form });
+    return request<QueryResponse>('/api/voice/query', { method: 'POST', body: form, signal });
+  },
+  getDialects: () => request<DialectsResponse>('/api/dialects'),
+  dialectTranscribe: ({ audio, language }) => {
+    const form = new FormData();
+    const extension = audio.type.includes('mp4')
+      ? 'mp4'
+      : audio.type.includes('ogg')
+        ? 'ogg'
+        : 'webm';
+    form.append('audio', audio, `contribution.${extension}`);
+    if (language) form.append('language', language);
+    return request<DialectTranscribeResponse>('/api/dialect/transcribe', {
+      method: 'POST',
+      body: form,
+    });
   },
   eligibilityStart: (body) => postJson<EligibilityStartResponse>('/api/eligibility/start', body),
   eligibilityAnswer: (body) => postJson<EligibilityAnswerResponse>('/api/eligibility/answer', body),
   smsCompress: (body) => postJson<SmsCompressResponse>('/api/sms/compress', body),
   faqTop: (lang) => request<FaqTopResponse>(`/api/faq/top?lang=${encodeURIComponent(lang)}`),
   tts: (body) => postJson<TtsResponse>('/api/tts', body),
-  dialects: () => request<DialectsResponse>('/api/dialects'),
 };
 
 let mockApi: Promise<Api> | undefined;
+let dialectCache: DialectsResponse | undefined;
+const DIALECT_CACHE_KEY = 'gs:dialects:v3';
 
 function backend(): Promise<Api> {
   if (!config.useMocks) return Promise.resolve(httpApi);
@@ -115,10 +148,25 @@ export const api: Api = {
   health: () => backend().then((b) => b.health()),
   chatQuery: (body) => backend().then((b) => b.chatQuery(body)),
   voiceQuery: (body) => backend().then((b) => b.voiceQuery(body)),
+  dialectTranscribe: (body) => backend().then((b) => b.dialectTranscribe(body)),
+  getDialects: () => {
+    if (dialectCache) return Promise.resolve(dialectCache);
+    const saved = storage.getJson<DialectsResponse>(DIALECT_CACHE_KEY);
+    if (saved) {
+      dialectCache = saved;
+      return Promise.resolve(saved);
+    }
+    return backend().then((b) =>
+      b.getDialects().then((response) => {
+        dialectCache = response;
+        storage.setJson(DIALECT_CACHE_KEY, response);
+        return response;
+      }),
+    );
+  },
   eligibilityStart: (body) => backend().then((b) => b.eligibilityStart(body)),
   eligibilityAnswer: (body) => backend().then((b) => b.eligibilityAnswer(body)),
   smsCompress: (body) => backend().then((b) => b.smsCompress(body)),
   faqTop: (lang) => backend().then((b) => b.faqTop(lang)),
   tts: (body) => backend().then((b) => b.tts(body)),
-  dialects: () => backend().then((b) => b.dialects()),
 };

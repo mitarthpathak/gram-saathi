@@ -150,8 +150,10 @@ real pipeline. Real-speaker clips go in `eval/audio/` (see its README); open pro
 gram-saathi/
 ├── client/                 Vite + React + TypeScript + Tailwind CSS + React Router
 │   └── src/
-│       ├── app/            App, router, providers, layout (header + bottom nav)
+│       ├── app/            App, routes, SiteShell, Dock, providers
 │       ├── features/
+│       │   ├── landing/    scrollytelling landing page: hero, chapters, intro, Saathi
+│       │   ├── app-shell/  the app's frame: desktop phone sheet, phone full screen, tabs
 │       │   ├── voice/      MicButton, useRecorder, speak (server speech, browser fallback), voice notes
 │       │   ├── chat/       ChatScreen, ChatWindow, MessageBubble, FraudWarning
 │       │   ├── sources/    SourceCard, SourceList

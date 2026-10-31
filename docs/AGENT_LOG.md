@@ -115,6 +115,35 @@
 - Results: pushed commit `fa776b8`; opened PR [#9](https://github.com/mitarthpathak/gram-saathi/pull/9) against `main` with a filled summary/checklist, including the exact verification results and open review items.
 - Open issues: the PR is open for review; the report's remaining verification items are listed under “Needs human verification.”
 
+## Phase 16 — resolve conflicts after main advanced
+
+- Files changed: `client/src/features/voice/SpeakButton.tsx`, `client/src/features/voice/speak.ts`, `client/src/lib/api.ts`, `client/src/mocks/dialects.ts`, `client/src/mocks/index.ts`, `docs/AGENT_LOG.md`.
+- Commands run: `git fetch origin main`; inspected branch/base file changes; `git merge-tree --write-tree` (first identified the listed conflicts, then returned exit code 0 after a forward-only conflict-resolution commit candidate); `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`.
+- Results: preserved the current main API/dialect mock additions, the conversation-aware native-script mock replies, and optional server TTS followed by browser fallback. No rebase or merge was performed. Typecheck, lint, and build passed. Tests: 132 passed and the same 3 baseline eligibility tests failed because rules remain unverified.
+- Results: pushed the forward-only conflict-resolution commit; GitHub API reports PR #9 `mergeable: true` against base commit `34dac54`.
+- Open issues: review/verification items in `FINAL_REPORT.md` remain.
+
+## Phase 17 — confirm remote PR status
+
+- Files changed: `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`.
+- Commands run: GitHub REST API GET for PR #9 using the configured credential helper; credential values were not printed.
+- Results: PR #9 is open and `mergeable: true` against `main` at `34dac54`.
+- Open issues: none for conflict resolution; outstanding product verification tasks remain documented in `FINAL_REPORT.md`.
+
+## Phase 18 — sync latest main and compact phone layout
+
+- Files changed: latest `origin/main` tree (merge commit `ba03936`), `client/src/index.css`, `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`.
+- Commands run: `git fetch origin main`; verified staged index tree equals `git merge-tree --write-tree HEAD origin/main` and has no unmerged paths; `npm.cmd install`; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`.
+- Results: latest main is `698b211`; merge result has no conflicts. The mobile layout now uses a 92% root rem scale at widths up to 480px, leaving desktop sizing and browser zoom unchanged. Typecheck, lint and build passed; 132 server tests and 8 client tests passed. Three eligibility tests fail because the eligibility rules are unverified.
+- Open issues: three eligibility tests remain failing due to unverified rules.
+
+## Phase 19 — app modal scroll and phone scale polish
+
+- Files changed: `client/src/lib/motion/smoothScroll.ts`, `client/src/features/app-shell/AppChrome.tsx`, `client/src/features/app-shell/AppFullscreen.tsx`, `client/src/features/app-shell/AppSheet.tsx`, `client/src/features/chat/ChatWindow.tsx`, `client/src/index.css`, `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`.
+- Commands run: `npm.cmd run typecheck -w client`; `npm.cmd run lint`; `npm.cmd run build -w client`.
+- Results: client typecheck, lint and production build passed. Modal now locks and restores document/body scrolling while preserving the previous page position; app scroll regions keep native scrolling with contained overscroll and a themed scrollbar. Phone modal maximum height is smaller and narrow-screen root scale is 88%.
+- Open issues: browser interaction was not manually exercised in this follow-up; three previously recorded eligibility tests still fail due to unverified rules.
+
 ---
 
 # Dialect voice job (branch `feat/dialect-voice`)

@@ -3,8 +3,8 @@
 Date: 2026-10-31 · Branch: `feat/dialect-voice` (from `feat/conversation-layer` at `1b5d297`) ·
 Not merged, no pull request.
 
-The previous job's report (conversation layer, PR #9) is in git history:
-`git show 1b5d297:docs/FINAL_REPORT.md`. Its open owner items are carried over at the end of this
+The conversation-layer report (PR #9) is in git history:
+`git show 462aa75:docs/FINAL_REPORT.md`. Its open owner items are carried over at the end of this
 file.
 
 ## Verdict

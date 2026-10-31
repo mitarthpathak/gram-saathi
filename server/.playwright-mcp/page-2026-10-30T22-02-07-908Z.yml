@@ -1,0 +1,68 @@
+- generic [ref=f9e3]:
+  - region "About Gram Saathi" [ref=f9e4]:
+    - generic [ref=f9e11]:
+      - paragraph [ref=f9e12]: Gram Saathi
+      - paragraph [ref=f9e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f9e14]
+    - paragraph [ref=f9e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f9e16]:
+      - listitem [ref=f9e17]: हिन्दी
+      - listitem [ref=f9e18]: मराठी
+      - listitem [ref=f9e19]: தமிழ்
+      - listitem [ref=f9e20]: English
+    - list [ref=f9e21]:
+      - listitem [ref=f9e22]:
+        - generic [ref=f9e23]: You ask by voice
+      - listitem [ref=f9e27]:
+        - generic [ref=f9e30]: Official documents are searched
+      - listitem [ref=f9e36]:
+        - generic [ref=f9e39]: Short answer, read aloud + SMS
+    - list [ref=f9e42]:
+      - listitem [ref=f9e43]:
+        - paragraph [ref=f9e48]: Only official answers
+        - paragraph [ref=f9e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f9e50]:
+        - paragraph [ref=f9e54]: Works on any phone
+        - paragraph [ref=f9e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f9e56]:
+        - paragraph [ref=f9e62]: Eligibility in a minute
+        - paragraph [ref=f9e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f9e64]:
+        - paragraph [ref=f9e68]: Fraud shield
+        - paragraph [ref=f9e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f9e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f9e77]:
+    - banner [ref=f9e79]:
+      - generic [ref=f9e82]:
+        - link "Gram Saathi योजनाओं का साथी" [ref=f9e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f9e89]:
+            - generic [ref=f9e90]: Gram Saathi
+            - generic [ref=f9e91]: योजनाओं का साथी
+        - generic [ref=f9e92]:
+          - generic [ref=f9e93]: भाषा
+          - combobox "भाषा" [ref=f9e94]:
+            - option "अपने आप पहचानें"
+            - option "हिन्दी" [selected]
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+    - main [ref=f9e95]:
+      - generic [ref=f9e97]:
+        - generic [ref=f9e98]:
+          - heading "मुझे कौन-सी योजनाएं मिल सकती हैं?" [level=1] [ref=f9e123]
+          - paragraph [ref=f9e124]: जानने के लिए कुछ आसान सवालों के जवाब दें।
+          - paragraph [ref=f9e125]: लगभग एक मिनट लगता है
+        - button "शुरू करें" [ref=f9e129]
+        - paragraph [ref=f9e132]: यह केवल मार्गदर्शन है। आवेदन से पहले CSC या ग्राम पंचायत पर पुष्टि करें।
+      - link "Contribute a dialect recording" [ref=f9e136] [cursor=pointer]:
+        - /url: /contribute
+    - navigation "मुख्य" [ref=f9e137]:
+      - link [ref=f9e138] [cursor=pointer]:
+        - /url: /
+      - link [ref=f9e142] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f9e148] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f9e152] [cursor=pointer]:
+        - /url: /dialects

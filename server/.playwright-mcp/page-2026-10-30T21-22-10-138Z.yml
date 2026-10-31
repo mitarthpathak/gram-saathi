@@ -1,0 +1,99 @@
+- generic [ref=f1e77]:
+  - banner [ref=f1e79]:
+    - generic [ref=f1e82]:
+      - link "Gram Saathi Your scheme helper" [ref=f1e83] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e89]:
+          - generic [ref=f1e90]: Gram Saathi
+          - generic [ref=f1e91]: Your scheme helper
+      - generic [ref=f1e92]:
+        - generic [ref=f1e93]: Language
+        - combobox "Language" [ref=f1e94]:
+          - option "Auto detect" [selected]
+          - option "हिन्दी"
+          - option "मराठी"
+          - option "தமிழ்"
+          - option "English"
+    - generic [ref=f1e240]: Demo data
+  - main [ref=f1e95]:
+    - generic [ref=f1e96]:
+      - list [ref=f1e270]:
+        - listitem [ref=f1e271]:
+          - generic [ref=f1e272]:
+            - paragraph [ref=f1e273]: You said
+            - text: पीएम किसान योजना में साल में कितना पैसा मिलता है?
+        - listitem [ref=f1e298]:
+          - article [ref=f1e299]:
+            - generic [ref=f1e305]:
+              - generic [ref=f1e306]: PM-KISAN Samman Nidhi
+              - generic [ref=f1e308]:
+                - paragraph [ref=f1e309]: Maybe you speak वागड़ी. Is that right?
+                - generic [ref=f1e310]:
+                  - button "Wagdi · वागड़ी Remembered for future voice questions" [ref=f1e376]:
+                    - generic [ref=f1e312]: Wagdi · वागड़ी
+                    - generic [ref=f1e313]: Remembered for future voice questions
+                  - button "Marwari · मारवाड़ी Choose" [ref=f1e314]:
+                    - generic [ref=f1e315]: Marwari · मारवाड़ी
+                    - generic [ref=f1e316]: Choose
+                  - button "Dhundhari/Jaipuri · ढूंढाड़ी/जयपुरी Choose" [ref=f1e317]:
+                    - generic [ref=f1e318]: Dhundhari/Jaipuri · ढूंढाड़ी/जयपुरी
+                    - generic [ref=f1e319]: Choose
+                  - generic [ref=f1e320]:
+                    - link "Another dialect" [ref=f1e321] [cursor=pointer]:
+                      - /url: /dialects
+                    - button "Plain Hindi" [ref=f1e322]
+              - paragraph [ref=f1e323]: पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in पर या नज़दीकी CSC केंद्र पर मुफ़्त है।
+              - generic [ref=f1e324]:
+                - button "Listen" [ref=f1e325]
+                - link "View as SMS · 2" [ref=f1e330] [cursor=pointer]:
+                  - /url: /sms
+              - generic [ref=f1e333]:
+                - heading "Official sources" [level=3] [ref=f1e334]
+                - list [ref=f1e338]:
+                  - listitem [ref=f1e339]:
+                    - generic [ref=f1e340]:
+                      - generic [ref=f1e341]:
+                        - generic [aria-hidden] [ref=f1e342]: "1"
+                        - generic [ref=f1e343]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f1e344]: · Benefits
+                      - blockquote [ref=f1e345]: “Eligible landholding farmer families get ₹6,000 per year, paid in three equal instalments of ₹2,000 directly into their Aadhaar-seeded bank account (DBT).”
+                      - button "Show more" [ref=f1e346]
+                  - listitem [ref=f1e349]:
+                    - generic [ref=f1e350]:
+                      - generic [ref=f1e351]:
+                        - generic [aria-hidden] [ref=f1e352]: "2"
+                        - generic [ref=f1e353]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f1e354]: · Eligibility
+                      - blockquote [ref=f1e355]: "“All landholding farmer families whose names are in the land records are eligible. Excluded: institutional landholders, families with an income-tax payer, serving or retired government employees (except Group D / MTS), registered professionals such as doctors, engineers and lawyers, and pensioners getting ₹10,000 or more per month.”"
+                      - button "Show more" [ref=f1e356]
+                  - listitem [ref=f1e359]:
+                    - generic [ref=f1e360]:
+                      - generic [ref=f1e361]:
+                        - generic [aria-hidden] [ref=f1e362]: "3"
+                        - generic [ref=f1e363]:
+                          - text: PM-KISAN Samman Nidhi
+                          - generic [ref=f1e364]: · How to apply
+                      - blockquote [ref=f1e365]: “Registration is free. Apply at pmkisan.gov.in (New Farmer Registration), at a Common Service Centre (CSC) or through the local Patwari / revenue officer. eKYC with Aadhaar is mandatory to receive instalments.”
+                      - button "Show more" [ref=f1e366]
+              - note [ref=f1e369]:
+                - paragraph [ref=f1e372]: "धोखाधड़ी से सावधान: सरकारी योजनाओं में आवेदन मुफ़्त है। अपना OTP या बैंक PIN किसी को न बताएं। केवल .gov.in वेबसाइट या नज़दीकी CSC केंद्र का ही उपयोग करें।"
+      - generic [ref=f1e200]:
+        - generic [ref=f1e201]:
+          - button "Hold to speak" [ref=f1e293]
+          - status [ref=f1e211]: Hold to speak
+        - generic [ref=f1e212]:
+          - generic [ref=f1e213]: Your question
+          - textbox "Your question" [ref=f1e214]:
+            - /placeholder: Type your question…
+          - button "Send" [disabled] [ref=f1e215]
+  - navigation "Main" [ref=f1e219]:
+    - link [ref=f1e220] [cursor=pointer]:
+      - /url: /
+    - link [ref=f1e224] [cursor=pointer]:
+      - /url: /eligibility
+    - link [ref=f1e230] [cursor=pointer]:
+      - /url: /sms
+    - link [ref=f1e234] [cursor=pointer]:
+      - /url: /dialects

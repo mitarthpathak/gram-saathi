@@ -4,9 +4,9 @@ import { api } from '@/lib/api';
 
 let dialectList: Promise<DialectInfo[]> | undefined;
 
-/** GET /api/dialects once per page load; an error is retried on the next use. */
+/** GET /api/dialects (cached by api.getDialects); an error is retried on the next use. */
 function loadDialects(): Promise<DialectInfo[]> {
-  dialectList ??= api.dialects().then(
+  dialectList ??= api.getDialects().then(
     (response) => response.items,
     () => {
       dialectList = undefined;

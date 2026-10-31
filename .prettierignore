@@ -5,3 +5,4 @@ docs/PIPELINE_AUDIT.md
 docs/PIPELINE_AUDIT.baseline.md
 audit/
 eval/review/
+server/.playwright-mcp/

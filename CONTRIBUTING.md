@@ -85,7 +85,7 @@ changelog at the bottom of `docs/API_CONTRACT.md`.
   `if (isMocked('<name>')) return mock...`. Mount the router in `server/src/createApp.ts` and add the
   name to `MOCKABLE_MODULES` in `server/src/config/env.ts`.
 - **Client feature:** `client/src/features/<name>/` with its components, hooks and `strings.ts`.
-  Screens are registered in `client/src/app/router.ts`.
+  App screens are registered under `/app` in `client/src/app/routes.ts`.
 - **Scheme document:** see [data/schemes/README.md](data/schemes/README.md).
 
 ## Commit messages

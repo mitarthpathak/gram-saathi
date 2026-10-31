@@ -3,8 +3,8 @@ import type { Strings } from '@/lib/i18n';
 const en = {
   greeting: 'Namaste',
   emptyTitle: 'Ask about any government scheme',
-  emptyHint: 'Hold the green button and speak, or type below.',
-  popularTitle: 'Popular schemes',
+  emptyHint: 'Hold or tap the mic and speak, or type below.',
+  popularTitle: 'Try asking',
   howTitle: 'How it works',
   step1: 'Speak your question',
   step2: 'We check official documents',
@@ -21,11 +21,12 @@ const en = {
   viewSms: 'View as SMS',
   errorGeneric: 'Something went wrong. Please try again.',
   errorOffline: 'No internet connection. Try again, or open saved answers in the SMS tab.',
-  errorNoSpeech: 'I could not hear anything. Hold the button and speak a little louder.',
+  errorNoSpeech: 'I could not hear any speech. Please say it again.',
   errorBusy: 'The assistant is busy right now. Please try again in a moment.',
   errorSetup: 'Official scheme documents are not loaded yet. Please try again later.',
   errorAiConfig: 'The answer service is not configured yet. Please try again later.',
   errorTooLong: 'That recording was too long. Please ask a shorter question.',
+  demoFallback: 'No connection. Showing this cached demo example instead.',
 };
 
 export const chatStrings: Strings<typeof en> = {
@@ -33,8 +34,8 @@ export const chatStrings: Strings<typeof en> = {
   hi: {
     greeting: 'नमस्ते',
     emptyTitle: 'किसी भी सरकारी योजना के बारे में पूछें',
-    emptyHint: 'हरा बटन दबाकर बोलें, या नीचे लिखें।',
-    popularTitle: 'लोकप्रिय योजनाएं',
+    emptyHint: 'माइक दबाकर बोलें, या नीचे लिखें।',
+    popularTitle: 'ऐसे पूछ सकते हैं',
     howTitle: 'यह कैसे काम करता है',
     step1: 'अपना सवाल बोलें',
     step2: 'हम आधिकारिक दस्तावेज़ देखते हैं',
@@ -51,19 +52,20 @@ export const chatStrings: Strings<typeof en> = {
     viewSms: 'SMS में देखें',
     errorGeneric: 'कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।',
     errorOffline: 'इंटरनेट नहीं है। फिर से कोशिश करें, या SMS टैब में सहेजे गए जवाब देखें।',
-    errorNoSpeech: 'कुछ सुनाई नहीं दिया। बटन दबाकर थोड़ा ज़ोर से बोलें।',
+    errorNoSpeech: 'कुछ सुनाई नहीं दिया। कृपया फिर से बोलें।',
     errorBusy: 'सहायक अभी व्यस्त है। थोड़ी देर में फिर से कोशिश करें।',
     // TODO(review-native): review this setup message with a native Hindi speaker.
     errorSetup: 'योजना के आधिकारिक दस्तावेज़ अभी उपलब्ध नहीं हैं। कृपया बाद में फिर कोशिश करें।',
     // TODO(review-native): review this setup message with a native Hindi speaker.
     errorAiConfig: 'जवाब देने वाली सेवा अभी तैयार नहीं है। कृपया थोड़ी देर बाद कोशिश करें।',
     errorTooLong: 'रिकॉर्डिंग बहुत लंबी थी। कृपया छोटा सवाल पूछें।',
+    demoFallback: 'कनेक्शन नहीं है। इसकी जगह सहेजा हुआ डेमो सवाल दिखा रहे हैं।',
   },
   mr: {
     greeting: 'नमस्कार',
     emptyTitle: 'कोणत्याही सरकारी योजनेबद्दल विचारा',
-    emptyHint: 'हिरवे बटण दाबून बोला, किंवा खाली लिहा.',
-    popularTitle: 'लोकप्रिय योजना',
+    emptyHint: 'माइक दाबून बोला, किंवा खाली लिहा.',
+    popularTitle: 'असं विचारून पाहा',
     howTitle: 'हे कसे काम करते',
     step1: 'तुमचा प्रश्न बोला',
     step2: 'आम्ही अधिकृत कागदपत्रे तपासतो',
@@ -81,19 +83,20 @@ export const chatStrings: Strings<typeof en> = {
     viewSms: 'SMS मध्ये पहा',
     errorGeneric: 'काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.',
     errorOffline: 'इंटरनेट नाही. पुन्हा प्रयत्न करा, किंवा SMS टॅबमधील जतन केलेली उत्तरे पहा.',
-    errorNoSpeech: 'काहीच ऐकू आले नाही. बटण दाबून थोडे मोठ्याने बोला.',
+    errorNoSpeech: 'काही ऐकू आले नाही. कृपया पुन्हा बोला.',
     errorBusy: 'सहाय्यक सध्या व्यस्त आहे. थोड्या वेळाने पुन्हा प्रयत्न करा.',
     // TODO(review-native): review this setup message with a native Marathi speaker.
     errorSetup: 'योजनेची अधिकृत कागदपत्रे अजून उपलब्ध नाहीत. कृपया नंतर पुन्हा प्रयत्न करा.',
     // TODO(review-native): review this setup message with a native Marathi speaker.
     errorAiConfig: 'उत्तर देणारी सेवा अजून तयार नाही. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.',
     errorTooLong: 'रेकॉर्डिंग खूप मोठे होते. कृपया छोटा प्रश्न विचारा.',
+    demoFallback: 'जोडणी नाही. त्याऐवजी जतन केलेले डेमो उदाहरण दाखवत आहोत.',
   },
   ta: {
     greeting: 'வணக்கம்',
     emptyTitle: 'எந்த அரசு திட்டம் பற்றியும் கேளுங்கள்',
-    emptyHint: 'பச்சை பொத்தானை அழுத்திப் பேசுங்கள், அல்லது கீழே தட்டச்சு செய்யுங்கள்.',
-    popularTitle: 'பிரபலமான திட்டங்கள்',
+    emptyHint: 'மைக் பொத்தானை அழுத்திப் பேசுங்கள், அல்லது கீழே தட்டச்சு செய்யுங்கள்.',
+    popularTitle: 'இப்படிக் கேளுங்கள்',
     howTitle: 'இது எப்படி வேலை செய்கிறது',
     step1: 'கேள்வியைப் பேசுங்கள்',
     step2: 'அதிகாரப்பூர்வ ஆவணங்களைப் பார்க்கிறோம்',
@@ -112,7 +115,7 @@ export const chatStrings: Strings<typeof en> = {
     errorGeneric: 'ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.',
     errorOffline:
       'இணைய இணைப்பு இல்லை. மீண்டும் முயற்சிக்கவும், அல்லது SMS பகுதியில் சேமித்த பதில்களைப் பாருங்கள்.',
-    errorNoSpeech: 'எதுவும் கேட்கவில்லை. பொத்தானை அழுத்தி சற்று சத்தமாகப் பேசுங்கள்.',
+    errorNoSpeech: 'கேட்கவில்லை. தயவுசெய்து மீண்டும் பேசவும்.',
     errorBusy: 'உதவியாளர் இப்போது பிஸியாக உள்ளது. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
     // TODO(review-native): review this setup message with a native Tamil speaker.
     errorSetup:
@@ -120,5 +123,6 @@ export const chatStrings: Strings<typeof en> = {
     // TODO(review-native): review this setup message with a native Tamil speaker.
     errorAiConfig: 'பதில் வழங்கும் சேவை இன்னும் தயாராகவில்லை. சிறிது நேரம் கழித்து முயற்சிக்கவும்.',
     errorTooLong: 'பதிவு மிக நீளமாக இருந்தது. சுருக்கமான கேள்வி கேளுங்கள்.',
+    demoFallback: 'இணைப்பு இல்லை. அதற்குப் பதிலாக சேமித்த டெமோ எடுத்துக்காட்டைக் காட்டுகிறோம்.',
   },
 };

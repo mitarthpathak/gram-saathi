@@ -1,0 +1,126 @@
+- generic [ref=f6e3]:
+  - region "About Gram Saathi" [ref=f6e4]:
+    - generic [ref=f6e11]:
+      - paragraph [ref=f6e12]: Gram Saathi
+      - paragraph [ref=f6e13]: ग्राम साथी · Your village helper
+    - heading "Government schemes, explained in your own language." [level=1] [ref=f6e14]
+    - paragraph [ref=f6e15]: "A voice assistant for rural India: speak a question, get a short answer taken only from official scheme documents, with its source, an SMS copy and a fraud warning."
+    - list "Languages" [ref=f6e16]:
+      - listitem [ref=f6e17]: हिन्दी
+      - listitem [ref=f6e18]: मराठी
+      - listitem [ref=f6e19]: தமிழ்
+      - listitem [ref=f6e20]: English
+    - list [ref=f6e21]:
+      - listitem [ref=f6e22]:
+        - generic [ref=f6e23]: You ask by voice
+      - listitem [ref=f6e27]:
+        - generic [ref=f6e30]: Official documents are searched
+      - listitem [ref=f6e36]:
+        - generic [ref=f6e39]: Short answer, read aloud + SMS
+    - list [ref=f6e42]:
+      - listitem [ref=f6e43]:
+        - paragraph [ref=f6e48]: Only official answers
+        - paragraph [ref=f6e49]: Answers come from scheme documents and cite their source. Not covered? It says so.
+      - listitem [ref=f6e50]:
+        - paragraph [ref=f6e54]: Works on any phone
+        - paragraph [ref=f6e55]: Every answer also fits in 2 SMS, and low-data mode keeps answers offline.
+      - listitem [ref=f6e56]:
+        - paragraph [ref=f6e62]: Eligibility in a minute
+        - paragraph [ref=f6e63]: "A few answers, checked against clear rules: same answers, same result."
+      - listitem [ref=f6e64]:
+        - paragraph [ref=f6e68]: Fraud shield
+        - paragraph [ref=f6e69]: "Every answer reminds people: no scheme ever asks for money or an OTP."
+    - paragraph [ref=f6e70]: "Try it on the phone: hold the mic, or tap a scheme"
+  - generic [ref=f6e77]:
+    - banner [ref=f6e79]:
+      - generic [ref=f6e82]:
+        - link "Gram Saathi Your scheme helper" [ref=f6e83] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f6e89]:
+            - generic [ref=f6e90]: Gram Saathi
+            - generic [ref=f6e91]: Your scheme helper
+        - generic [ref=f6e92]:
+          - generic [ref=f6e93]: Language
+          - combobox "Language" [ref=f6e94]:
+            - option "Auto detect" [selected]
+            - option "हिन्दी"
+            - option "मराठी"
+            - option "தமிழ்"
+            - option "English"
+      - generic [ref=f6e245]: Demo data
+    - main [ref=f6e95]:
+      - generic [ref=f6e96]:
+        - list [ref=f6e275]:
+          - listitem [ref=f6e276]:
+            - generic [ref=f6e277]:
+              - paragraph [ref=f6e278]: You said
+              - text: पीएम किसान योजना में साल में कितना पैसा मिलता है?
+          - listitem [ref=f6e282]:
+            - article [ref=f6e283]:
+              - generic [ref=f6e289]:
+                - generic [ref=f6e290]: PM-KISAN Samman Nidhi
+                - generic [ref=f6e292]:
+                  - paragraph [ref=f6e293]: "Your dialect: Wagdi (वागड़ी)"
+                  - link "Wrong?" [ref=f6e294] [cursor=pointer]:
+                    - /url: /dialects
+                - paragraph [ref=f6e295]: पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in पर या नज़दीकी CSC केंद्र पर मुफ़्त है।
+                - generic [ref=f6e296]:
+                  - button "Listen" [ref=f6e297]
+                  - link "View as SMS · 2" [ref=f6e302] [cursor=pointer]:
+                    - /url: /sms
+                - generic [ref=f6e305]:
+                  - heading "Official sources" [level=3] [ref=f6e306]
+                  - list [ref=f6e310]:
+                    - listitem [ref=f6e311]:
+                      - generic [ref=f6e312]:
+                        - generic [ref=f6e313]:
+                          - generic [aria-hidden] [ref=f6e314]: "1"
+                          - generic [ref=f6e315]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f6e316]: · Benefits
+                        - blockquote [ref=f6e317]: “Eligible landholding farmer families get ₹6,000 per year, paid in three equal instalments of ₹2,000 directly into their Aadhaar-seeded bank account (DBT).”
+                        - button "Show more" [ref=f6e318]
+                    - listitem [ref=f6e321]:
+                      - generic [ref=f6e322]:
+                        - generic [ref=f6e323]:
+                          - generic [aria-hidden] [ref=f6e324]: "2"
+                          - generic [ref=f6e325]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f6e326]: · Eligibility
+                        - blockquote [ref=f6e327]: "“All landholding farmer families whose names are in the land records are eligible. Excluded: institutional landholders, families with an income-tax payer, serving or retired government employees (except Group D / MTS), registered professionals such as doctors, engineers and lawyers, and pensioners getting ₹10,000 or more per month.”"
+                        - button "Show more" [ref=f6e328]
+                    - listitem [ref=f6e331]:
+                      - generic [ref=f6e332]:
+                        - generic [ref=f6e333]:
+                          - generic [aria-hidden] [ref=f6e334]: "3"
+                          - generic [ref=f6e335]:
+                            - text: PM-KISAN Samman Nidhi
+                            - generic [ref=f6e336]: · How to apply
+                        - blockquote [ref=f6e337]: “Registration is free. Apply at pmkisan.gov.in (New Farmer Registration), at a Common Service Centre (CSC) or through the local Patwari / revenue officer. eKYC with Aadhaar is mandatory to receive instalments.”
+                        - button "Show more" [ref=f6e338]
+                - note [ref=f6e341]:
+                  - paragraph [ref=f6e344]: "धोखाधड़ी से सावधान: सरकारी योजनाओं में आवेदन मुफ़्त है। अपना OTP या बैंक PIN किसी को न बताएं। केवल .gov.in वेबसाइट या नज़दीकी CSC केंद्र का ही उपयोग करें।"
+        - generic [ref=f6e200]:
+          - status [ref=f6e201]:
+            - generic [ref=f6e202]: "Remembered: Wagdi (वागड़ी)"
+            - generic [aria-hidden] [ref=f6e203]: ·
+            - link "Change" [ref=f6e204] [cursor=pointer]:
+              - /url: /dialects
+            - button "Clear" [ref=f6e205]
+          - generic [ref=f6e206]:
+            - button "Hold to speak" [ref=f6e345]
+            - status [ref=f6e216]: Speaking the answer…
+          - generic [ref=f6e217]:
+            - generic [ref=f6e218]: Your question
+            - textbox "Your question" [ref=f6e219]:
+              - /placeholder: Type your question…
+            - button "Send" [disabled] [ref=f6e220]
+    - navigation "Main" [ref=f6e224]:
+      - link [ref=f6e225] [cursor=pointer]:
+        - /url: /
+      - link [ref=f6e229] [cursor=pointer]:
+        - /url: /eligibility
+      - link [ref=f6e235] [cursor=pointer]:
+        - /url: /sms
+      - link [ref=f6e239] [cursor=pointer]:
+        - /url: /dialects
