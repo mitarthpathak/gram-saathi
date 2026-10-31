@@ -1,8 +1,9 @@
 import type { QueryResponse } from '@gram-saathi/shared';
 import { MessageSquareText, Mic, SearchX, TriangleAlert, Zap } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
 import { Badge } from '@/components/ui/Badge';
+import { carryAppState } from '@/features/app-shell/navigation';
 import { SourceList } from '@/features/sources/SourceList';
 import type { SmsScreenState } from '@/features/sms/navigation';
 import { SpeakButton } from '@/features/voice/SpeakButton';
@@ -75,7 +76,12 @@ function QuestionBubble({
 function AnswerBubble({ response }: { response: QueryResponse }) {
   const t = useStrings(chatStrings);
   const { lowBandwidth } = useSettings();
-  const smsState: SmsScreenState = { sms: response.smsText, segments: response.smsSegments };
+  const location = useLocation();
+  const smsState: SmsScreenState = {
+    ...carryAppState(location.state),
+    sms: response.smsText,
+    segments: response.smsSegments,
+  };
   const scheme = response.sources[0]?.schemeName;
 
   return (
@@ -107,7 +113,8 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
             audioUrl={lowBandwidth ? null : response.audioUrl}
           />
           <Link
-            to="/sms"
+            to="/app/sms"
+            replace
             state={smsState}
             className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-cream-100 px-3.5 text-sm font-bold text-slate-700 ring-1 ring-ink/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600"
           >

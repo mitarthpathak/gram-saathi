@@ -22,7 +22,8 @@ export function SmsScreen() {
   const { language } = useSettings();
   const { lastAnswer } = useChat();
   // Set by "View as SMS" under a chat answer; otherwise preview the latest answer.
-  const fromChat = useLocation().state as SmsScreenState | null;
+  const state = useLocation().state as Partial<SmsScreenState> | null;
+  const fromChat = state?.sms ? { sms: state.sms, segments: state.segments ?? 1 } : null;
   const [draft, setDraft] = useState('');
   const [compressed, setCompressed] = useState<SmsCompressResponse | null>(null);
   const [compressing, setCompressing] = useState(false);

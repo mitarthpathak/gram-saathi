@@ -18,9 +18,10 @@ import {
   Wheat,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/useToast';
+import { carryAppState } from '@/features/app-shell/navigation';
 import { useChat } from '@/features/chat/useChat';
 import { SpeakButton } from '@/features/voice/SpeakButton';
 import { ApiError, api } from '@/lib/api';
@@ -52,6 +53,7 @@ export function EligibilityWizard() {
   const t = useStrings(eligibilityStrings);
   const toast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { askText } = useChat();
   const { language, sessionId } = useSettings();
   const [phase, setPhase] = useState<Phase>({ name: 'intro' });
@@ -99,7 +101,7 @@ export function EligibilityWizard() {
     );
 
   const askAbout = (schemeName: string) => {
-    void navigate('/');
+    void navigate('/app', { replace: true, state: carryAppState(location.state) });
     void askText(format(t.askAboutQuestion, { scheme: schemeName }));
   };
 

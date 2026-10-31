@@ -7,7 +7,7 @@ import { LANGUAGES } from './languages';
 import { languageStrings } from './strings';
 
 interface LanguageSelectorProps {
-  /** "compact": dropdown for the green header. "grid": big buttons, e.g. on the empty chat screen. */
+  /** "compact": a small pill for headers. "grid": big buttons, e.g. on the empty chat screen. */
   variant?: 'compact' | 'grid';
   className?: string;
 }
@@ -53,27 +53,22 @@ export function LanguageSelector({ variant = 'compact', className }: LanguageSel
       <span className="sr-only">{t.label}</span>
       <Languages
         aria-hidden
-        className="pointer-events-none absolute left-2.5 size-[18px] text-white"
+        className="pointer-events-none absolute left-3 size-[18px] text-leaf-600"
       />
       <select
         value={language}
         onChange={(event) => setLanguage(event.target.value as LanguageCode)}
-        className="min-h-10 appearance-none rounded-full bg-white/15 py-1 pr-8 pl-8 text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="min-h-12 appearance-none rounded-full bg-white/85 py-1 pr-9 pl-9 text-[15px] font-bold text-ink shadow-soft ring-1 ring-ink/10 transition hover:bg-white"
       >
         {LANGUAGES.map((option) => (
-          <option
-            key={option.code}
-            value={option.code}
-            lang={option.code}
-            className="text-slate-900"
-          >
+          <option key={option.code} value={option.code} lang={option.code} className="text-ink">
             {option.nativeName}
           </option>
         ))}
       </select>
       <ChevronDown
         aria-hidden
-        className="pointer-events-none absolute right-2.5 size-4 text-white/80"
+        className="pointer-events-none absolute right-3 size-4 text-ink-soft"
       />
     </label>
   );
