@@ -2,7 +2,7 @@
 
 ## Current status — 2026-10-31 (branch `feat/dialect-voice`)
 
-Built on top of the conversation layer (PR #9, not yet merged): dialect-worded replies with a
+Built on top of the conversation layer (PR #9, not yet merged) and up to date with `main`: dialect-worded replies with a
 deterministic facts lock and `answerStyle`, a facts guard on clarifications, server speech
 (`POST /api/tts`) with `dialectId` and honest `basis` labels, the Listen button using server speech
 with browser fallback and low-bandwidth respected, and the pipeline audit
@@ -11,14 +11,14 @@ real Gemini models, and the repo's own `npm install` / typecheck / lint / test /
 on this branch (the agent's sandbox could not install packages). These statuses supersede the
 historical step-2/step-3 checklist below where they conflict.
 
-| Who    | What                                                                                          | Where                                              |
-| ------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| Owner  | Repo checks, real-mode health check, ingest, first real audit, model pinning                  | [RUNBOOK.md](RUNBOOK.md) steps 1–3, 8              |
-| Owner  | Merge PR #9, then reconcile this branch with `main` (11 conflicting files, Listen path)       | [RUNBOOK.md](RUNBOOK.md#before-merging-into-main)  |
-| Team   | Record consented real-speaker clips (10 per language/dialect) and exemplars (20+ per dialect) | `eval/audio/README.md`, `data/dialects/exemplars/` |
-| Native | Rate `eval/review/dialect-review.csv`, audition voices, review `TODO(review-native)` strings  | [RUNBOOK.md](RUNBOOK.md) steps 5–6                 |
-| Owner  | Set `"verified": true` per dialect only after that review                                     | `server/src/config/dialect-render.json`            |
-| Owner  | Verify PMAY-G and eligibility rules; prewarm the FAQ; calibrate `RAG_MIN_SCORE`               | carried over from the conversation-layer job       |
+| Who    | What                                                                                                      | Where                                              |
+| ------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Owner  | Repo checks, real-mode health check, ingest, first real audit, model pinning                              | [RUNBOOK.md](RUNBOOK.md) steps 1–3, 8              |
+| Owner  | Merge PR #9 and this branch into `main` (this branch already contains `main`; no conflicts on 2026-10-31) | [RUNBOOK.md](RUNBOOK.md#before-merging-into-main)  |
+| Team   | Record consented real-speaker clips (10 per language/dialect) and exemplars (20+ per dialect)             | `eval/audio/README.md`, `data/dialects/exemplars/` |
+| Native | Rate `eval/review/dialect-review.csv`, audition voices, review `TODO(review-native)` strings              | [RUNBOOK.md](RUNBOOK.md) steps 5–6                 |
+| Owner  | Set `"verified": true` per dialect only after that review                                                 | `server/src/config/dialect-render.json`            |
+| Owner  | Verify PMAY-G and eligibility rules; prewarm the FAQ; calibrate `RAG_MIN_SCORE`                           | carried over from the conversation-layer job       |
 
 Results and risks: [`FINAL_REPORT.md`](FINAL_REPORT.md). Open audit findings:
 [`AUDIT_FINDINGS.md`](AUDIT_FINDINGS.md).

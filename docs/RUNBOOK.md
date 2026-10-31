@@ -116,18 +116,18 @@ model change; changing `GEMINI_EMBED_MODEL` or `GEMINI_EMBED_DIMENSIONS` also ne
 
 ## Before merging into `main`
 
-This branch was cut from `feat/conversation-layer` (`1b5d297`) and has not been merged. A read-only
-trial merge (`git merge-tree`, 2026-10-31) conflicts with `main` in 11 files and with the updated
-`feat/conversation-layer` in 9. `main`'s PR #12 independently added server-speech playback to the
-client (`client/src/features/voice/serverTts.ts`): a 6 s request timeout, server speech switched
-off for the whole session after one `audioUrl: null`, and no `dialectId`. Suggested order:
+`feat/dialect-voice` already contains `main` (`f8ccd8e`, including PR #12) and the updated
+`feat/conversation-layer` (`462aa75`): both were merged into this branch on 2026-10-31 (Phase 7),
+and a read-only trial merge into `main` had no conflicts. Agents push only to
+`feat/dialect-voice`, never to `main`.
 
-1. Merge PR #9 (`feat/conversation-layer`, already reconciled with `main`).
-2. Merge `feat/conversation-layer` into this branch and resolve by hand. Keep: low-bandwidth never
-   fetches server audio; `dialectId` only for dialect-worded text; `basis` → honest labels. Raise or
-   remove `main`'s 6 s client timeout and its session-wide switch-off, since this server returns
-   `null` per request (for example an answer over the 3 MB audio cap).
-3. Run `npm test` in both workspaces (`main` added client tests) and steps 1 and 3 above.
+1. Merge PR #9 (`feat/conversation-layer`) into `main`, or merge this branch directly: it contains
+   PR #9.
+2. If `main` has moved since, merge `main` into `feat/dialect-voice` first and resolve there.
+   In the Listen code keep: low-bandwidth never fetches server audio; `dialectId` only for
+   dialect-worded text; `basis` → honest labels; `audioUrl: null` with `basis` is per request.
+3. Run `npm run typecheck`, `npm test` in both workspaces (`npm test -w client` includes the new
+   `serverTts` and `speak` tests) and `npm run build`, then steps 1 and 3 above.
 
 ## Dialect data needed
 

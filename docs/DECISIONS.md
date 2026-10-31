@@ -327,3 +327,39 @@ mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`
 - **"ki keh raho he":** running `main`'s own mock code showed a typed message cannot produce the
   reported PM-KISAN reply in mock mode. The report therefore says mock mode explains the screenshot
   only for a spoken question; a typed one points to a real-mode run (finding N13).
+
+## Phase 7: bringing `main`'s UI into this branch
+
+- **Owner instruction (2026-10-31):** compare this branch's UI with `main` and make a later merge
+  easy, but never push to `main`; always push to `feat/dialect-voice`. This supersedes the brief's
+  "never merge" rule (R3) for merges _into_ this branch.
+- **Merges, not a rebase:** `origin/feat/conversation-layer` (`462aa75`, which already contains
+  `main` up to `698b211` and its owner's own conflict resolutions) was merged first, then
+  `origin/main` (`f8ccd8e`, PR #12). A rebase would rewrite pushed history and redo PR #9's
+  resolutions.
+- **One Listen implementation, `main`'s design:** `speak()` keeps `main`'s signature (`audioUrl`,
+  `onSpeakingChange`) and `serverTts.ts` keeps `main`'s cache, de-duplication, mock and
+  low-bandwidth checks and loading spinner. This branch adds a fifth `options` argument
+  (`dialectId`, `onVoice`, `onUnavailable`) and `fetchServerSpeech()` returning
+  `{ audioUrl, basis }`; `fetchServerTts()` stays as a wrapper, so `main`'s tests run unchanged.
+- **Two deliberate changes to `main`'s behaviour:** (1) the client deadline is 20 s, not 6 s, because
+  the server allows Gemini TTS 15 s plus a retry; (2) `audioUrl: null` switches server speech off
+  for the session only when the response has no `basis` (an older server with no server speech);
+  with `basis` it is per request (e.g. audio over the size cap). Both are covered by new tests.
+- **Honest labels kept:** the browser voice is reported through `onVoice` when it starts, or after
+  2.5 s if the engine never fires `start`; an error before that calls `onUnavailable`, which shows
+  the one "audio unavailable" toast.
+- **Strings and API:** `main`'s `loadingAudio` replaces this branch's `preparingAudio`; this branch's
+  `api.dialects()` is dropped in favour of `main`'s cached `api.getDialects()`, so
+  `client/src/lib/api.ts` is identical to PR #9's.
+- **`.gitignore`:** `main` had dropped the private-recording and audit rules; they are kept (finding
+  N15).
+- **Regression found and fixed:** the merge silently applied this branch's older removal of
+  `useSettings()` in `MessageBubble.tsx`, which dropped `main`'s low-bandwidth guard on answer audio;
+  restored in `9f27583`. Every removed line versus PR #9 and `main` was reviewed after that.
+- **Verification limits:** the client cannot be built or rendered here. The client checks are a
+  loose-shim typecheck (third-party packages typed `any`; negative control catches wrong option
+  types, missing message fields and missing string keys), a sandbox test runner that bundles each
+  test with esbuild and runs every test in fresh modules (19/19, and a mutation of the per-request
+  rule makes the new test fail), and the merged Listen logic in real Chromium against a stubbed API
+  (7/7). None of these harnesses is committed (new dependencies, R9).

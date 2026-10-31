@@ -360,3 +360,33 @@ Earlier sections above belong to the finished conversation-layer job. This job's
 - Open issues: everything real-mode (owner, runbook steps 1–8); merge with `main` (N12); typed
   "ki keh raho he" points to a real-mode run (N13); `ASK_AGAIN` rewording (N14). Push: see the
   commit's delivery note in the final message.
+
+## Phase 7 — bring `main`'s UI into the branch (owner request)
+
+- Request: compare this branch's UI with `main` and make the later merge easy; never push to
+  `main`, always push to `feat/dialect-voice`.
+- Commits: `f0c27c2` (merge `origin/feat/conversation-layer` at `462aa75`, which contains `main` up
+  to `698b211`), `642e2a8` (merge `origin/main` at `f8ccd8e`, PR #12), `9f27583` (restore the
+  low-bandwidth guard lost in the merge), plus this docs commit.
+- Conflicts resolved: `.gitignore`, `.prettierignore` (both sides kept); `useChat.ts`,
+  `ChatProvider.tsx`, `ChatWindow.tsx`, `MessageBubble.tsx` (main's UI + dialect and voice notes);
+  `speak.ts`, `SpeakButton.tsx`, `serverTts.ts` (add/add), `voice/strings.ts` (main's design +
+  `dialectId`, `basis`, `onVoice`, `onUnavailable`); `README.md`, `docs/ARCHITECTURE.md`,
+  `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`. `api.dialects()` removed (main's `getDialects()`).
+- Commands run (sandbox: npm registry blocked, no key):
+  - `tsc --noEmit` server and shared → 0 errors; server tests (shim) → 183 pass, 10 fail (same 7
+    Express-bound + 3 eligibility).
+  - Client loose-shim typecheck (`client/tsconfig.sandbox.json`, local only, git-excluded; React
+    hooks typed, other packages `any`) → no errors besides TS2709 shim artifacts; negative control
+    reports a wrong `dialectId` type, a missing `via` and a missing string key.
+  - Client tests via a sandbox runner (esbuild bundle per test file, `vi.mock` factories, fresh
+    modules per test) → 19/19, including 5 new tests; mutating the per-request-null rule back to
+    `main`'s makes the new test fail.
+  - Merged `speak()` in real Chromium 153 against a stubbed API → 7/7 (dialectId and basis, no
+    request in low-bandwidth mode, per-request null then server again, answer audio, browser
+    fallback reports `onUnavailable` with 0 voices, loading listener toggles).
+  - `main` is an ancestor of the branch (`git merge-base --is-ancestor`); a read-only trial merge
+    into `main` (`git merge-tree`) has no conflicts.
+- Not done: building or rendering the client (Vite, Tailwind, UI packages unavailable); real
+  `npm test -w client`.
+- Open issues: N9 (typed questions send no `dialectHint`), N13, N14, N15 in `AUDIT_FINDINGS.md`.

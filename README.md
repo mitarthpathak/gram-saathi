@@ -13,8 +13,8 @@ preview**.
 > **Status: prototype; the real pipeline is built but not yet proven.** The Gemini voice/chat
 > pipeline, intent routing, retrieval, dialect-worded replies with a facts lock, server speech
 > with honest labels, eligibility, SMS and the mock paths are implemented and tested with fake
-> models. On this branch (`feat/dialect-voice`) **nothing has been run against the real Gemini
-> models yet**, and the deployed demo serves mock data. Six scheme summaries were checked against
+> models. This branch (`feat/dialect-voice`) contains `main`'s current UI. **Nothing on it has
+> been run against the real Gemini models yet**, and the deployed demo serves mock data. Six scheme summaries were checked against
 > official sources on 2026-10-31; PMAY-G remains a sample, eligibility rules remain unverified and
 > dialect exemplars are empty. What works and what is unproven, per language and dialect:
 > [docs/FINAL_REPORT.md](docs/FINAL_REPORT.md) and [docs/PIPELINE_AUDIT.md](docs/PIPELINE_AUDIT.md).
