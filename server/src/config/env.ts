@@ -38,6 +38,7 @@ export const MOCKABLE_MODULES = [
   'eligibility',
   'sms',
   'tts',
+  'live',
   'faq',
 ] as const;
 export type MockableModule = (typeof MOCKABLE_MODULES)[number];
@@ -118,6 +119,13 @@ const envSchema = z.object({
   RATE_LIMIT_PER_MINUTE: fromEnv(z.coerce.number().int().min(0).default(30)),
   /** Express `trust proxy`: hops of proxies in front of the server (1 on Vercel). */
   TRUST_PROXY: fromEnv(z.coerce.number().int().min(0).max(10).default(1)),
+
+  // Gemini Live (ephemeral tokens; client connects directly to Live API).
+  GEMINI_LIVE_MODEL: fromEnv(z.string().trim().min(1).default('gemini-3.8-live')),
+  GEMINI_LIVE_VOICE: fromEnv(z.string().trim().min(1).default('Kore')),
+  GEMINI_LIVE_TOKEN_TTL_SECONDS: fromEnv(
+    z.coerce.number().int().min(60).max(71_999).default(600),
+  ),
 });
 
 const parsed = envSchema.safeParse(process.env);
