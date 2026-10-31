@@ -159,7 +159,7 @@ export function MicButton({
             busy && 'bg-slate-300 text-slate-600',
             !busy &&
               recording &&
-              'scale-105 bg-linear-to-br from-marigold-400 to-marigold-600 shadow-[0_18px_40px_-12px_rgb(221_102_2/0.7)]',
+              'scale-105 bg-linear-to-br from-marigold-400 to-marigold-500 shadow-[0_18px_40px_-12px_rgb(221_102_2/0.7)]',
             !busy &&
               !recording &&
               'animate-breathe bg-linear-to-br from-leaf-400 via-leaf-600 to-leaf-600 hover:scale-105 active:scale-95',
@@ -178,7 +178,7 @@ export function MicButton({
         {recording && (
           <>
             <Waveform getLevel={getLevel} />
-            <span className="min-w-10 text-sm font-extrabold text-marigold-700 tabular-nums">
+            <span className="min-w-10 text-sm font-extrabold text-accent-strong tabular-nums">
               {formatTime(elapsed)}
             </span>
           </>

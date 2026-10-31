@@ -74,7 +74,7 @@ function EmptyState() {
           aria-hidden
           className="absolute -top-10 -right-8 size-36 rounded-full bg-marigold-200/60 blur-2xl"
         />
-        <p className="relative text-sm font-extrabold text-marigold-700">{t.greeting} 🙏</p>
+        <p className="relative text-sm font-extrabold text-accent-strong">{t.greeting} 🙏</p>
         <h1 className="relative mt-1 text-[1.6rem] leading-tight font-extrabold tracking-tight text-balance text-slate-900">
           {t.emptyTitle}
         </h1>

@@ -116,7 +116,7 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
             to="/app/sms"
             replace
             state={smsState}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-cream-100 px-3.5 text-sm font-bold text-slate-700 ring-1 ring-ink/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-paper-alt px-3.5 text-sm font-bold text-slate-700 ring-1 ring-ink/10 transition hover:bg-paper-deep focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600"
           >
             <MessageSquareText aria-hidden className="size-4" />
             {t.viewSms} · {response.smsSegments}

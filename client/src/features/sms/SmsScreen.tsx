@@ -50,7 +50,7 @@ export function SmsScreen() {
   return (
     <div className="flex animate-fade-up flex-col gap-6 px-4 py-5">
       <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-800 to-ink p-5 text-white shadow-lift">
-        <div aria-hidden className="absolute inset-0 bg-kolam opacity-40" />
+        <div aria-hidden className="absolute inset-0 opacity-40" />
         <span className="relative flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
           <MessageSquareText aria-hidden className="size-6 text-marigold-300" />
         </span>
@@ -80,7 +80,7 @@ export function SmsScreen() {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={t.composePlaceholder}
-          className="rounded-2xl bg-cream-50 p-3 text-base ring-1 ring-ink/10 placeholder:text-slate-400 focus:ring-2 focus:ring-leaf-500 focus:outline-none"
+          className="rounded-2xl bg-paper p-3 text-base ring-1 ring-ink/10 placeholder:text-slate-400 focus:ring-2 focus:ring-leaf-500 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-slate-600">

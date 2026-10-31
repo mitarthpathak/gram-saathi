@@ -44,7 +44,7 @@ type Phase =
 const INTRO_ICONS = [
   { Icon: Wheat, tone: 'text-leaf-600' },
   { Icon: HeartPulse, tone: 'text-rose-600' },
-  { Icon: PiggyBank, tone: 'text-marigold-600' },
+  { Icon: PiggyBank, tone: 'text-accent-strong' },
   { Icon: ShieldPlus, tone: 'text-sky-700' },
 ];
 
@@ -139,7 +139,7 @@ export function EligibilityWizard() {
     return (
       <div className="flex animate-fade-up flex-col gap-4">
         <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-leaf-600 p-5 text-white shadow-lift">
-          <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
+          <div aria-hidden className="absolute inset-0 opacity-50" />
           <PartyPopper aria-hidden className="relative size-9 text-marigold-300" />
           <h1 className="relative mt-3 text-sm font-extrabold tracking-[0.12em] text-leaf-200 uppercase">
             {t.resultsTitle}
@@ -169,7 +169,7 @@ export function EligibilityWizard() {
   return (
     <div className="flex animate-fade-up flex-col gap-5">
       <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-ink p-6 text-white shadow-lift">
-        <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
+        <div aria-hidden className="absolute inset-0 opacity-50" />
         <div
           aria-hidden
           className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-400/25 blur-2xl"

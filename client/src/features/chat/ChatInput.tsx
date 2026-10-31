@@ -24,7 +24,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   return (
     <form
       onSubmit={submit}
-      className="mt-2 flex items-center gap-2 rounded-full bg-cream-50 p-1.5 pl-4 ring-1 ring-ink/10 transition focus-within:ring-2 focus-within:ring-leaf-500"
+      className="mt-2 flex items-center gap-2 rounded-full bg-paper p-1.5 pl-4 ring-1 ring-ink/10 transition focus-within:ring-2 focus-within:ring-leaf-500"
     >
       <label htmlFor="chat-question" className="sr-only">
         {t.inputLabel}

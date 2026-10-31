@@ -7,8 +7,8 @@ export function FraudWarning({ text }: { text: string }) {
       role="note"
       className="flex gap-2.5 rounded-2xl bg-linear-to-r from-marigold-50 to-amber-50 p-3 ring-1 ring-marigold-200"
     >
-      <ShieldAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-marigold-600" />
-      <p className="text-sm leading-snug font-semibold text-marigold-900">{text}</p>
+      <ShieldAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-accent-strong" />
+      <p className="text-sm leading-snug font-semibold text-accent-deep">{text}</p>
     </aside>
   );
 }

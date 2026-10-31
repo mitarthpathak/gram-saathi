@@ -7,7 +7,7 @@ const TONES = {
   success: 'bg-leaf-100 text-ink',
   warning: 'bg-amber-100 text-amber-900',
   danger: 'bg-red-100 text-red-900',
-  accent: 'bg-marigold-100 text-marigold-800',
+  accent: 'bg-marigold-100 text-accent-deep',
   /** For badges on the green header. */
   glass: 'bg-white/15 text-white ring-1 ring-white/20 backdrop-blur',
 };

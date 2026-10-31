@@ -49,7 +49,7 @@ export const SCHEME_SHORTCUTS: SchemeShortcut[] = [
   {
     id: 'atal-pension-yojana',
     Icon: PiggyBank,
-    tone: 'bg-marigold-100 text-marigold-700',
+    tone: 'bg-marigold-100 text-accent-strong',
     name: { en: 'Atal Pension', hi: 'अटल पेंशन', mr: 'अटल पेन्शन', ta: 'அடல் ஓய்வூதியம்' },
     topic: { en: 'Pension', hi: 'पेंशन', mr: 'पेन्शन', ta: 'ஓய்வூதியம்' },
     question: {

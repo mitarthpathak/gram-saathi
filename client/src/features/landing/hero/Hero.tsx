@@ -1,5 +1,5 @@
 import { ArrowRight, Mic } from 'lucide-react';
-import type { MouseEvent } from 'react';
+import { useRef, type MouseEvent } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Village, WavyUnderline } from '@/components/art/doodles';
 import { CyclingText, type CyclingItem } from '@/components/motion/CyclingText';
@@ -13,6 +13,7 @@ import { scrollToTarget } from '@/lib/motion/smoothScroll';
 import { useSettings } from '@/lib/settings';
 import { useAfterFirstPaint } from '@/lib/useAfterFirstPaint';
 import { HOW_IT_WORKS_ID } from '../sections';
+import { useSkyZone } from '../sky';
 import { landingStrings } from '../strings';
 import { HeroArt } from './HeroArt';
 import { LanguageChips } from './LanguageChips';
@@ -32,6 +33,8 @@ export function Hero({ introActive, paused }: HeroProps) {
   const { language } = useSettings();
   const location = useLocation();
   const painted = useAfterFirstPaint();
+  const sectionRef = useRef<HTMLElement>(null);
+  useSkyZone(sectionRef, 'dawn');
 
   // First paint shows the headline as-is (it is the LCP element); under the intro it then
   // tucks below its masks, and rises when the curtain lifts.
@@ -54,6 +57,7 @@ export function Hero({ introActive, paused }: HeroProps) {
 
   return (
     <section
+      ref={sectionRef}
       id="top"
       aria-labelledby="hero-title"
       className="relative mx-auto grid max-w-[92rem] items-center gap-2 px-5 pt-28 pb-36 sm:px-8 lg:min-h-[max(100svh,46rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(0,0.82fr)] lg:gap-0 lg:px-[6vw] lg:pt-24 lg:pb-28"

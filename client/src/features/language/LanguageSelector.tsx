@@ -37,7 +37,7 @@ export function LanguageSelector({ variant = 'compact', className }: LanguageSel
                 'min-h-12 rounded-2xl px-1 text-base font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600',
                 selected
                   ? 'bg-linear-to-br from-leaf-500 to-leaf-600 text-white shadow-soft'
-                  : 'bg-cream-100 text-slate-800 ring-1 ring-ink/10 hover:ring-leaf-500',
+                  : 'bg-paper-alt text-slate-800 ring-1 ring-ink/10 hover:ring-leaf-500',
               )}
             >
               {option.nativeName}

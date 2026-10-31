@@ -23,6 +23,8 @@ interface PhoneScreenProps {
   exchange: DemoExchange | null;
   /** Language of the demo question and answer (the screen's chrome follows the UI). */
   language: LanguageCode;
+  /** Mic state, when it should not follow the stage (the story chapter sets it per step). */
+  mic?: 'idle' | 'listening' | 'busy';
 }
 
 const BARS = [10, 18, 28, 14, 32, 20, 12];
@@ -31,7 +33,7 @@ const BARS = [10, 18, 28, 14, 32, 20, 12];
  * The app's home screen at real size (360 px wide), built from the app's own components:
  * welcome card, scheme shortcuts, chat bubbles with sources and the fraud warning.
  */
-export function PhoneScreen({ stage, typedWords, exchange, language }: PhoneScreenProps) {
+export function PhoneScreen({ stage, typedWords, exchange, language, mic }: PhoneScreenProps) {
   const t = useStrings(chatStrings);
   const { language: uiLanguage } = useSettings();
   const welcome = stage === 'idle' || stage === 'listening' || !exchange;
@@ -125,7 +127,10 @@ export function PhoneScreen({ stage, typedWords, exchange, language }: PhoneScre
         </AnimatePresence>
       </div>
 
-      <MicArea listening={stage === 'listening'} busy={stage === 'thinking'} />
+      <MicArea
+        listening={mic ? mic === 'listening' : stage === 'listening'}
+        busy={mic ? mic === 'busy' : stage === 'thinking'}
+      />
     </div>
   );
 }

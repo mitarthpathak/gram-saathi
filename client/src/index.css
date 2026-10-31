@@ -84,6 +84,7 @@
   /* Accent text: deeper amber. */
   --color-accent: #c2620a; /* display size only: 4.0:1 on paper, 3.4:1 on the glow */
   --color-accent-strong: #b45309; /* any size: 4.8:1 */
+  --color-accent-deep: #92400e; /* small text on marigold / peach tints: 6.9:1 */
 
   /* Dusk: the fraud-shield chapter only. */
   --color-dusk: #2b2545;

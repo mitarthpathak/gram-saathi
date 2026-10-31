@@ -17,7 +17,7 @@ export function SourceCard({ source, index }: SourceCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-2xl bg-cream-100 px-3 py-2.5 ring-1 ring-ink/5">
+    <div className="rounded-2xl bg-paper-alt px-3 py-2.5 ring-1 ring-ink/5">
       <div className="flex items-center gap-2">
         <span
           aria-hidden

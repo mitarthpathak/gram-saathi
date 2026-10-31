@@ -8,7 +8,8 @@ const LAYERS: Record<Sky, string> = {
   morning:
     'bg-[radial-gradient(70%_60%_at_50%_-10%,#ddf3e6_0%,rgb(238_249_242/0.7)_45%,transparent_75%),linear-gradient(#f6fbf3,#fffaf1)]',
   noon: 'bg-[radial-gradient(70%_60%_at_60%_-10%,#fff3c4_0%,rgb(255_243_196/0.55)_45%,transparent_75%),linear-gradient(#fffbea,#fff6df)]',
-  dusk: 'bg-[radial-gradient(80%_60%_at_50%_110%,#5a4580_0%,transparent_70%),linear-gradient(#2b2545,#2b2545)]',
+  // Twilight lavender, not indigo: the chapters around the (indigo) fraud panel keep ink text.
+  dusk: 'bg-[radial-gradient(80%_60%_at_50%_0%,#e6dcf3_0%,rgb(230_220_243/0.6)_45%,transparent_78%),linear-gradient(#f4eef8,#fbefe9)]',
 };
 
 /** Fixed sky behind the landing page, with a subtle paper grain on top. */
