@@ -6,6 +6,9 @@ import { logger } from '../../lib/logger';
 import { mockDetectLanguage, mockTranscribe } from '../../mocks';
 import { answerQuestion } from '../chat/service';
 import { answerLanguageFromTranscription } from '../dialect/language';
+import { getDialectEntry } from '../dialect/registry';
+import { synthesizeSpeech } from '../tts/service';
+import { transcribeWithSarvam } from '../../lib/sarvamClient';
 import {
   buildTranscribeInstruction,
   TRANSCRIBE_SYSTEM_PROMPT,
@@ -21,7 +24,10 @@ export interface VoiceQueryInput {
   sessionId: string;
 }
 
-export type TranscribeInput = Pick<VoiceQueryInput, 'audio' | 'mimeType' | 'language'>;
+export type TranscribeInput = Pick<
+  VoiceQueryInput,
+  'audio' | 'mimeType' | 'language' | 'dialectHint'
+>;
 
 export interface Transcription {
   transcript: string;
@@ -37,7 +43,7 @@ export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryRes
     input.language,
     input.dialectHint,
   );
-  return answerQuestion({
+  const response = await answerQuestion({
     text: transcript,
     language: input.language,
     dialectHint: input.dialectHint,
@@ -52,6 +58,15 @@ export async function answerVoiceQuery(input: VoiceQueryInput): Promise<QueryRes
     sessionId: input.sessionId,
     transcript,
   });
+  if (env.TTS_PROVIDER === 'sarvam' && !isMocked('tts')) {
+    try {
+      const { audioUrl } = await synthesizeSpeech({ text: response.answer, language });
+      if (audioUrl) response.audioUrl = audioUrl;
+    } catch {
+      // Speech synthesis is an enhancement; keep the voice answer available for browser speech.
+    }
+  }
+  return response;
 }
 
 /** Transcript + language in a single Gemini call (audio in, structured JSON out). */
@@ -65,6 +80,38 @@ export async function transcribe(input: TranscribeInput): Promise<Transcription>
         ? 'Devanagari'
         : 'Latin';
     return { transcript, detectedLanguage, script };
+  }
+
+  if (env.STT_PROVIDER === 'sarvam') {
+    const language =
+      getDialectEntry(input.dialectHint ?? '')?.parentLanguage ?? input.language ?? 'hi';
+    const sarvamLanguage =
+      language === 'mr'
+        ? 'mr-IN'
+        : language === 'ta'
+          ? 'ta-IN'
+          : language === 'en'
+            ? 'en-IN'
+            : 'hi-IN';
+    const result = await transcribeWithSarvam({
+      audio: input.audio,
+      mimeType: normalizeAudioMimeType(input.mimeType),
+      languageCode: sarvamLanguage,
+    });
+    if (!result.transcript.trim()) {
+      throw new HttpError(
+        422,
+        'NO_SPEECH_DETECTED',
+        'No speech was recognised in the recording. Ask the user to speak again.',
+      );
+    }
+    const detectedLanguage = result.languageCode.replace(/-IN$/i, '') || language;
+    const script = /[\u0B80-\u0BFF]/.test(result.transcript)
+      ? 'Tamil'
+      : /[\u0900-\u097F]/.test(result.transcript)
+        ? 'Devanagari'
+        : 'Latin';
+    return { transcript: result.transcript, detectedLanguage, script };
   }
 
   const result = await generateJson({
