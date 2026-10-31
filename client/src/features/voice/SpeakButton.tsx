@@ -38,7 +38,7 @@ export function SpeakButton({ text, language, audioUrl, dialectId, onSpoken }: S
   return (
     <Button variant="soft" size="sm" onClick={listen} aria-busy={loading}>
       {loading ? (
-        <Spinner label={t.preparingAudio} className="text-sm" />
+        <Spinner label={t.loadingAudio} className="text-sm" />
       ) : (
         <Volume2 aria-hidden className="size-4" />
       )}
