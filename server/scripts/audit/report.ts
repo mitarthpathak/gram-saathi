@@ -174,6 +174,16 @@ export function renderReport(
     'Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, proves nothing about the real pipeline), SYNTHETIC-ONLY (machine-generated audio, weak evidence), NEEDS-HUMAN (code cannot judge it), NOT-TESTED (with the reason). Nothing here is called PASS without a run.',
   );
   out.push('');
+  out.push(
+    'Problems this audit raised that are not fixed in code are tracked by hand in [AUDIT_FINDINGS.md](AUDIT_FINDINGS.md); this file is regenerated on every run.',
+  );
+  out.push('');
+  if (extras.comparison) {
+    out.push('## Before / after');
+    out.push('');
+    out.push(extras.comparison);
+    out.push('');
+  }
   out.push('## How this run was made');
   out.push('');
   out.push('| Worker | Purpose | USE_MOCKS | Gemini key | API access |');
@@ -196,13 +206,6 @@ export function renderReport(
     for (const note of results.sandboxNotes) out.push(`- ${note}`);
     out.push('');
   }
-  if (extras.comparison) {
-    out.push('## Before / after');
-    out.push('');
-    out.push(extras.comparison);
-    out.push('');
-  }
-
   out.push('## Regional readiness matrix');
   out.push('');
   out.push(`| Row | ${MATRIX_COLUMNS.map((column) => MATRIX_COLUMN_TITLES[column]).join(' | ')} |`);
@@ -322,5 +325,32 @@ export function compareRuns(before: AuditResults, after: AuditResults): string {
   const matrix = changes.length
     ? ['', '| Row | Column | Before | After |', '|---|---|---|---|', ...changes].join('\n')
     : '\nNo matrix cell changed status.';
-  return `Baseline: ${before.label} at \`${before.git.commit}\` (${before.generatedAt}). Now: ${after.label} at \`${after.git.commit}\`.\n\n${lines.join('\n')}\n${matrix}`;
+  return `Baseline: ${before.label} at \`${before.git.commit}\` (${before.generatedAt}). Now: ${after.label} at \`${after.git.commit}\`.\n\n${lines.join('\n')}\n${matrix}\n\n${checkChanges(before, after)}`;
+}
+
+/** Checks that were added, removed or changed status between two runs. */
+export function checkChanges(before: AuditResults, after: AuditResults): string {
+  const index = (results: AuditResults) =>
+    new Map(
+      results.stages.flatMap((stage) =>
+        stage.checks.map((check) => [`${stage.stage}:${check.id}`, check] as const),
+      ),
+    );
+  const was = index(before);
+  const now = index(after);
+  const rows: string[] = [];
+  for (const [key, check] of now) {
+    const old = was.get(key);
+    if (!old) rows.push(`| ${check.id} | (new) | ${check.status} | ${md(check.title)} |`);
+    else if (old.status !== check.status)
+      rows.push(`| ${check.id} | ${old.status} | ${check.status} | ${md(check.title)} |`);
+  }
+  for (const [key, check] of was) {
+    if (!now.has(key)) rows.push(`| ${check.id} | ${check.status} | (removed) | ${md(check.title)} |`);
+  }
+  const note =
+    'A stage status aggregates its checks, so new passing checks do not change a stage that also has NOT-TESTED, MOCK-ONLY or FAIL checks. Checks run with a fake model prove plumbing, not real-model behaviour.';
+  return rows.length
+    ? ['**Check-level changes**', '', '| Check | Before | After | What it checks |', '|---|---|---|---|', ...rows, '', note].join('\n')
+    : `No check was added, removed or changed status. ${note}`;
 }

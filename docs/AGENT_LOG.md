@@ -261,3 +261,25 @@ Earlier sections above belong to the finished conversation-layer job. This job's
   whether playback works on phones is NOT-TESTED.
 - Open issues: client typecheck and build must be run by the owner (`npm run typecheck -w client`,
   `npm run build -w client`); the new mr/ta strings need native review (runbook, Phase 6).
+
+## Phase 5 — audit re-run and comparison
+
+- Files changed: `server/scripts/audit/report.ts` (before/after moved to the top, check-level
+  changes table, link to the findings file), `server/scripts/audit.ts` ("ki keh raho he" verdict
+  cites the new guard check), `server/scripts/audit/fakeWorker.ts` (`I-clarify-guard`),
+  `server/test/audit.test.ts` (comparison test), regenerated `docs/PIPELINE_AUDIT.md`,
+  `audit/results.json`, `eval/review/dialect-review.csv`; new hand-maintained
+  `docs/AUDIT_FINDINGS.md` (4 fixed, 11 not fixed).
+- Commands run: `AUDIT_ENV_NOTE=… tsx scripts/audit.ts --label after` (sandbox: mock mode, no key,
+  in-process transport); WebFetch of the deployed `/api/health` (`{"status":"ok","mocks":true}`);
+  a WebFetch of the deployed `/api/dialects` failed (tool usage limit), so N6 stays UNVERIFIED;
+  full server suite 193 tests: 183 pass, the same 10 baseline failures; server `tsc --noEmit`
+  0 errors; prettier on touched files.
+- Results: stage statuses identical to the baseline (A NOT-TESTED, B PARTIAL, C–G MOCK-ONLY,
+  H NOT-TESTED, I PARTIAL, J FAIL), no matrix cell changed — expected without a key. New checks,
+  all with a fake model: `I-tts-ok`, `I-tts-basis`, `I-tts-unknown-dialect`, `I-clarify-guard`,
+  `J-shape-tts-long` (PASS). `J-shape-voice` is still FAIL (6 sequential calls).
+- Bugs fixed in this phase: none new; the audit's own bugs found earlier were fixed in Phase 3
+  (dialectId only with dialect text). Everything else is listed in `docs/AUDIT_FINDINGS.md`.
+- Note: the report says "uncommitted changes present" because the harness edits above are
+  committed together with the report (one commit per phase).

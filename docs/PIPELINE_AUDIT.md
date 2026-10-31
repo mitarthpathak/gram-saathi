@@ -1,8 +1,41 @@
 # Pipeline audit
 
-Generated 2026-10-31T05:21:13.835Z by `npm run audit -w server` (label **baseline**) on branch `feat/dialect-voice` at `4c62fcb` (uncommitted changes present).
+Generated 2026-10-31T06:03:32.254Z by `npm run audit -w server` (label **after**) on branch `feat/dialect-voice` at `36895b1` (uncommitted changes present).
 
 Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, proves nothing about the real pipeline), SYNTHETIC-ONLY (machine-generated audio, weak evidence), NEEDS-HUMAN (code cannot judge it), NOT-TESTED (with the reason). Nothing here is called PASS without a run.
+
+Problems this audit raised that are not fixed in code are tracked by hand in [AUDIT_FINDINGS.md](AUDIT_FINDINGS.md); this file is regenerated on every run.
+
+## Before / after
+
+Baseline: baseline at `4c62fcb` (2026-10-31T05:21:13.835Z). Now: after at `36895b1`.
+
+| Stage | Before | After |
+|---|---|---|
+| A Static checks | NOT-TESTED | NOT-TESTED |
+| B Real-mode preflight | PARTIAL | PARTIAL |
+| C Retrieval | MOCK-ONLY | MOCK-ONLY |
+| D Text answers (POST /api/chat/query) | MOCK-ONLY | MOCK-ONLY |
+| E Dialect text | MOCK-ONLY | MOCK-ONLY |
+| F Speech in (POST /api/voice/query) | MOCK-ONLY | MOCK-ONLY |
+| G Speech out (POST /api/tts) | MOCK-ONLY | MOCK-ONLY |
+| H Browser end-to-end mic test (optional) | NOT-TESTED | NOT-TESTED |
+| I Robustness and error codes | PARTIAL | PARTIAL |
+| J Latency and cost shape | FAIL | FAIL |
+
+No matrix cell changed status.
+
+**Check-level changes**
+
+| Check | Before | After | What it checks |
+|---|---|---|---|
+| I-tts-ok | (new) | PASS | Server speech returns a WAV data URL (fake provider) |
+| I-tts-basis | (new) | PASS | Speech basis is reported honestly for named and unnamed dialects |
+| I-tts-unknown-dialect | (new) | PASS | POST /api/tts with an unknown dialectId |
+| I-clarify-guard | (new) | PASS | A clarification cannot introduce facts the user was not told (fake model) |
+| J-shape-tts-long | (new) | PASS | Listen on a long answer (split into pieces) |
+
+A stage status aggregates its checks, so new passing checks do not change a stage that also has NOT-TESTED, MOCK-ONLY or FAIL checks. Checks run with a fake model prove plumbing, not real-model behaviour.
 
 ## How this run was made
 
@@ -13,6 +46,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 
 **Environment notes**
 
+- Agent sandbox, 2026-10-31: no GEMINI_API_KEY, npm registry blocked (no express, vite, react, playwright); a sandbox shim kit provides typescript, tsx, zod, dotenv and a node:test-based vitest shim. The deployed app (https://gram-saathi.vercel.app/api/health, fetched with WebFetch on 2026-10-31) answered {"status":"ok","mocks":true} without dialectConfigured/ttsConfigured, i.e. an older build in mock mode; it is not reachable from the shell.
 - configured worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
 - fake worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
 
@@ -86,7 +120,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-marwari
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-marwari
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-marwari (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -96,7 +130,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-dhundhari
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-dhundhari
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-dhundhari (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -106,7 +140,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-shekhawati
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-shekhawati
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-shekhawati (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -116,7 +150,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-bagri
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bagri
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bagri (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -126,7 +160,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-mewari
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-mewari
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-mewari (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -136,7 +170,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-mewati
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-mewati
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-mewati (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -146,7 +180,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-harauti
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-harauti
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-harauti (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -156,7 +190,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-malvi
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-malvi
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-malvi (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -166,7 +200,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-wagdi
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-wagdi
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-wagdi (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -176,7 +210,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-braj
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-braj
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-braj (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -186,7 +220,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-haryanvi
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-haryanvi
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-haryanvi (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -196,7 +230,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-bhojpuri
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bhojpuri
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bhojpuri (rendered standard: render_off)
 - TTS names this language: PASS — "Bhojpuri" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -206,7 +240,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-awadhi
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-awadhi
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-awadhi (rendered standard: render_off)
 - TTS names this language: PASS — "Awadhi" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -216,7 +250,7 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Understands speech: NOT-TESTED — no clip for this row was run
 - Identifies dialect: NOT-TESTED — needs labelled real-speaker clips in eval/audio (none supplied)
 - Answers in correct language: MOCK-ONLY — results.json stages.E check E-bundeli
-- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bundeli
+- Answers in the dialect (text): MOCK-ONLY — results.json stages.E check E-bundeli (rendered standard: render_off)
 - TTS names this language: FAIL — not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice
 - Speaks the reply: MOCK-ONLY — mock TTS returns no audio for any input
 - Accent matches: MOCK-ONLY — no server audio in mock mode
@@ -249,10 +283,12 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 - Real mode (this branch, with the intent router): NOT-TESTED — no run with a Gemini key. The router prompt lists "ki keh raho he" as a clarification, but a prompt is not proof.
 - Mock mode, typed: not reproduced — the mock keyword search finds no scheme, so the fixed not-found text is returned (no PM-KISAN answer).
 - Mock mode, spoken: REPRODUCED for any recording — the mock speech-to-text ignores the audio and returns the canned question “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, which gets the canned formal-Hindi scheme answer.
-- Fix status: the intent router exists only in real mode; USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.
+- Real-mode guard (added in this branch): a clarification may not state numbers, amounts, URLs or phone numbers the user was not already told; otherwise the fixed “please ask again” text is returned. With a fake model this check is PASS.
+- Fix status: in real mode the intent router (prompt) and the facts guard (code) address the reported reply; neither has been run against the real model here. USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.
 
 - configured worker, mock mode, typed: MOCK-ONLY — answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)
 - configured worker, mock voice with 1.5 s of silence: transcript “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, language hi, dialect marwari; answer “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में …”
+- fake worker, I-clarify-guard: PASS — Fake router answers “ki keh raho he” with a ₹6,000 sentence. Fresh session (nothing said yet): replaced by the fixed “please ask again” text. After a scheme answer that said ₹6,000: allowed (repeats an earlier fact). Whether the real model classifies the message as a clarification is NOT-TESTED here.
 
 ## Stages
 
@@ -266,8 +302,8 @@ Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, prov
 | F Speech in (POST /api/voice/query) | MOCK-ONLY | mock | 4 |  |
 | G Speech out (POST /api/tts) | MOCK-ONLY | mock | 4 |  |
 | H Browser end-to-end mic test (optional) | NOT-TESTED | none | 0 | AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API). |
-| I Robustness and error codes | PARTIAL | fake-backend | 10 |  |
-| J Latency and cost shape | FAIL | none | 8 |  |
+| I Robustness and error codes | PARTIAL | fake-backend | 14 |  |
+| J Latency and cost shape | FAIL | none | 9 |  |
 
 ### A. Static checks — NOT-TESTED
 
@@ -339,20 +375,20 @@ _No checks ran._
 
 | Status | Check | Result | Evidence |
 |---|---|---|---|
-| MOCK-ONLY | Marwari (मारवाड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Dhundhari/Jaipuri (ढूंढाड़ी/जयपुरी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Shekhawati (शेखावाटी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Bagri (बागड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Mewari (मेवाड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Mewati (मेवाती) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Harauti (हाड़ौती) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Malvi (मालवी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Wagdi (वागड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Braj (ब्रज) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Haryanvi (हरियाणवी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Bhojpuri (भोजपुरी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Awadhi (अवधी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
-| MOCK-ONLY | Bundeli (बुंदेली) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Marwari (मारवाड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Dhundhari/Jaipuri (ढूंढाड़ी/जयपुरी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Shekhawati (शेखावाटी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Bagri (बागड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Mewari (मेवाड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Mewati (मेवाती) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Harauti (हाड़ौती) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Malvi (मालवी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Wagdi (वागड़ी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Braj (ब्रज) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Haryanvi (हरियाणवी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Bhojpuri (भोजपुरी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Awadhi (अवधी) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
+| MOCK-ONLY | Bundeli (बुंदेली) with dialectHint | Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline. | answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan\|pm-kisan\|pm-kisan) |
 
 ### F. Speech in (POST /api/voice/query) — MOCK-ONLY
 
@@ -390,7 +426,11 @@ _No checks ran._
 | PASS | Gemini timeout on a text question | Expected 504 AI_TIMEOUT; got 504 AI_TIMEOUT (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
 | PASS | Gemini 429 on a text question | Expected 429 AI_RATE_LIMITED; got 429 AI_RATE_LIMITED (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
 | PASS | Real mode without GEMINI_API_KEY | Expected 503 AI_NOT_CONFIGURED; got 503 AI_NOT_CONFIGURED (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
-| PASS | TTS provider error falls back to browser speech | synthesizeSpeech with a provider answering 503 returned audioUrl null (client uses browser speech). | server/src/modules/tts/service.ts |
+| PASS | Server speech returns a WAV data URL (fake provider) | audioUrl data URL of 426750 chars, basis language. Proves the plumbing only: the provider is fake, so nothing here says the voice is right. | server/src/modules/tts/service.ts<br>scripts/audit/fakeWorker.ts |
+| PASS | Speech basis is reported honestly for named and unnamed dialects | bhojpuri: named-dialect (expected named-dialect); braj: base-language-approximation (expected base-language-approximation) | server/src/modules/tts/service.ts<br>server/src/config/dialect-render.json |
+| PASS | TTS provider error falls back to browser speech | synthesizeSpeech with a provider answering 503 returned audioUrl null (client uses browser speech), basis none. | server/src/modules/tts/service.ts |
+| PASS | POST /api/tts with an unknown dialectId | Expected 400 VALIDATION_ERROR; got 400 VALIDATION_ERROR (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
+| PASS | A clarification cannot introduce facts the user was not told (fake model) | Fake router answers “ki keh raho he” with a ₹6,000 sentence. Fresh session (nothing said yet): replaced by the fixed “please ask again” text. After a scheme answer that said ₹6,000: allowed (repeats an earlier fact). Whether the real model classifies the message as a clarification is NOT-TESTED here. | server/src/modules/chat/service.ts (introducesNewFacts)<br>scripts/audit/fakeWorker.ts |
 | NOT-TESTED | Friendly, localized error message in the client | The client (ChatProvider errorText) is not exercised by this server-side audit, and no client test runner exists for it. | client/src/features/chat/ChatProvider.tsx |
 
 ### J. Latency and cost shape — FAIL
@@ -401,10 +441,11 @@ _No checks ran._
 | NOT-TESTED | voice request latency (p50 / p95) | Latency is only meaningful against real Gemini calls; this run made none on this path. |  |
 | NOT-TESTED | tts request latency (p50 / p95) | Latency is only meaningful against real Gemini calls; this run made none on this path. |  |
 | PASS | Typed scheme question | 4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
-| PASS | Typed scheme question with dialectHint (bhojpuri) | 4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
+| PASS | Typed scheme question with dialectHint (bhojpuri) | 5 Gemini call(s) (understand×1, embed×1, answer×1, sms×1, reply-dialect×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | PASS | Typed clarification (“ki keh raho he”) | 1 Gemini call(s) (understand×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | FAIL | Spoken scheme question (dialect identification on) | 8 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
-| PASS | Listen (server speech) | 1 provider call(s) made with fetch outside the Gemini client (not counted by the call observer), 1 sequential. Within the budget. | scripts/audit/fakeWorker.ts |
+| PASS | Listen (server speech, one piece) | 1 Gemini call(s) (tts×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
+| PASS | Listen on a long answer (split into pieces) | 3 Gemini call(s) (tts×3), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 
 ## NOT-TESTED
 

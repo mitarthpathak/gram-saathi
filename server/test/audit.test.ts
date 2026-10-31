@@ -11,7 +11,8 @@ import {
   silentWav,
   toCsv,
 } from '../scripts/audit/checks';
-import { buildMatrix, rowVerdict } from '../scripts/audit/report';
+import { buildMatrix, checkChanges, rowVerdict } from '../scripts/audit/report';
+import type { AuditResults, StageResult } from '../scripts/audit/types';
 import {
   describeFacts,
   englishNumberWords,
@@ -149,5 +150,52 @@ describe('readiness matrix', () => {
       'PASS',
     );
     expect(rowVerdict(braj)).toContain('parent-language approximation');
+  });
+});
+
+describe('before/after comparison', () => {
+  const run = (checks: Array<[string, StageResult['status']]>): AuditResults => ({
+    version: 1,
+    generatedAt: '2026-10-31T00:00:00Z',
+    git: { branch: 'b', commit: 'c', dirty: false },
+    label: 'x',
+    workers: [],
+    matrix: [],
+    sandboxNotes: [],
+    stages: [
+      {
+        stage: 'I',
+        name: 'Robustness',
+        status: 'PARTIAL',
+        mode: 'fake-backend',
+        durationMs: 0,
+        checks: checks.map(([id, status]) => ({
+          id,
+          title: `title ${id}`,
+          status,
+          detail: '',
+          evidence: [],
+        })),
+      },
+    ],
+  });
+
+  it('lists added, removed and changed checks', () => {
+    const text = checkChanges(
+      run([
+        ['kept', 'PASS'],
+        ['changed', 'NOT-TESTED'],
+        ['gone', 'PASS'],
+      ]),
+      run([
+        ['kept', 'PASS'],
+        ['changed', 'PASS'],
+        ['added', 'PASS'],
+      ]),
+    );
+    expect(text).toContain('| changed | NOT-TESTED | PASS |');
+    expect(text).toContain('| added | (new) | PASS |');
+    expect(text).toContain('| gone | PASS | (removed) |');
+    expect(text).not.toContain('| kept |');
   });
 });

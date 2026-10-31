@@ -18,6 +18,7 @@ import {
 } from '../../src/lib/geminiClient';
 import { HttpError } from '../../src/lib/httpError';
 import { rateLimit } from '../../src/middleware/rateLimit';
+import { ASK_AGAIN } from '../../src/modules/chat/messages';
 import { clearAnswerCache } from '../../src/modules/chat/service';
 import { clearConversationHistory } from '../../src/modules/chat/conversation';
 import { DEFAULT_CHUNKING, type DocumentChunk } from '../../src/modules/rag/chunking';
@@ -43,6 +44,8 @@ interface Scenario {
   failWith?: Record<string, unknown>;
   /** Makes the fake speech call fail like this (e.g. { status: 503 }). */
   ttsFailWith?: Record<string, unknown>;
+  /** What the fake router says for a clarification ("ki keh raho he"). */
+  clarifyReply?: string;
 }
 const scenario: Scenario = { transcript: QUESTION_HI };
 
@@ -82,7 +85,7 @@ export function fakeReply(request: GenerateRequest): unknown {
         language: 'hi',
         dialect: null,
         searchQueryEn: '',
-        reply: 'मैं आसान शब्दों में फिर से बताता हूँ।',
+        reply: scenario.clarifyReply ?? 'मैं आसान शब्दों में फिर से बताता हूँ।',
       };
     }
     return {
@@ -388,6 +391,37 @@ async function stageI(transport: Transport): Promise<StageResult> {
         via,
       ),
     );
+
+    // The real-mode guard for the "ki keh raho he" class of bug: a clarification written by the
+    // model may only repeat facts the user was already told in this session.
+    scenario.clarifyReply = 'पीएम-किसान में हर साल ₹6,000 मिलते हैं।';
+    clearConversationHistory();
+    const fresh = await transport.chat({
+      text: 'ki keh raho he',
+      language: 'hi',
+      sessionId: sessionId('i-clarify-fresh'),
+    });
+    const followSession = sessionId('i-clarify-follow');
+    await transport.chat({ text: QUESTION_HI, language: 'hi', sessionId: followSession });
+    const follow = await transport.chat({
+      text: 'ki keh raho he',
+      language: 'hi',
+      sessionId: followSession,
+    });
+    scenario.clarifyReply = undefined;
+    const answerOf = (result: { body: unknown }) =>
+      result.body && typeof result.body === 'object' && 'answer' in result.body
+        ? String((result.body as { answer: unknown }).answer)
+        : '';
+    const freshOk = answerOf(fresh) === ASK_AGAIN.hi;
+    const followOk = answerOf(follow) === 'पीएम-किसान में हर साल ₹6,000 मिलते हैं।';
+    checks.push({
+      id: 'I-clarify-guard',
+      title: 'A clarification cannot introduce facts the user was not told (fake model)',
+      status: freshOk && followOk ? 'PASS' : 'FAIL',
+      detail: `Fake router answers “ki keh raho he” with a ₹6,000 sentence. Fresh session (nothing said yet): ${freshOk ? 'replaced by the fixed “please ask again” text' : `NOT replaced: “${answerOf(fresh).slice(0, 80)}”`}. After a scheme answer that said ₹6,000: ${followOk ? 'allowed (repeats an earlier fact)' : `unexpected: “${answerOf(follow).slice(0, 80)}”`}. Whether the real model classifies the message as a clarification is NOT-TESTED here.`,
+      evidence: ['server/src/modules/chat/service.ts (introducesNewFacts)', 'scripts/audit/fakeWorker.ts'],
+    });
 
     checks.push({
       id: 'I-ui-path',

@@ -340,8 +340,18 @@ function kiKehVerdict(outputs: WorkerOutput[], deployed?: DeployedCheck): KiKehV
       );
     }
   }
+  const guard = outputs
+    .flatMap((worker) => worker.stages)
+    .flatMap((stage) => stage.checks)
+    .find((check) => check.id === 'I-clarify-guard');
+  if (guard) {
+    evidence.push(`fake worker, I-clarify-guard: ${guard.status} — ${guard.detail}`);
+    lines.push(
+      `Real-mode guard (added in this branch): a clarification may not state numbers, amounts, URLs or phone numbers the user was not already told; otherwise the fixed “please ask again” text is returned. With a fake model this check is ${guard.status}.`,
+    );
+  }
   lines.push(
-    'Fix status: the intent router exists only in real mode; USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.',
+    'Fix status: in real mode the intent router (prompt) and the facts guard (code) address the reported reply; neither has been run against the real model here. USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.',
   );
   return { text: lines.map((line) => `- ${line}`).join('\n'), evidence };
 }

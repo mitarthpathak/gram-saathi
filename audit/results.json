@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-31T05:21:13.835Z",
+  "generatedAt": "2026-10-31T06:03:32.254Z",
   "git": {
     "branch": "feat/dialect-voice",
-    "commit": "4c62fcb",
+    "commit": "36895b1",
     "dirty": true
   },
-  "label": "baseline",
+  "label": "after",
   "workers": [
     {
       "worker": "configured",
@@ -26,7 +26,8 @@
       "models": {
         "chat": "gemini-3.8-flash",
         "fallback": "gemini-3.6-flash",
-        "embed": "gemini-embedding-2"
+        "embed": "gemini-embedding-2",
+        "tts": "gemini-3.8-flash-lite-tts"
       }
     },
     {
@@ -36,7 +37,8 @@
       "transport": "in-process",
       "transportNote": "Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
       "models": {
-        "chat": "gemini-3.8-flash"
+        "chat": "gemini-3.8-flash",
+        "tts": "gemini-3.8-flash-lite-tts"
       }
     }
   ],
@@ -295,7 +297,7 @@
           "outsideKnowledgeBase": "n=4 min 0.000 · p25 0.000 · median 0.000 · p75 0.000 · max 0.000"
         }
       },
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "stage": "D",
@@ -541,7 +543,7 @@
           ]
         }
       ],
-      "durationMs": 17
+      "durationMs": 21
     },
     {
       "stage": "E",
@@ -553,12 +555,14 @@
           "id": "E-marwari",
           "title": "Marwari (मारवाड़ी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -566,12 +570,14 @@
           "id": "E-dhundhari",
           "title": "Dhundhari/Jaipuri (ढूंढाड़ी/जयपुरी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -579,12 +585,14 @@
           "id": "E-shekhawati",
           "title": "Shekhawati (शेखावाटी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -592,12 +600,14 @@
           "id": "E-bagri",
           "title": "Bagri (बागड़ी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -605,12 +615,14 @@
           "id": "E-mewari",
           "title": "Mewari (मेवाड़ी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -618,12 +630,14 @@
           "id": "E-mewati",
           "title": "Mewati (मेवाती) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -631,12 +645,14 @@
           "id": "E-harauti",
           "title": "Harauti (हाड़ौती) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -644,12 +660,14 @@
           "id": "E-malvi",
           "title": "Malvi (मालवी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -657,12 +675,14 @@
           "id": "E-wagdi",
           "title": "Wagdi (वागड़ी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -670,12 +690,14 @@
           "id": "E-braj",
           "title": "Braj (ब्रज) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -683,12 +705,14 @@
           "id": "E-haryanvi",
           "title": "Haryanvi (हरियाणवी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -696,12 +720,14 @@
           "id": "E-bhojpuri",
           "title": "Bhojpuri (भोजपुरी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -709,12 +735,14 @@
           "id": "E-awadhi",
           "title": "Awadhi (अवधी) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         },
@@ -722,12 +750,14 @@
           "id": "E-bundeli",
           "title": "Bundeli (बुंदेली) with dialectHint",
           "status": "MOCK-ONLY",
-          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: standard (render_off). Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
           "evidence": [
             "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
           ],
           "data": {
             "reached": false,
+            "rendered": "standard",
+            "reason": "render_off",
             "technical": "FAIL"
           }
         }
@@ -814,7 +844,7 @@
           }
         }
       ],
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "stage": "G",
@@ -862,7 +892,7 @@
       "data": {
         "sizesKb": []
       },
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "stage": "H",
@@ -952,12 +982,51 @@
           ]
         },
         {
+          "id": "I-tts-ok",
+          "title": "Server speech returns a WAV data URL (fake provider)",
+          "status": "PASS",
+          "detail": "audioUrl data URL of 426750 chars, basis language. Proves the plumbing only: the provider is fake, so nothing here says the voice is right.",
+          "evidence": [
+            "server/src/modules/tts/service.ts",
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-tts-basis",
+          "title": "Speech basis is reported honestly for named and unnamed dialects",
+          "status": "PASS",
+          "detail": "bhojpuri: named-dialect (expected named-dialect); braj: base-language-approximation (expected base-language-approximation)",
+          "evidence": [
+            "server/src/modules/tts/service.ts",
+            "server/src/config/dialect-render.json"
+          ]
+        },
+        {
           "id": "I-tts-provider-error",
           "title": "TTS provider error falls back to browser speech",
           "status": "PASS",
-          "detail": "synthesizeSpeech with a provider answering 503 returned audioUrl null (client uses browser speech).",
+          "detail": "synthesizeSpeech with a provider answering 503 returned audioUrl null (client uses browser speech), basis none.",
           "evidence": [
             "server/src/modules/tts/service.ts"
+          ]
+        },
+        {
+          "id": "I-tts-unknown-dialect",
+          "title": "POST /api/tts with an unknown dialectId",
+          "status": "PASS",
+          "detail": "Expected 400 VALIDATION_ERROR; got 400 VALIDATION_ERROR (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-clarify-guard",
+          "title": "A clarification cannot introduce facts the user was not told (fake model)",
+          "status": "PASS",
+          "detail": "Fake router answers “ki keh raho he” with a ₹6,000 sentence. Fresh session (nothing said yet): replaced by the fixed “please ask again” text. After a scheme answer that said ₹6,000: allowed (repeats an earlier fact). Whether the real model classifies the message as a clarification is NOT-TESTED here.",
+          "evidence": [
+            "server/src/modules/chat/service.ts (introducesNewFacts)",
+            "scripts/audit/fakeWorker.ts"
           ]
         },
         {
@@ -970,7 +1039,7 @@
           ]
         }
       ],
-      "durationMs": 98
+      "durationMs": 356
     },
     {
       "stage": "J",
@@ -1022,18 +1091,19 @@
           "id": "J-shape-text-dialect",
           "title": "Typed scheme question with dialectHint (bhojpuri)",
           "status": "PASS",
-          "detail": "4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "detail": "5 Gemini call(s) (understand×1, embed×1, answer×1, sms×1, reply-dialect×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
           "evidence": [
             "scripts/audit/fakeWorker.ts"
           ],
           "data": {
-            "calls": 4,
+            "calls": 5,
             "sequential": 4,
             "labels": {
               "understand": 1,
               "embed": 1,
               "answer": 1,
-              "sms": 1
+              "sms": 1,
+              "reply-dialect": 1
             }
           }
         },
@@ -1078,9 +1148,9 @@
         },
         {
           "id": "J-shape-tts",
-          "title": "Listen (server speech)",
+          "title": "Listen (server speech, one piece)",
           "status": "PASS",
-          "detail": "1 provider call(s) made with fetch outside the Gemini client (not counted by the call observer), 1 sequential. Within the budget.",
+          "detail": "1 Gemini call(s) (tts×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
           "evidence": [
             "scripts/audit/fakeWorker.ts"
           ],
@@ -1088,12 +1158,28 @@
             "calls": 1,
             "sequential": 1,
             "labels": {
-              "tts (fetch)": 1
+              "tts": 1
+            }
+          }
+        },
+        {
+          "id": "J-shape-tts-long",
+          "title": "Listen on a long answer (split into pieces)",
+          "status": "PASS",
+          "detail": "3 Gemini call(s) (tts×3), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 3,
+            "sequential": 1,
+            "labels": {
+              "tts": 3
             }
           }
         }
       ],
-      "durationMs": 397,
+      "durationMs": 452,
       "data": {}
     }
   ],
@@ -1252,7 +1338,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-marwari"
+          "evidence": "results.json stages.E check E-marwari (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1286,7 +1372,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-dhundhari"
+          "evidence": "results.json stages.E check E-dhundhari (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1320,7 +1406,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-shekhawati"
+          "evidence": "results.json stages.E check E-shekhawati (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1354,7 +1440,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-bagri"
+          "evidence": "results.json stages.E check E-bagri (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1388,7 +1474,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-mewari"
+          "evidence": "results.json stages.E check E-mewari (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1422,7 +1508,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-mewati"
+          "evidence": "results.json stages.E check E-mewati (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1456,7 +1542,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-harauti"
+          "evidence": "results.json stages.E check E-harauti (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1490,7 +1576,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-malvi"
+          "evidence": "results.json stages.E check E-malvi (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1524,7 +1610,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-wagdi"
+          "evidence": "results.json stages.E check E-wagdi (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1558,7 +1644,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-braj"
+          "evidence": "results.json stages.E check E-braj (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1592,7 +1678,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-haryanvi"
+          "evidence": "results.json stages.E check E-haryanvi (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1626,7 +1712,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-bhojpuri"
+          "evidence": "results.json stages.E check E-bhojpuri (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "PASS",
@@ -1660,7 +1746,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-awadhi"
+          "evidence": "results.json stages.E check E-awadhi (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "PASS",
@@ -1694,7 +1780,7 @@
         },
         "answersInDialect": {
           "status": "MOCK-ONLY",
-          "evidence": "results.json stages.E check E-bundeli"
+          "evidence": "results.json stages.E check E-bundeli (rendered standard: render_off)"
         },
         "ttsNamesLanguage": {
           "status": "FAIL",
@@ -1712,14 +1798,16 @@
     }
   ],
   "sandboxNotes": [
+    "Agent sandbox, 2026-10-31: no GEMINI_API_KEY, npm registry blocked (no express, vite, react, playwright); a sandbox shim kit provides typescript, tsx, zod, dotenv and a node:test-based vitest shim. The deployed app (https://gram-saathi.vercel.app/api/health, fetched with WebFetch on 2026-10-31) answered {\"status\":\"ok\",\"mocks\":true} without dialectConfigured/ttsConfigured, i.e. an older build in mock mode; it is not reachable from the shell.",
     "configured worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
     "fake worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter."
   ],
   "kiKeh": {
-    "text": "- Real mode (this branch, with the intent router): NOT-TESTED — no run with a Gemini key. The router prompt lists \"ki keh raho he\" as a clarification, but a prompt is not proof.\n- Mock mode, typed: not reproduced — the mock keyword search finds no scheme, so the fixed not-found text is returned (no PM-KISAN answer).\n- Mock mode, spoken: REPRODUCED for any recording — the mock speech-to-text ignores the audio and returns the canned question “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, which gets the canned formal-Hindi scheme answer.\n- Fix status: the intent router exists only in real mode; USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.",
+    "text": "- Real mode (this branch, with the intent router): NOT-TESTED — no run with a Gemini key. The router prompt lists \"ki keh raho he\" as a clarification, but a prompt is not proof.\n- Mock mode, typed: not reproduced — the mock keyword search finds no scheme, so the fixed not-found text is returned (no PM-KISAN answer).\n- Mock mode, spoken: REPRODUCED for any recording — the mock speech-to-text ignores the audio and returns the canned question “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, which gets the canned formal-Hindi scheme answer.\n- Real-mode guard (added in this branch): a clarification may not state numbers, amounts, URLs or phone numbers the user was not already told; otherwise the fixed “please ask again” text is returned. With a fake model this check is PASS.\n- Fix status: in real mode the intent router (prompt) and the facts guard (code) address the reported reply; neither has been run against the real model here. USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.",
     "evidence": [
       "configured worker, mock mode, typed: MOCK-ONLY — answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)",
-      "configured worker, mock voice with 1.5 s of silence: transcript “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, language hi, dialect marwari; answer “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में …”"
+      "configured worker, mock voice with 1.5 s of silence: transcript “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, language hi, dialect marwari; answer “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में …”",
+      "fake worker, I-clarify-guard: PASS — Fake router answers “ki keh raho he” with a ₹6,000 sentence. Fresh session (nothing said yet): replaced by the fixed “please ask again” text. After a scheme answer that said ₹6,000: allowed (repeats an earlier fact). Whether the real model classifies the message as a clarification is NOT-TESTED here."
     ]
   }
 }
