@@ -3,19 +3,19 @@ import { cn } from '@/lib/cn';
 
 const VARIANTS = {
   primary:
-    'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft hover:brightness-110 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-600 disabled:shadow-none',
+    'bg-leaf-600 text-white shadow-leaf hover:bg-leaf-700 disabled:bg-paper-deep disabled:text-ink-soft disabled:shadow-none',
   secondary:
-    'bg-white text-brand-800 ring-2 ring-brand-600/25 hover:bg-brand-50 hover:ring-brand-600 disabled:text-slate-500 disabled:ring-slate-200',
-  soft: 'bg-brand-50 text-brand-800 hover:bg-brand-100 disabled:text-slate-500',
-  ghost: 'text-brand-800 hover:bg-brand-50 disabled:text-slate-500',
-  danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-600',
+    'bg-white text-leaf-700 ring-2 ring-leaf-600/25 hover:bg-leaf-50 hover:ring-leaf-600 disabled:text-ink-soft disabled:ring-ink/10',
+  soft: 'bg-leaf-50 text-leaf-700 hover:bg-leaf-100 disabled:text-ink-soft',
+  ghost: 'text-leaf-700 hover:bg-leaf-50 disabled:text-ink-soft',
+  danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-paper-deep disabled:text-ink-soft',
 };
 
 const SIZES = {
   sm: 'min-h-10 rounded-full px-3.5 text-sm',
-  md: 'min-h-11 rounded-2xl px-4 text-base',
-  lg: 'min-h-14 rounded-2xl px-5 text-lg',
-  xl: 'min-h-16 rounded-2xl px-6 text-xl',
+  md: 'min-h-12 rounded-soft px-4 text-base',
+  lg: 'min-h-14 rounded-soft px-5 text-lg',
+  xl: 'min-h-16 rounded-card px-6 text-xl',
 };
 
 export interface ButtonProps extends ComponentProps<'button'> {
@@ -35,7 +35,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
+        'inline-flex items-center justify-center gap-2 font-bold transition duration-200 ease-out-soft hover:-translate-y-px active:translate-y-0 active:scale-[0.96] disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100',
         VARIANTS[variant],
         SIZES[size],
         className,

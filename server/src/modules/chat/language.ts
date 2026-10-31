@@ -135,8 +135,11 @@ const count = (words: string[], tokens: string[]) =>
 export function detectTextLanguage(text: string, hint?: LanguageCode): LanguageCode {
   const tamil = (text.match(/[஀-௿]/g) ?? []).length;
   const devanagari = (text.match(/[ऀ-ॿ]/g) ?? []).length;
+  const gujarati = (text.match(/[\u0A80-\u0AFF]/g) ?? []).length;
+  const gurmukhi = (text.match(/[\u0A00-\u0A7F]/g) ?? []).length;
 
   if (tamil > 0 && tamil >= devanagari) return 'ta';
+  if (gujarati > 0 || gurmukhi > 0) return hint ?? 'hi';
   if (devanagari > 0) {
     const tokens = text.split(/[\s,.?!।॥]+/);
     const marathi = count(MARATHI_WORDS, tokens) + (text.includes('ळ') ? 2 : 0);
@@ -148,6 +151,15 @@ export function detectTextLanguage(text: string, hint?: LanguageCode): LanguageC
 
   // Latin script: English, or Hindi / Marathi / Tamil typed in Roman letters.
   const tokens = text.toLowerCase().match(/[a-z]+/g) ?? [];
+  const uniqueTokens = new Set(tokens);
+  const gujaratiMarkers = ['cho', 'chhe', 'tame', 'kem', 'maate', 'mane'];
+  const punjabiMarkers = ['tusi', 'tussi', 'kive', 'kiven', 'kithe', 'vich', 'sadde', 'sada'];
+  if (
+    gujaratiMarkers.filter((word) => uniqueTokens.has(word)).length >= 2 ||
+    punjabiMarkers.filter((word) => uniqueTokens.has(word)).length >= 2
+  ) {
+    return hint ?? 'hi';
+  }
   const scores = (['en', 'hi', 'mr', 'ta'] as const).map((code) => ({
     code,
     score: count(LATIN_WORDS[code], tokens),

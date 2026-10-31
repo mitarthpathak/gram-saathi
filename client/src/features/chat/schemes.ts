@@ -18,7 +18,7 @@ export const SCHEME_SHORTCUTS: SchemeShortcut[] = [
   {
     id: 'pm-kisan',
     Icon: Wheat,
-    tone: 'bg-brand-100 text-brand-700',
+    tone: 'bg-marigold-100 text-accent-strong',
     name: { en: 'PM-KISAN', hi: 'पीएम-किसान', mr: 'पीएम-किसान', ta: 'பிஎம்-கிசான்' },
     topic: { en: 'Farmers', hi: 'किसान', mr: 'शेतकरी', ta: 'விவசாயிகள்' },
     question: {
@@ -31,7 +31,7 @@ export const SCHEME_SHORTCUTS: SchemeShortcut[] = [
   {
     id: 'ayushman-bharat-pmjay',
     Icon: HeartPulse,
-    tone: 'bg-rose-100 text-rose-700',
+    tone: 'bg-blush text-rose-700',
     name: {
       en: 'Ayushman card',
       hi: 'आयुष्मान कार्ड',
@@ -49,7 +49,7 @@ export const SCHEME_SHORTCUTS: SchemeShortcut[] = [
   {
     id: 'atal-pension-yojana',
     Icon: PiggyBank,
-    tone: 'bg-marigold-100 text-marigold-700',
+    tone: 'bg-marigold-100 text-accent-strong',
     name: { en: 'Atal Pension', hi: 'अटल पेंशन', mr: 'अटल पेन्शन', ta: 'அடல் ஓய்வூதியம்' },
     topic: { en: 'Pension', hi: 'पेंशन', mr: 'पेन्शन', ta: 'ஓய்வூதியம்' },
     question: {

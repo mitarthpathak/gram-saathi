@@ -9,12 +9,14 @@ const en = {
   thinking: 'Finding an answer…',
   speaking: 'Speaking the answer…',
   tooShort: 'Too short. Please speak for at least a moment and try again.',
+  retry: 'Retry this recording',
   wait: 'Please wait…',
   listen: 'Listen',
   micDenied: 'Microphone blocked. Allow it in the browser settings, or type your question.',
   micUnavailable: 'No microphone found. Please type your question instead.',
   micInsecure: 'The microphone needs a secure (https) page. Please type your question.',
   autoStopped: 'Recording stopped after 20 seconds.',
+  lowDataTextOnly: 'Low-data mode is on. Type your question to avoid sending audio.',
 };
 
 export const voiceStrings: Strings<typeof en> = {
@@ -28,12 +30,14 @@ export const voiceStrings: Strings<typeof en> = {
     thinking: 'जवाब ढूँढ रहे हैं…',
     speaking: 'जवाब सुनाया जा रहा है…',
     tooShort: 'बहुत छोटा। कृपया थोड़ा बोलकर फिर कोशिश करें।',
+    retry: 'इस रिकॉर्डिंग को फिर भेजें',
     wait: 'कृपया रुकें…',
     listen: 'सुनें',
     micDenied: 'माइक बंद है। ब्राउज़र सेटिंग में अनुमति दें, या अपना सवाल लिखें।',
     micUnavailable: 'माइक नहीं मिला। कृपया अपना सवाल लिखें।',
     micInsecure: 'माइक के लिए सुरक्षित (https) पेज चाहिए। कृपया अपना सवाल लिखें।',
     autoStopped: '20 सेकंड बाद रिकॉर्डिंग रोक दी।',
+    lowDataTextOnly: 'कम डेटा मोड चालू है। ऑडियो भेजने से बचने के लिए सवाल लिखें।',
   },
   mr: {
     holdToSpeak: 'दाबून बोला',
@@ -44,12 +48,14 @@ export const voiceStrings: Strings<typeof en> = {
     thinking: 'उत्तर शोधत आहोत…',
     speaking: 'उत्तर ऐकवत आहोत…',
     tooShort: 'खूप लहान. कृपया थोडे बोलून पुन्हा प्रयत्न करा.',
+    retry: 'हे रेकॉर्डिंग पुन्हा पाठवा',
     wait: 'कृपया थांबा…',
     listen: 'ऐका',
     micDenied: 'माइक बंद आहे. ब्राउझर सेटिंगमध्ये परवानगी द्या, किंवा तुमचा प्रश्न लिहा.',
     micUnavailable: 'माइक सापडला नाही. कृपया तुमचा प्रश्न लिहा.',
     micInsecure: 'माइकसाठी सुरक्षित (https) पान लागते. कृपया तुमचा प्रश्न लिहा.',
     autoStopped: '20 सेकंदांनंतर रेकॉर्डिंग थांबवले.',
+    lowDataTextOnly: 'कमी डेटा मोड सुरू आहे. ऑडिओ पाठवू नये म्हणून प्रश्न लिहा.',
   },
   ta: {
     holdToSpeak: 'அழுத்திப் பேசுங்கள்',
@@ -60,6 +66,7 @@ export const voiceStrings: Strings<typeof en> = {
     thinking: 'பதிலைத் தேடுகிறோம்…',
     speaking: 'பதிலைச் சொல்கிறோம்…',
     tooShort: 'மிகக் குறுகியது. சிறிது நேரம் பேசி மீண்டும் முயற்சிக்கவும்.',
+    retry: 'இந்தப் பதிவை மீண்டும் அனுப்பு',
     wait: 'சற்றுக் காத்திருங்கள்…',
     listen: 'கேட்க',
     micDenied:
@@ -67,5 +74,7 @@ export const voiceStrings: Strings<typeof en> = {
     micUnavailable: 'மைக் கிடைக்கவில்லை. கேள்வியைத் தட்டச்சு செய்யுங்கள்.',
     micInsecure: 'மைக்கிற்குப் பாதுகாப்பான (https) பக்கம் தேவை. கேள்வியைத் தட்டச்சு செய்யுங்கள்.',
     autoStopped: '20 விநாடிகளுக்குப் பிறகு பதிவு நிறுத்தப்பட்டது.',
+    lowDataTextOnly:
+      'குறைந்த தரவு முறை இயக்கத்தில் உள்ளது. ஒலியை அனுப்பாமல் இருக்க கேள்வியைத் தட்டச்சு செய்யுங்கள்.',
   },
 };

@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['**/dist/', '**/node_modules/', '**/coverage/']),
+  globalIgnores(['**/dist/', '**/dev-dist/', '**/node_modules/', '**/coverage/']),
 
   // Base rules for every JS/TS file in the repo.
   {
@@ -51,7 +51,7 @@ export default defineConfig([
 
   // The server and config files run in Node.
   {
-    files: ['server/**/*.ts', '*.{js,mjs,cjs}', 'client/vite.config.ts'],
+    files: ['server/**/*.ts', '*.{js,mjs,cjs}', 'client/vite.config.ts', 'client/scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 

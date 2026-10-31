@@ -1,61 +1,169 @@
 @import 'tailwindcss';
 
+/*
+ * Display fonts, self-hosted and subset by client/scripts/subset-fonts.py (weights 700-800 only).
+ * Each face only downloads when text in its script is on screen. Body text stays on system fonts.
+ */
+@font-face {
+  font-family: 'Bricolage Display';
+  src: url('./assets/fonts/bricolage-display.woff2') format('woff2');
+  font-weight: 700 800;
+  font-display: swap;
+  unicode-range:
+    U+0020-007E, U+00A0, U+00A9, U+00B7, U+00D7, U+2013-2014, U+2018-2019, U+201C-201D, U+2022,
+    U+2026;
+}
+@font-face {
+  font-family: 'Anek Devanagari Display';
+  src: url('./assets/fonts/anek-devanagari-display.woff2') format('woff2');
+  font-weight: 700 800;
+  font-display: swap;
+  unicode-range: U+0900-097F, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Anek Tamil Display';
+  src: url('./assets/fonts/anek-tamil-display.woff2') format('woff2');
+  font-weight: 700 800;
+  font-display: swap;
+  unicode-range: U+0964-0965, U+0B82-0BFA, U+200C-200D, U+25CC;
+}
+/* Arial Bold resized to Bricolage's metrics, so the swap moves nothing (no layout shift). */
+@font-face {
+  font-family: 'Bricolage Fallback';
+  src:
+    local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'),
+    local('LiberationSans-Bold'), local('Roboto Bold'), local('Roboto-Bold');
+  font-weight: 700 800;
+  size-adjust: 103%;
+  ascent-override: 90%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+
+/*
+ * "Leaf & Marigold" design tokens. Each one is a CSS variable (var(--color-leaf-600)) and a
+ * Tailwind utility (bg-leaf-600). Contrast notes are against paper (#fff9f0) unless stated.
+ */
 @theme {
-  /* System fonts only: phones already ship Devanagari and Tamil glyphs, so nothing to download. */
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari',
     'Noto Sans Tamil', 'Nirmala UI', sans-serif;
+  --font-display:
+    'Bricolage Display', 'Anek Devanagari Display', 'Anek Tamil Display', 'Bricolage Fallback',
+    system-ui, sans-serif;
 
-  /* Brand: deep field green (trust, farming). Change these values to re-theme the whole app. */
-  --color-brand-50: #eefbf3;
-  --color-brand-100: #d5f4e1;
-  --color-brand-200: #ade8c6;
-  --color-brand-300: #77d4a3;
-  --color-brand-400: #3fb87d;
-  --color-brand-500: #1d9c63;
-  --color-brand-600: #117d4f;
-  --color-brand-700: #0e6442;
-  --color-brand-800: #0d5037;
-  --color-brand-900: #0b412e;
-  --color-brand-950: #05251a;
-
-  /* Accent: marigold, for highlights and the recording state. */
-  --color-marigold-50: #fff9eb;
-  --color-marigold-100: #ffefc6;
-  --color-marigold-200: #ffdd88;
-  --color-marigold-300: #ffc54a;
-  --color-marigold-400: #ffad20;
-  --color-marigold-500: #f98b07;
-  --color-marigold-600: #dd6602;
-  --color-marigold-700: #b74506;
-  --color-marigold-800: #94350c;
-  --color-marigold-900: #7a2d0d;
-
-  /* Warm paper background. */
+  /* Paper: warm page backgrounds. */
+  --color-paper: #fff9f0;
+  --color-paper-alt: #fbf1e1;
+  --color-paper-deep: #f3e3c9;
+  --color-glow: #ffe3c2;
+  /* Indigo aliases keep main's screen components styled inside the redesigned shell. */
+  --color-brand-50: #eef9f2;
+  --color-brand-100: #ddf3e6;
+  --color-brand-200: #b9e6cb;
+  --color-brand-300: #86d2a6;
+  --color-brand-400: #4cb47f;
+  --color-brand-500: #1e8a5a;
+  --color-brand-600: #177a4e;
+  --color-brand-700: #146c45;
+  --color-brand-800: #10583a;
+  --color-brand-900: #0d4830;
+  --color-brand-950: #0a3524;
   --color-cream-50: #fffdf8;
-  --color-cream-100: #fbf6ec;
-  --color-cream-200: #f4ecdb;
+  --color-cream-100: #fff9f0;
+  --color-cream-200: #fbf1e1;
 
-  --shadow-soft: 0 10px 30px -12px rgb(13 80 55 / 0.28);
-  --shadow-lift: 0 18px 40px -14px rgb(13 80 55 / 0.45);
+  /* Ink: headlines and body (never green). */
+  --color-ink: #26231f; /* 15.6:1 */
+  --color-ink-soft: #6b655c; /* 5.5:1, secondary text */
+  --color-ink-mute: #8c8478; /* non-text UI (switch tracks, input borders): 3.7:1 on white */
+  --color-ink-faint: #a59d91; /* decorative only (borders, doodles), never text */
 
-  --animate-breathe: breathe 3.2s ease-in-out infinite;
+  /* Leaf: the primary. 500 for icons and large shapes, 600 for buttons and small text. */
+  --color-leaf-50: #eef9f2; /* mint tint */
+  --color-leaf-100: #ddf3e6; /* mint tint */
+  --color-leaf-200: #b9e6cb;
+  --color-leaf-300: #86d2a6;
+  --color-leaf-400: #4cb47f;
+  --color-leaf-500: #1e8a5a; /* 4.1:1 on paper: large text and icons only */
+  --color-leaf-600: #177a4e; /* 5.3:1 with white text, 5.1:1 on paper */
+  --color-leaf-700: #146c45; /* hover / pressed only: the darkest green we use */
+
+  /* Marigold: fills and doodles. Text on marigold is ink (8.1:1). */
+  --color-marigold-50: #fff8ec;
+  --color-marigold-100: #ffefd2;
+  --color-marigold-200: #ffdca3;
+  --color-marigold-300: #ffc463;
+  --color-marigold-400: #ffa826;
+  --color-marigold-500: #f59312;
+
+  /* Accent text: deeper amber. */
+  --color-accent: #c2620a; /* display size only: 4.0:1 on paper, 3.4:1 on the glow */
+  --color-accent-strong: #b45309; /* any size: 4.8:1 */
+  --color-accent-deep: #92400e; /* small text on marigold / peach tints: 6.9:1 */
+
+  /* Dusk: the fraud-shield chapter only. */
+  --color-dusk: #2b2545;
+  --color-dusk-soft: #3b3460;
+  --color-dusk-line: #5a5182;
+  --color-dusk-ink: #f6f2ff; /* 14:1 on dusk */
+  --color-dusk-muted: #c9c2e4; /* 8.6:1 on dusk */
+
+  /* Pastel tints for cute details. */
+  --color-butter: #fff3c4;
+  --color-peach: #ffe3c2;
+  --color-sky: #dcefff;
+  --color-blush: #ffe2df;
+
+  --radius-soft: 1.25rem; /* 20px */
+  --radius-card: 1.5rem; /* 24px */
+  --radius-blob: 1.75rem; /* 28px */
+
+  /* Soft pastel shadows: warm, never grey-black. */
+  --shadow-soft: 0 1px 2px rgb(38 35 31 / 0.04), 0 12px 30px -14px rgb(178 112 40 / 0.3);
+  --shadow-lift: 0 2px 6px rgb(38 35 31 / 0.05), 0 26px 50px -20px rgb(178 112 40 / 0.42);
+  --shadow-leaf: 0 14px 32px -14px rgb(23 122 78 / 0.55);
+  --shadow-marigold: 0 14px 30px -12px rgb(245 147 18 / 0.6);
+  --shadow-dock:
+    inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(38 35 31 / 0.06),
+    0 22px 44px -18px rgb(140 90 30 / 0.4);
+  --shadow-lift-main: 0 18px 40px -14px rgb(30 27 75 / 0.24);
+
+  /* Motion: two easings + one spring (src/lib/motion/easings.ts). 200-700 ms. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --animate-breathe: breathe 3.2s var(--ease-in-out-soft) infinite;
   --animate-ripple: ripple 1.8s cubic-bezier(0, 0.55, 0.45, 1) infinite;
-  --animate-fade-up: fade-up 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-fade-up: fade-up 0.45s var(--ease-out-soft) both;
   --animate-dot: dot 1.2s ease-in-out infinite;
-  --animate-float: float 7s ease-in-out infinite;
+  --animate-float: float 6s var(--ease-in-out-soft) infinite;
+  --animate-bob: bob 3.6s var(--ease-in-out-soft) infinite;
+  --animate-blink: blink 4.8s linear infinite;
+  --animate-wave: wave 1.6s var(--ease-in-out-soft) infinite;
+  --animate-pop: pop 0.55s var(--ease-out-soft) both;
+  --animate-draw-x: draw-x 0.7s var(--ease-out-soft) both;
+  --animate-draw-y: draw-y 0.7s var(--ease-out-soft) both;
+  --animate-rise: rise 0.7s var(--ease-out-soft) both;
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-twinkle: twinkle 2.8s var(--ease-in-out-soft) infinite;
+  --animate-bar: bar 0.9s var(--ease-in-out-soft) infinite;
+  --animate-curtain-up: curtain-up 0.4s var(--ease-in-out-soft) both;
 
   @keyframes breathe {
     0%,
     100% {
       box-shadow:
-        0 0 0 0 rgb(29 156 99 / 0.45),
-        var(--shadow-lift);
+        0 0 0 0 rgb(30 138 90 / 0.4),
+        var(--shadow-leaf);
     }
     50% {
       box-shadow:
-        0 0 0 16px rgb(29 156 99 / 0),
-        var(--shadow-lift);
+        0 0 0 16px rgb(30 138 90 / 0),
+        var(--shadow-leaf);
     }
   }
   @keyframes ripple {
@@ -96,41 +204,300 @@
       transform: translateY(0);
     }
     50% {
-      transform: translateY(-14px);
+      transform: translateY(-12px);
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-2deg);
+    }
+    50% {
+      transform: translateY(-5px) rotate(2deg);
+    }
+  }
+  @keyframes blink {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.1);
+    }
+  }
+  @keyframes wave {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-22deg);
+    }
+    50% {
+      transform: rotate(6deg);
+    }
+    75% {
+      transform: rotate(-16deg);
+    }
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes draw-x {
+    from {
+      clip-path: inset(-20% 100% -20% 0);
+    }
+    to {
+      clip-path: inset(-20% 0 -20% 0);
+    }
+  }
+  @keyframes draw-y {
+    from {
+      clip-path: inset(0 -20% 100% -20%);
+    }
+    to {
+      clip-path: inset(0 -20% 0 -20%);
+    }
+  }
+  /* Starts part-way up, so the headline is painted (and counts for LCP) in the very first frame. */
+  @keyframes rise {
+    from {
+      transform: translateY(62%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes sway {
+    0%,
+    100% {
+      transform: rotate(-1.5deg);
+    }
+    50% {
+      transform: rotate(2deg);
+    }
+  }
+  @keyframes bar {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes curtain-up {
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: scale(0.8) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(20deg);
     }
   }
 }
 
-/* Dotted kolam-style texture for coloured surfaces (pure CSS, nothing to download). */
-@utility bg-kolam {
-  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.16) 1px, transparent 0);
-  background-size: 18px 18px;
+@keyframes dialect-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.dialect-reveal {
+  animation: dialect-reveal 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Motion tier (set on <html> by MotionProvider): `calm:` = Reduced tier, `lively:` = Full or Lite. */
+@custom-variant calm (&:where([data-motion='reduced'] *));
+@custom-variant lively (&:where([data-motion='full'] *, [data-motion='lite'] *));
+@custom-variant full-motion (&:where([data-motion='full'] *));
+
+/* Script-specific tweaks (Tamil words run long; Indic scripts need taller lines). */
+@custom-variant ta (&:lang(ta));
+@custom-variant indic (&:is(:lang(hi), :lang(mr), :lang(ta)));
+
+/* Display type: tight for Latin; Indic scripts get room for matras and no letter-spacing. */
+@utility leading-display {
+  line-height: 1.04;
+  &:lang(hi),
+  &:lang(mr),
+  &:lang(ta) {
+    line-height: 1.3;
+  }
+}
+@utility tracking-display {
+  letter-spacing: -0.035em;
+  &:lang(hi),
+  &:lang(mr),
+  &:lang(ta) {
+    letter-spacing: 0;
+  }
+}
+
+/*
+ * Intro and hero entrance are pure CSS, so they play from the first (prerendered) paint.
+ * --intro-offset: how long the intro covers the hero. A head script in index.html adds
+ * .intro-seen to <html> when it already played this session (or the page is not "/").
+ */
+:root {
+  --intro-offset: 0.85s;
+}
+:root.intro-seen {
+  --intro-offset: 0s;
+}
+.intro-overlay {
+  animation: curtain-up 0.4s var(--ease-in-out-soft) var(--intro-offset) both;
+}
+.intro-overlay[data-skip] {
+  animation-delay: 0s;
+}
+.intro-seen .intro-overlay {
+  display: none;
+}
+.intro-greeting {
+  opacity: 0;
+  animation: greet 0.21s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i) * 0.2s);
+}
+.intro-greeting:last-child {
+  animation-name: greet-last;
+  animation-duration: 0.3s;
+}
+@keyframes greet {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  20%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+@keyframes greet-last {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Masked line reveal for the hero headline. Under the intro the headline is simply there (it is
+ * the LCP element, so it paints at once); otherwise each line rises out of a padded mask (padded
+ * so matras and Tamil ascenders never get clipped). MaskedLines drops the masks once done.
+ */
+.intro-seen .line-mask {
+  clip-path: inset(-0.35em -0.15em -0.45em -0.15em);
+}
+.intro-seen .line-rise {
+  animation: rise 0.7s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i) * 0.09s);
+}
+
+/* Subtle paper grain (an SVG noise tile, 0.6 KB, nothing to download). */
+@utility bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Frosted surfaces; the Lite tier skips the (expensive) blur and goes nearly opaque instead. */
+@utility frosted {
+  background-color: rgb(255 249 240 / 0.72);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  &:where([data-motion='lite'] *, [data-motion='reduced'] *) {
+    background-color: rgb(255 249 240 / 0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    background-color: var(--color-paper);
   }
 
   body {
-    @apply bg-cream-100 text-slate-900 antialiased;
+    @apply bg-paper text-ink antialiased;
   }
 
-  /* The desktop showcase sits on a dark green stage. */
-  @media (width >= 64rem) {
-    body {
-      @apply bg-brand-950;
-    }
+  ::selection {
+    background-color: var(--color-marigold-200);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-leaf-600);
+    outline-offset: 3px;
   }
 }
 
+/* Lenis smooth scroll (desktop, Full tier only). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* Reduced tier (OS setting or low-bandwidth mode): CSS animations stop; Motion keeps fades. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
 }

@@ -169,6 +169,108 @@ describe('answerQuestion (grounded pipeline)', () => {
     expect(fake.calls).toHaveLength(1);
   });
 
+  it('does not cache dialect detection with a cached answer', async () => {
+    let dialectCalls = 0;
+    fake = fakeGemini((request) => {
+      if (request.system === ANSWER_SYSTEM_PROMPT) {
+        return {
+          answer: 'Under PM-KISAN, farmer families get ₹6,000 a year.',
+          usedChunkIds: passageIds(request),
+        };
+      }
+      if (request.system === SMS_SYSTEM_PROMPT) {
+        return { sms: 'PM-KISAN: Rs 6000 a year. Register free at a CSC.' };
+      }
+      if (request.system?.startsWith('Identify the spoken language')) {
+        dialectCalls += 1;
+        return {
+          label: dialectCalls <= 3 ? 'braj' : 'marwari',
+          reason: 'positive variety markers',
+        };
+      }
+      throw new Error('unexpected prompt');
+    });
+    setGeminiBackend(fake);
+
+    const input = {
+      text: 'PM-KISAN amount?',
+      dialectEvidence: {
+        audio: { data: 'AA==', mimeType: 'audio/wav' },
+        text: 'dialect transcript fixture',
+      },
+    };
+    const first = await answerQuestion({ ...input, sessionId: 'dialect-a' });
+    const second = await answerQuestion({ ...input, sessionId: 'dialect-b' });
+
+    expect(first).toMatchObject({ usedCache: false, dialect: { id: 'braj', confidence: 'high' } });
+    expect(second).toMatchObject({
+      usedCache: true,
+      dialect: { id: 'marwari', confidence: 'high' },
+    });
+    expect(dialectCalls).toBe(6);
+  });
+
+  it('a confirmed dialect skips detection and makes the parent language the answer language', async () => {
+    const response = await answerQuestion({
+      text: 'PM-KISAN amount?',
+      dialectHint: 'braj',
+      sessionId: 'dialect-hint',
+    });
+
+    expect(response).toMatchObject({
+      detectedLanguage: 'hi',
+      dialect: { id: 'braj', confidence: 'high' },
+      dialectCandidates: [],
+    });
+    expect(
+      fake.calls.every((call) => !call.system?.startsWith('Identify the spoken language')),
+    ).toBe(true);
+    expect(
+      String(fake.calls.find((call) => call.system === ANSWER_SYSTEM_PROMPT)?.input),
+    ).toContain('REPLY LANGUAGE: Hindi');
+  });
+
+  it('does not classify typed text by default', async () => {
+    const response = await answerQuestion({
+      text: 'PM-KISAN amount?',
+      sessionId: 'text-without-dialect-detect',
+    });
+    expect(response).toMatchObject({ dialect: null, dialectCandidates: [] });
+    expect(fake.calls.some((call) => call.system?.startsWith('Identify the spoken language'))).toBe(
+      false,
+    );
+  });
+
+  it('returns the grounded answer when all dialect model views fail', async () => {
+    fake = fakeGemini((request) => {
+      if (request.system === ANSWER_SYSTEM_PROMPT) {
+        return {
+          answer: 'Under PM-KISAN, farmer families get ₹6,000 a year.',
+          usedChunkIds: passageIds(request),
+        };
+      }
+      if (request.system === SMS_SYSTEM_PROMPT) {
+        return { sms: 'PM-KISAN: Rs 6000 a year. Register free at a CSC.' };
+      }
+      if (request.system?.startsWith('Identify the spoken language')) {
+        throw new Error('simulated dialect service failure');
+      }
+      throw new Error('unexpected prompt');
+    });
+    setGeminiBackend(fake);
+
+    const response = await answerQuestion({
+      text: 'PM-KISAN amount?',
+      sessionId: 'dialect-error',
+      dialectEvidence: {
+        audio: { data: 'AA==', mimeType: 'audio/wav' },
+        text: 'dialect transcript fixture',
+      },
+    });
+
+    expect(response).toMatchObject({ notFound: false, dialect: null, dialectCandidates: [] });
+  });
+
   it('asks the model for a shorter SMS when the answer is long', async () => {
     const long = 'Under PM-KISAN, farmer families get ₹6,000 a year in three instalments. '.repeat(
       6,

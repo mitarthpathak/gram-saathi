@@ -6,6 +6,8 @@ import { loadRules } from './modules/eligibility/service';
 import { loadFaq } from './modules/faq/service';
 import { fingerprintDocuments, loadSchemeDocuments } from './modules/rag/documents';
 import { loadKnowledgeBase } from './modules/rag/service';
+import { getDialectSettings } from './modules/dialect/calibration';
+import { logDialectExemplarCoverage } from './modules/dialect/exemplars';
 
 const relative = (file: string) => path.relative(process.cwd(), file) || file;
 
@@ -15,6 +17,12 @@ const relative = (file: string) => path.relative(process.cwd(), file) || file;
  * file throws, so a bad edit cannot reach users.
  */
 export async function initServices({ checkSources = true } = {}): Promise<void> {
+  const dialectSettings = getDialectSettings();
+  logger.info(
+    `Dialect classifier: ensemble=${dialectSettings.ensembleSize}, minVotes=${dialectSettings.minimumVotes}, ` +
+      `Gemini concurrency=${env.GEMINI_MAX_CONCURRENT_CALLS} (one slot reserved for answers)`,
+  );
+  logDialectExemplarCoverage();
   const usesGemini = MOCKABLE_MODULES.filter((m) => !isMocked(m) && m !== 'faq' && m !== 'tts');
   if (usesGemini.length > 0 && !isGeminiConfigured()) {
     logger.warn(

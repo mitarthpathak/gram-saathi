@@ -13,7 +13,7 @@ interface LanguageSelectorProps {
 }
 
 export function LanguageSelector({ variant = 'compact', className }: LanguageSelectorProps) {
-  const { language, setLanguage } = useSettings();
+  const { language, languageHint, setLanguage, setLanguageHint } = useSettings();
   const t = useStrings(languageStrings);
 
   if (variant === 'grid') {
@@ -56,10 +56,16 @@ export function LanguageSelector({ variant = 'compact', className }: LanguageSel
         className="pointer-events-none absolute left-2.5 size-[18px] text-white"
       />
       <select
-        value={language}
-        onChange={(event) => setLanguage(event.target.value as LanguageCode)}
-        className="min-h-10 appearance-none rounded-full bg-white/15 py-1 pr-8 pl-8 text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
+        value={languageHint ?? 'auto'}
+        onChange={(event) => {
+          if (event.target.value === 'auto') setLanguageHint(null);
+          else setLanguage(event.target.value as LanguageCode);
+        }}
+        className="min-h-12 w-36 appearance-none rounded-full bg-white/15 py-1 pr-8 pl-8 text-base font-bold text-white ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
+        <option value="auto" className="text-slate-900">
+          {t.auto}
+        </option>
         {LANGUAGES.map((option) => (
           <option
             key={option.code}

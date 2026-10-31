@@ -5,6 +5,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { rateLimit } from './middleware/rateLimit';
 import { requestLogger } from './middleware/requestLogger';
 import { chatRouter } from './modules/chat/routes';
+import { dialectRouter, dialectTranscribeRouter } from './modules/dialect/routes';
 import { eligibilityRouter } from './modules/eligibility/routes';
 import { faqRouter } from './modules/faq/routes';
 import { healthRouter } from './modules/health/routes';
@@ -25,8 +26,10 @@ export function createApp() {
 
   // One router per module. Paths must match docs/API_CONTRACT.md.
   app.use('/api/health', healthRouter);
+  app.use('/api/dialects', dialectRouter);
   // Endpoints that can call Gemini share one per-IP budget.
   const aiLimit = rateLimit();
+  app.use('/api/dialect', aiLimit, dialectTranscribeRouter);
   app.use('/api/voice', aiLimit, voiceRouter);
   app.use('/api/chat', aiLimit, chatRouter);
   app.use('/api/rag', aiLimit, ragRouter);

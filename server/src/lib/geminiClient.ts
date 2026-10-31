@@ -14,6 +14,7 @@ import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import { env } from '../config/env';
 import { HttpError } from './httpError';
+import { withGeminiConcurrency } from './geminiScheduler';
 import { logger } from './logger';
 import { normalizeVector } from './vectors';
 
@@ -360,6 +361,8 @@ export interface GenerateJsonOptions<T> {
   maxOutputTokens?: number;
   timeoutMs?: number;
   maxRetries?: number;
+  /** Cancels a queued call when its caller no longer needs the result. */
+  signal?: AbortSignal;
 }
 
 /** Asks Gemini for JSON matching `schema`, validates it and returns the typed result. */
@@ -371,14 +374,19 @@ export async function generateJson<T>(options: GenerateJsonOptions<T>): Promise<
   return withRetries(
     async () => {
       const startedAt = Date.now();
-      const { text, usage } = await client.generate({
-        model,
-        system: options.system,
-        input: options.input,
-        jsonSchema,
-        maxOutputTokens: options.maxOutputTokens ?? 2048,
-        timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
-      });
+      const { text, usage } = await withGeminiConcurrency(
+        options.label.startsWith('dialect-') ? 'dialect' : 'answer',
+        () =>
+          client.generate({
+            model,
+            system: options.system,
+            input: options.input,
+            jsonSchema,
+            maxOutputTokens: options.maxOutputTokens ?? 2048,
+            timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
+          }),
+        options.signal,
+      );
       const result = options.schema.safeParse(parseJsonOutput(text));
       if (!result.success) {
         throw new GeminiError(
@@ -411,7 +419,8 @@ function parseJsonOutput(text: string): unknown {
   try {
     return JSON.parse(cleaned);
   } catch {
-    throw new GeminiError('bad_response', `Gemini returned invalid JSON: ${cleaned.slice(0, 200)}`);
+    // Model output may contain a transcript. Keep it out of error messages and retry logs.
+    throw new GeminiError('bad_response', 'Gemini returned invalid JSON');
   }
 }
 
@@ -456,13 +465,15 @@ export async function embedTexts(texts: string[], options: EmbedOptions): Promis
     const batch = prepared.slice(start, start + batchSize);
     const values = await withRetries(
       () =>
-        client.embed({
-          model,
-          texts: batch,
-          taskType,
-          dimensions,
-          timeoutMs: env.GEMINI_TIMEOUT_MS,
-        }),
+        withGeminiConcurrency('answer', () =>
+          client.embed({
+            model,
+            texts: batch,
+            taskType,
+            dimensions,
+            timeoutMs: env.GEMINI_TIMEOUT_MS,
+          }),
+        ),
       { label: 'embed', maxRetries: options.maxRetries, maxDelayMs: options.maxDelayMs },
     );
     vectors.push(...values.map(normalizeVector));

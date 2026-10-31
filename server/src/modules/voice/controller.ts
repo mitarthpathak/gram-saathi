@@ -3,10 +3,19 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { HttpError } from '../../lib/httpError';
 import { languageCodeSchema, optionalFormField, sessionIdSchema } from '../../lib/validation';
+import { isDialectId } from '../dialect/registry';
 import { answerVoiceQuery } from './service';
+
+const dialectHintSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(isDialectId, 'Unknown dialect registry id');
 
 const voiceQueryFields = z.object({
   language: optionalFormField(languageCodeSchema),
+  dialectHint: optionalFormField(dialectHintSchema),
   sessionId: sessionIdSchema,
 });
 
