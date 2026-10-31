@@ -70,8 +70,10 @@ One `.env` at the repo root is shared by both apps (template: [.env.example](.en
 gram-saathi/
 ├── client/                 Vite + React + TypeScript + Tailwind CSS + React Router
 │   └── src/
-│       ├── app/            App, router, providers, layout (header + bottom nav)
+│       ├── app/            App, routes, SiteShell, Dock, providers
 │       ├── features/
+│       │   ├── landing/    scrollytelling landing page: hero, chapters, intro, Saathi
+│       │   ├── app-shell/  the app's frame: desktop phone sheet, phone full screen, tabs
 │       │   ├── voice/      MicButton, useRecorder, speak (browser TTS)
 │       │   ├── chat/       ChatScreen, ChatWindow, MessageBubble, FraudWarning
 │       │   ├── sources/    SourceCard, SourceList

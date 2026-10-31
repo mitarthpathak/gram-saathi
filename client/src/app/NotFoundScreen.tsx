@@ -5,9 +5,12 @@ import { appStrings } from './strings';
 export function NotFoundScreen() {
   const t = useStrings(appStrings);
   return (
-    <div className="flex flex-col items-center gap-4 px-4 py-12 text-center">
-      <h1 className="text-2xl font-bold">{t.notFoundTitle}</h1>
-      <Link to="/" className="text-lg font-semibold text-brand-800 underline">
+    <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-4 py-12 text-center">
+      <h1 className="font-display text-3xl font-extrabold tracking-display">{t.notFoundTitle}</h1>
+      <Link
+        to="/"
+        className="inline-flex min-h-12 items-center rounded-full bg-leaf-600 px-6 text-lg font-bold text-white shadow-leaf"
+      >
         {t.goHome}
       </Link>
     </div>

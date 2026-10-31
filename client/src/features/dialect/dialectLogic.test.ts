@@ -28,9 +28,9 @@ function response(overrides: Partial<QueryResponse> = {}): QueryResponse {
 
 describe('getDialectPromptMode', () => {
   it('shows the high confidence chip', () => {
-    expect(
-      getDialectPromptMode(response({ dialect: { ...option, confidence: 'high' } })),
-    ).toBe('high');
+    expect(getDialectPromptMode(response({ dialect: { ...option, confidence: 'high' } }))).toBe(
+      'high',
+    );
   });
 
   it('asks for confirmation for medium confidence', () => {
@@ -45,9 +45,9 @@ describe('getDialectPromptMode', () => {
   });
 
   it('asks for confirmation when detection abstains with candidates', () => {
-    expect(
-      getDialectPromptMode(response({ dialect: null, dialectCandidates: [option] })),
-    ).toBe('confirm');
+    expect(getDialectPromptMode(response({ dialect: null, dialectCandidates: [option] }))).toBe(
+      'confirm',
+    );
   });
 
   it('shows nothing for abstention without candidates', () => {

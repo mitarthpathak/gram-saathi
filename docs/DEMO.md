@@ -2,15 +2,15 @@
 
 ## 90-second script
 
-| Time | Show | Say or do |
-| --- | --- | --- |
-| 0–10 s | Open `/?demo=1` on the phone. | “Gram Saathi lets people ask about public schemes in the language they use at home.” |
-| 10–30 s | Choose **Hindi + Wagdi** in Demo samples. | Point out the verbatim “आपने कहा” transcript, the Wagdi chip, the sourced PM-KISAN answer, and the fraud warning. |
-| 30–45 s | Tap **Marathi** and select its cached sample. | Show that the answer follows the selected language and includes the source and short SMS copy. |
-| 45–60 s | Tap **Tamil** and select its cached sample. | Point out the same short answer and safety warning in Tamil. |
-| 60–72 s | Tap **English** and select its cached sample. | Show the language selector and answer controls. |
-| 72–84 s | Return to the Hindi + Wagdi sample. | If the boli label is wrong, tap **गलत है?**, choose the right variety, then say: “This is why we ask.” The choice is remembered for later voice questions. |
-| 84–90 s | Show the home mic and offline indicator. | “The recording can be retried, and saved FAQ answers remain available on a weak connection.” |
+| Time    | Show                                          | Say or do                                                                                                                                                  |
+| ------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0–10 s  | Open `/?demo=1` on the phone.                 | “Gram Saathi lets people ask about public schemes in the language they use at home.”                                                                       |
+| 10–30 s | Choose **Hindi + Wagdi** in Demo samples.     | Point out the verbatim “आपने कहा” transcript, the Wagdi chip, the sourced PM-KISAN answer, and the fraud warning.                                          |
+| 30–45 s | Tap **Marathi** and select its cached sample. | Show that the answer follows the selected language and includes the source and short SMS copy.                                                             |
+| 45–60 s | Tap **Tamil** and select its cached sample.   | Point out the same short answer and safety warning in Tamil.                                                                                               |
+| 60–72 s | Tap **English** and select its cached sample. | Show the language selector and answer controls.                                                                                                            |
+| 72–84 s | Return to the Hindi + Wagdi sample.           | If the boli label is wrong, tap **गलत है?**, choose the right variety, then say: “This is why we ask.” The choice is remembered for later voice questions. |
+| 84–90 s | Show the home mic and offline indicator.      | “The recording can be retried, and saved FAQ answers remain available on a weak connection.”                                                               |
 
 Demo mode opens with `?demo=1`; press **D** to toggle it. The four cached sample buttons work without a microphone or network. If a live text or voice request fails while demo mode is on, the UI shows a cached answer in the current language. These are sample answers, not live backend results.
 
@@ -30,11 +30,11 @@ Demo mode opens with `?demo=1`; press **D** to toggle it. The four cached sample
 Use these rows for Hindi, Marathi, Tamil, and English. For each row, perform voice and text on both desktop and phone while online, then repeat offline. Record pass/fail and the tested browser/device in the last column.
 
 | Language | Online: desktop voice / text | Online: phone voice / text | Offline: desktop voice / text | Offline: phone voice / text | Result / device notes |
-| --- | --- | --- | --- | --- | --- |
-| Hindi | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | |
-| Marathi | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | |
-| Tamil | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | |
-| English | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | ☐ / ☐ | |
+| -------- | ---------------------------- | -------------------------- | ----------------------------- | --------------------------- | --------------------- |
+| Hindi    | ☐ / ☐                        | ☐ / ☐                      | ☐ / ☐                         | ☐ / ☐                       |                       |
+| Marathi  | ☐ / ☐                        | ☐ / ☐                      | ☐ / ☐                         | ☐ / ☐                       |                       |
+| Tamil    | ☐ / ☐                        | ☐ / ☐                      | ☐ / ☐                         | ☐ / ☐                       |                       |
+| English  | ☐ / ☐                        | ☐ / ☐                      | ☐ / ☐                         | ☐ / ☐                       |                       |
 
 Offline voice is a cached demo fallback only in `?demo=1`; it does not submit audio while disconnected. Outside demo mode, confirm the offline banner appears and the request gives a clear retry path. Offline text cannot obtain a new grounded answer; verify that previously cached FAQ chips still open. Online voice checks should include the transcript, dialect label/correction, cited answer, spoken answer, and fraud warning.
 

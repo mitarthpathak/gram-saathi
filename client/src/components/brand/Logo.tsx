@@ -1,15 +1,15 @@
 import { useId } from 'react';
 import { cn } from '@/lib/cn';
 
-/** App mark: a microphone on an indigo tile with a marigold sun. Decorative (aria-hidden). */
+/** App mark: a microphone on a leaf-green tile with a marigold sun. Decorative (aria-hidden). */
 export function Logo({ className }: { className?: string }) {
   const gradient = useId();
   return (
     <svg aria-hidden viewBox="0 0 48 48" className={cn('shrink-0', className)}>
       <defs>
         <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#4f46e5" />
-          <stop offset="1" stopColor="#1e1b4b" />
+          <stop offset="0" stopColor="#4cb47f" />
+          <stop offset="1" stopColor="#177a4e" />
         </linearGradient>
       </defs>
       <rect width="48" height="48" rx="14" fill={`url(#${gradient})`} />
@@ -21,7 +21,7 @@ export function Logo({ className }: { className?: string }) {
         strokeWidth="3"
         strokeLinecap="round"
       />
-      <circle cx="37" cy="11" r="4.5" fill="#ffc54a" />
+      <circle cx="37" cy="11" r="4.5" fill="#ffa826" />
     </svg>
   );
 }

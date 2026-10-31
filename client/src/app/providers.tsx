@@ -7,6 +7,7 @@ import { detectBrowserLanguage, getLanguage } from '@/features/language/language
 import { SettingsContext, type Settings } from '@/lib/settings';
 import { storage } from '@/lib/storage';
 import { readDialectHint, writeDialectHint } from '@/features/dialect/dialectLogic';
+import { MotionProvider } from '@/lib/motion/MotionProvider';
 
 const KEYS = {
   language: 'gs:language',
@@ -38,8 +39,8 @@ function SettingsProvider({ children }: { children: ReactNode }) {
     if (savedHint) return getLanguage(savedHint)?.code ?? null;
     return getLanguage(storage.get(KEYS.language) ?? '')?.code ?? null;
   });
-  const [dialectHint, setDialectHintState] = useState<string | null>(
-    () => readDialectHint(storage),
+  const [dialectHint, setDialectHintState] = useState<string | null>(() =>
+    readDialectHint(storage),
   );
   const [lowBandwidth, setLowBandwidthState] = useState(
     () => storage.get(KEYS.lowBandwidth) === 'true',
@@ -88,9 +89,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <DemoProvider>
       <SettingsProvider>
-        <ToastProvider>
-          <ChatProvider>{children}</ChatProvider>
-        </ToastProvider>
+        <MotionProvider>
+          <ToastProvider>
+            <ChatProvider>{children}</ChatProvider>
+          </ToastProvider>
+        </MotionProvider>
       </SettingsProvider>
     </DemoProvider>
   );

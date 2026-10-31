@@ -20,28 +20,25 @@ export function ResultCard({ result, onAsk }: ResultCardProps) {
       className={cn(
         'relative flex gap-3 overflow-hidden rounded-3xl p-4',
         result.eligible
-          ? 'bg-white shadow-soft ring-2 ring-brand-400'
-          : 'bg-white/60 ring-1 ring-brand-950/10',
+          ? 'bg-white shadow-soft ring-2 ring-leaf-400'
+          : 'bg-white/60 ring-1 ring-ink/10',
       )}
     >
       {result.eligible ? (
-        <CircleCheck aria-hidden className="size-9 shrink-0 fill-brand-100 text-brand-600" />
+        <CircleCheck aria-hidden className="size-9 shrink-0 fill-leaf-100 text-leaf-600" />
       ) : (
-        <CircleX aria-hidden className="size-9 shrink-0 text-slate-400" />
+        <CircleX aria-hidden className="size-9 shrink-0 text-ink-mute" />
       )}
       <div className="flex min-w-0 flex-col items-start gap-1.5">
         <h3
-          className={cn(
-            'text-lg leading-snug font-extrabold',
-            !result.eligible && 'text-slate-700',
-          )}
+          className={cn('text-lg leading-snug font-extrabold', !result.eligible && 'text-ink-soft')}
         >
           {result.schemeName}
         </h3>
         <Badge tone={result.eligible ? 'success' : 'neutral'}>
           {result.eligible ? t.eligible : t.notEligible}
         </Badge>
-        <p className="text-base leading-snug text-slate-700">{result.reason}</p>
+        <p className="text-base leading-snug text-ink-soft">{result.reason}</p>
         {result.eligible && onAsk && (
           <Button
             variant="soft"

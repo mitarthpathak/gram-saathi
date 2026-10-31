@@ -10,8 +10,8 @@ import {
 } from './useToast';
 
 const TONES: Record<ToastTone, string> = {
-  info: 'bg-slate-900 text-white',
-  success: 'bg-brand-700 text-white',
+  info: 'bg-ink text-white',
+  success: 'bg-leaf-600 text-white',
   error: 'bg-red-700 text-white',
 };
 

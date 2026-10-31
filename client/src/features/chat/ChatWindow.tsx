@@ -23,8 +23,11 @@ export function ChatWindow() {
     if (messages.length > 0 || busy) {
       const latest = messages.at(-1);
       if (latest?.role === 'assistant' && latest.via === 'voice') {
-        const transcripts = endRef.current?.parentElement?.querySelectorAll('[data-voice-transcript]');
-        transcripts?.item(transcripts.length - 1)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const transcripts =
+          endRef.current?.parentElement?.querySelectorAll('[data-voice-transcript]');
+        transcripts
+          ?.item(transcripts.length - 1)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
       endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -54,11 +57,22 @@ export function ChatWindow() {
 function DemoSamplePicker() {
   const { askDemo, busy } = useChat();
   return (
-    <section aria-label="Cached demo questions" className="my-4 rounded-2xl bg-brand-50 p-3 ring-1 ring-brand-200">
-      <p className="text-base font-extrabold text-brand-950">Demo samples <span className="font-medium text-brand-800">· press D to hide</span></p>
+    <section
+      aria-label="Cached demo questions"
+      className="my-4 rounded-2xl bg-brand-50 p-3 ring-1 ring-brand-200"
+    >
+      <p className="text-base font-extrabold text-brand-950">
+        Demo samples <span className="font-medium text-brand-800">· press D to hide</span>
+      </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {DEMO_SAMPLES.map((item) => (
-          <button key={item.id} type="button" disabled={busy} onClick={() => askDemo(item.id)} className="inline-flex min-h-12 items-center rounded-full bg-white px-4 text-base font-bold text-brand-900 ring-1 ring-brand-200 hover:ring-brand-500 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:opacity-50">
+          <button
+            key={item.id}
+            type="button"
+            disabled={busy}
+            onClick={() => askDemo(item.id)}
+            className="inline-flex min-h-12 items-center rounded-full bg-white px-4 text-base font-bold text-brand-900 ring-1 ring-brand-200 hover:ring-brand-500 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:opacity-50"
+          >
             {item.title}
           </button>
         ))}
@@ -68,7 +82,7 @@ function DemoSamplePicker() {
 }
 
 /** "Finding the answer…" bubble with bouncing dots while a question is being answered. */
-function TypingIndicator() {
+export function TypingIndicator() {
   const t = useStrings(chatStrings);
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">

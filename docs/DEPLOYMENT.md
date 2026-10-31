@@ -3,10 +3,10 @@
 One Vercel project with two [services](https://vercel.com/docs/services) (Beta), defined in
 [`vercel.json`](../vercel.json) at the repo root:
 
-| Service  | Root      | Framework                     | Public at                                  | What it serves                                                                                    |
-| -------- | --------- | ----------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `server` | `server/` | Express, one Vercel Function  | `/api/*`                                   | The API. It receives the original path (`/api/chat/query`), matching the routes in `createApp.ts` |
-| `client` | `client/` | Vite, static files on the CDN | everything else (`/`, `/eligibility`, ...) | The React app. Paths that are not files fall back to `index.html` for client-side routes          |
+| Service  | Root      | Framework                     | Public at                          | What it serves                                                                                    |
+| -------- | --------- | ----------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `server` | `server/` | Express, one Vercel Function  | `/api/*`                           | The API. It receives the original path (`/api/chat/query`), matching the routes in `createApp.ts` |
+| `client` | `client/` | Vite, static files on the CDN | everything else (`/`, `/app`, ...) | The React app. `/` is prerendered at build time; other paths fall back to `index.html`            |
 
 Both share one domain, so the browser calls `/api/...` on the same origin: no `VITE_API_URL`, no
 CORS setup. There are **no service bindings**: the client has no server-side code (it runs in

@@ -5,14 +5,16 @@ const en = {
   title: 'Help us hear your boli',
   intro: 'Record a few natural sentences so we can improve dialect understanding.',
   consentTitle: 'Your choice, your recording',
-  consentBody: 'We send a recording once to get a verbatim transcript. The service does not store it. Your saved audio stays on this device until you export it. Only you choose whether to share the exported file with the team.',
+  consentBody:
+    'We send a recording once to get a verbatim transcript. The service does not store it. Your saved audio stays on this device until you export it. Only you choose whether to share the exported file with the team.',
   consentCheck: 'I understand and agree to contribute this recording.',
   privacy: 'No name or phone number is collected. A random speaker id is kept locally.',
   variety: 'Variety',
   district: 'District',
   area: 'Area or block',
   codeSwitch: 'I switched between languages while speaking.',
-  naturalHint: '10-15 short natural sentences; speak naturally, do not read aloud, do not translate from Hindi.',
+  naturalHint:
+    '10-15 short natural sentences; speak naturally, do not read aloud, do not translate from Hindi.',
   record: 'Record up to 15 seconds',
   stop: 'Stop recording',
   recording: 'Recording. Speak naturally; it stops at 15 seconds.',
@@ -30,14 +32,20 @@ const en = {
   progress: '{name} recordings',
   delete: 'Delete {transcript}',
   localUnavailable: 'Local storage is unavailable in this browser.',
-  dialectsUnavailable: 'Varieties need a connection to load. You can still type the transcript after recording.',
-  offlineTranscribe: 'Offline. Type or edit the transcript below; the recording stays on this device.',
+  dialectsUnavailable:
+    'Varieties need a connection to load. You can still type the transcript after recording.',
+  offlineTranscribe:
+    'Offline. Type or edit the transcript below; the recording stays on this device.',
   transcribing: 'Transcribing your recording…',
   transcriptReady: 'Transcript ready. Please check it and add its Hindi meaning.',
-  transcribeFailed: 'Could not transcribe right now. Type the words you said; the audio remains saved only here.',
-  micUnavailable: 'Microphone unavailable. You can still type a transcript if you have a recording.',
-  micNeedsSecure: 'Allow microphone access on a secure page, or type the transcript after a recording.',
-  saveNotice: 'Saved on this device. Nothing is uploaded except the temporary transcription request.',
+  transcribeFailed:
+    'Could not transcribe right now. Type the words you said; the audio remains saved only here.',
+  micUnavailable:
+    'Microphone unavailable. You can still type a transcript if you have a recording.',
+  micNeedsSecure:
+    'Allow microphone access on a secure page, or type the transcript after a recording.',
+  saveNotice:
+    'Saved on this device. Nothing is uploaded except the temporary transcription request.',
   saveFailed: 'Could not save locally. Check device storage and try again.',
 };
 
@@ -48,7 +56,8 @@ export const contributeStrings: Strings<typeof en> = {
     title: 'अपनी बोली की आवाज़ दें',
     intro: 'बोली को बेहतर समझने में मदद के लिए कुछ आम वाक्य रिकॉर्ड करें।',
     consentTitle: 'रिकॉर्डिंग आपकी है, फैसला भी आपका',
-    consentBody: 'सही शब्द लिखने के लिए रिकॉर्डिंग एक बार भेजी जाती है। सेवा इसे सहेजती नहीं है। आपकी ऑडियो निर्यात करने तक इसी डिवाइस पर रहेगी। निर्यात की फ़ाइल टीम को देनी है या नहीं, यह आप तय करेंगे।',
+    consentBody:
+      'सही शब्द लिखने के लिए रिकॉर्डिंग एक बार भेजी जाती है। सेवा इसे सहेजती नहीं है। आपकी ऑडियो निर्यात करने तक इसी डिवाइस पर रहेगी। निर्यात की फ़ाइल टीम को देनी है या नहीं, यह आप तय करेंगे।',
     consentCheck: 'मैं समझता/समझती हूँ और यह रिकॉर्डिंग देने के लिए सहमत हूँ।',
     privacy: 'नाम या फोन नंबर नहीं लिया जाता। एक यादृच्छिक वक्ता पहचान इसी डिवाइस पर रहती है।',
     variety: 'बोली',
@@ -73,8 +82,10 @@ export const contributeStrings: Strings<typeof en> = {
     progress: '{name} रिकॉर्डिंग',
     delete: '{transcript} मिटाएँ',
     localUnavailable: 'इस ब्राउज़र में डिवाइस पर सहेजने की सुविधा नहीं है।',
-    dialectsUnavailable: 'बोलियों की सूची के लिए कनेक्शन चाहिए। रिकॉर्डिंग के बाद आप लिखाई खुद लिख सकते हैं।',
-    offlineTranscribe: 'इंटरनेट नहीं है। नीचे लिखाई लिखें या सुधारें; रिकॉर्डिंग इसी डिवाइस पर रहेगी।',
+    dialectsUnavailable:
+      'बोलियों की सूची के लिए कनेक्शन चाहिए। रिकॉर्डिंग के बाद आप लिखाई खुद लिख सकते हैं।',
+    offlineTranscribe:
+      'इंटरनेट नहीं है। नीचे लिखाई लिखें या सुधारें; रिकॉर्डिंग इसी डिवाइस पर रहेगी।',
     transcribing: 'आपकी रिकॉर्डिंग के शब्द लिखे जा रहे हैं…',
     transcriptReady: 'लिखाई तैयार है। जाँचें और उसका हिंदी अर्थ जोड़ें।',
     transcribeFailed: 'अभी लिखाई नहीं बन सकी। बोले गए शब्द खुद लिखें; ऑडियो यहीं सहेजी जाएगी।',
@@ -88,7 +99,8 @@ export const contributeStrings: Strings<typeof en> = {
     title: 'तुमची बोली आम्हाला ऐकवा',
     intro: 'बोली अधिक चांगली समजण्यासाठी काही नैसर्गिक वाक्ये रेकॉर्ड करा.',
     consentTitle: 'रेकॉर्डिंग तुमची, निर्णयही तुमचा',
-    consentBody: 'अचूक शब्द लिहिण्यासाठी रेकॉर्डिंग एकदाच पाठवली जाते. सेवा ती साठवत नाही. निर्यात करेपर्यंत जतन केलेली ध्वनीफीत याच उपकरणावर राहते. निर्यात केलेली फाइल संघाला द्यायची की नाही हे तुम्ही ठरवता.',
+    consentBody:
+      'अचूक शब्द लिहिण्यासाठी रेकॉर्डिंग एकदाच पाठवली जाते. सेवा ती साठवत नाही. निर्यात करेपर्यंत जतन केलेली ध्वनीफीत याच उपकरणावर राहते. निर्यात केलेली फाइल संघाला द्यायची की नाही हे तुम्ही ठरवता.',
     consentCheck: 'मला समजले आहे आणि ही रेकॉर्डिंग देण्यास मी सहमत आहे.',
     privacy: 'नाव किंवा फोन नंबर घेतला जात नाही. यादृच्छिक वक्ता ओळख याच उपकरणावर ठेवली जाते.',
     variety: 'बोली',
@@ -113,11 +125,14 @@ export const contributeStrings: Strings<typeof en> = {
     progress: '{name} रेकॉर्डिंग',
     delete: '{transcript} हटवा',
     localUnavailable: 'या ब्राउझरमध्ये स्थानिक साठवण उपलब्ध नाही.',
-    dialectsUnavailable: 'बोलींची यादी मिळवण्यासाठी जोडणी आवश्यक आहे. रेकॉर्डिंगनंतर तुम्ही शब्द स्वतः लिहू शकता.',
-    offlineTranscribe: 'इंटरनेट नाही. खाली शब्द लिहा किंवा दुरुस्त करा; ध्वनीफीत याच उपकरणावर राहील.',
+    dialectsUnavailable:
+      'बोलींची यादी मिळवण्यासाठी जोडणी आवश्यक आहे. रेकॉर्डिंगनंतर तुम्ही शब्द स्वतः लिहू शकता.',
+    offlineTranscribe:
+      'इंटरनेट नाही. खाली शब्द लिहा किंवा दुरुस्त करा; ध्वनीफीत याच उपकरणावर राहील.',
     transcribing: 'रेकॉर्डिंगमधील शब्द लिहिले जात आहेत…',
     transcriptReady: 'लिप्यंतरण तयार आहे. ते तपासा आणि हिंदी अर्थ जोडा.',
-    transcribeFailed: 'आत्ता लिप्यंतरण होऊ शकले नाही. बोललेले शब्द स्वतः लिहा; ध्वनीफीत इथेच राहील.',
+    transcribeFailed:
+      'आत्ता लिप्यंतरण होऊ शकले नाही. बोललेले शब्द स्वतः लिहा; ध्वनीफीत इथेच राहील.',
     micUnavailable: 'माइक उपलब्ध नाही. रेकॉर्डिंग असल्यास तिचे शब्द स्वतः लिहू शकता.',
     micNeedsSecure: 'माइकसाठी सुरक्षित पानावर परवानगी द्या, किंवा रेकॉर्डिंगचे शब्द स्वतः लिहा.',
     saveNotice: 'याच उपकरणावर जतन केले. तात्पुरत्या लिप्यंतरण विनंतीखेरीज काही पाठवले जात नाही.',
@@ -128,14 +143,17 @@ export const contributeStrings: Strings<typeof en> = {
     title: 'உங்கள் வட்டார மொழியைப் பதிவு செய்யுங்கள்',
     intro: 'வட்டார மொழியை நன்றாகப் புரிந்துகொள்ள சில இயல்பான வாக்கியங்களைப் பதிவு செய்யுங்கள்.',
     consentTitle: 'பதிவும் முடிவும் உங்களுடையது',
-    consentBody: 'நீங்கள் சொன்னதை அப்படியே எழுதுவதற்காக ஒலி ஒருமுறை அனுப்பப்படும். சேவை அதைச் சேமிக்காது. ஏற்றுமதி செய்யும் வரை பதிவு இந்தச் சாதனத்திலேயே இருக்கும். ஏற்றுமதி செய்த கோப்பை அணியுடன் பகிர்வதா என்பதை நீங்களே முடிவு செய்யலாம்.',
+    consentBody:
+      'நீங்கள் சொன்னதை அப்படியே எழுதுவதற்காக ஒலி ஒருமுறை அனுப்பப்படும். சேவை அதைச் சேமிக்காது. ஏற்றுமதி செய்யும் வரை பதிவு இந்தச் சாதனத்திலேயே இருக்கும். ஏற்றுமதி செய்த கோப்பை அணியுடன் பகிர்வதா என்பதை நீங்களே முடிவு செய்யலாம்.',
     consentCheck: 'எனக்குப் புரிந்தது; இந்தப் பதிவைப் பங்களிக்க ஒப்புக்கொள்கிறேன்.',
-    privacy: 'பெயரோ தொலைபேசி எண்ணோ சேகரிக்கப்படாது. சீரற்ற பேச்சாளர் அடையாளம் இந்தச் சாதனத்தில் மட்டும் இருக்கும்.',
+    privacy:
+      'பெயரோ தொலைபேசி எண்ணோ சேகரிக்கப்படாது. சீரற்ற பேச்சாளர் அடையாளம் இந்தச் சாதனத்தில் மட்டும் இருக்கும்.',
     variety: 'வட்டார மொழி',
     district: 'மாவட்டம்',
     area: 'பகுதி அல்லது வட்டம்',
     codeSwitch: 'பேசும்போது மொழிகளை மாற்றிப் பேசினேன்.',
-    naturalHint: '10–15 குறுகிய இயல்பான வாக்கியங்களைப் பேசுங்கள். வாசிக்காதீர்கள்; இந்தியிலிருந்து மொழிபெயர்க்காதீர்கள்.',
+    naturalHint:
+      '10–15 குறுகிய இயல்பான வாக்கியங்களைப் பேசுங்கள். வாசிக்காதீர்கள்; இந்தியிலிருந்து மொழிபெயர்க்காதீர்கள்.',
     record: '15 விநாடிகள் வரை பதிவு செய்',
     stop: 'பதிவை நிறுத்து',
     recording: 'பதிவு நடக்கிறது. இயல்பாகப் பேசுங்கள்; 15 விநாடிகளில் நிற்கும்.',
@@ -153,14 +171,20 @@ export const contributeStrings: Strings<typeof en> = {
     progress: '{name} பதிவுகள்',
     delete: '{transcript} பதிவை நீக்கு',
     localUnavailable: 'இந்த உலாவியில் உள்ளூர்ச் சேமிப்பு இல்லை.',
-    dialectsUnavailable: 'வட்டார மொழிப் பட்டியலை ஏற்ற இணைய இணைப்பு தேவை. பதிவுக்குப் பிறகு சொன்னதை நீங்களே எழுதலாம்.',
-    offlineTranscribe: 'இணையம் இல்லை. கீழே எழுத்தைத் தட்டச்சு செய்யுங்கள் அல்லது திருத்துங்கள்; ஒலி இந்தச் சாதனத்திலேயே இருக்கும்.',
+    dialectsUnavailable:
+      'வட்டார மொழிப் பட்டியலை ஏற்ற இணைய இணைப்பு தேவை. பதிவுக்குப் பிறகு சொன்னதை நீங்களே எழுதலாம்.',
+    offlineTranscribe:
+      'இணையம் இல்லை. கீழே எழுத்தைத் தட்டச்சு செய்யுங்கள் அல்லது திருத்துங்கள்; ஒலி இந்தச் சாதனத்திலேயே இருக்கும்.',
     transcribing: 'உங்கள் பதிவு எழுத்தாக்கப்படுகிறது…',
     transcriptReady: 'எழுத்தாக்கம் தயார். சரிபார்த்து அதன் இந்திப் பொருளைச் சேர்க்கவும்.',
-    transcribeFailed: 'இப்போது எழுத்தாக்க முடியவில்லை. சொன்னதை நீங்களே தட்டச்சு செய்யுங்கள்; ஒலி இங்கே மட்டுமே சேமிக்கப்படும்.',
+    transcribeFailed:
+      'இப்போது எழுத்தாக்க முடியவில்லை. சொன்னதை நீங்களே தட்டச்சு செய்யுங்கள்; ஒலி இங்கே மட்டுமே சேமிக்கப்படும்.',
     micUnavailable: 'மைக்ரோஃபோன் இல்லை. பதிவு இருந்தால் அதன் உரையை நீங்களே எழுதலாம்.',
-    micNeedsSecure: 'மைக்ரோஃபோனுக்கு பாதுகாப்பான பக்கத்தில் அனுமதி அளிக்கவும் அல்லது பதிவு உரையைத் தட்டச்சு செய்யுங்கள்.',
-    saveNotice: 'இந்தச் சாதனத்தில் சேமிக்கப்பட்டது. தற்காலிக எழுத்தாக்கக் கோரிக்கையைத் தவிர எதுவும் பதிவேற்றப்படாது.',
-    saveFailed: 'சாதனத்தில் சேமிக்க முடியவில்லை. சேமிப்பு இடத்தைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+    micNeedsSecure:
+      'மைக்ரோஃபோனுக்கு பாதுகாப்பான பக்கத்தில் அனுமதி அளிக்கவும் அல்லது பதிவு உரையைத் தட்டச்சு செய்யுங்கள்.',
+    saveNotice:
+      'இந்தச் சாதனத்தில் சேமிக்கப்பட்டது. தற்காலிக எழுத்தாக்கக் கோரிக்கையைத் தவிர எதுவும் பதிவேற்றப்படாது.',
+    saveFailed:
+      'சாதனத்தில் சேமிக்க முடியவில்லை. சேமிப்பு இடத்தைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
   },
 };

@@ -20,27 +20,35 @@ export function DialectScreen() {
   const load = useCallback(() => {
     setLoading(true);
     setFailed(false);
-    void api.getDialects().then(({ items: dialects }) => {
-      setItems(dialects);
-      setLoading(false);
-    }).catch(() => {
-      setFailed(true);
-      setLoading(false);
-    });
+    void api
+      .getDialects()
+      .then(({ items: dialects }) => {
+        setItems(dialects);
+        setLoading(false);
+      })
+      .catch(() => {
+        setFailed(true);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     let active = true;
-    void api.getDialects().then(({ items: dialects }) => {
-      if (!active) return;
-      setItems(dialects);
-      setLoading(false);
-    }).catch(() => {
-      if (!active) return;
-      setFailed(true);
-      setLoading(false);
-    });
-    return () => { active = false; };
+    void api
+      .getDialects()
+      .then(({ items: dialects }) => {
+        if (!active) return;
+        setItems(dialects);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFailed(true);
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -65,13 +73,17 @@ export function DialectScreen() {
 
   const select = (item: DialectInfo) => {
     setDialectHint(item.id);
-    navigate('/');
+    navigate('/app');
   };
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-4 p-4">
       <div>
-        <Link to="/" aria-label={t.back} className="inline-flex min-h-12 items-center gap-2 rounded-xl pr-3 font-bold text-brand-800 focus-visible:outline-3 focus-visible:outline-brand-600">
+        <Link
+          to="/app"
+          aria-label={t.back}
+          className="inline-flex min-h-12 items-center gap-2 rounded-xl pr-3 font-bold text-brand-800 focus-visible:outline-3 focus-visible:outline-brand-600"
+        >
           <ArrowLeft aria-hidden className="size-5" />
           {t.back}
         </Link>
@@ -81,7 +93,10 @@ export function DialectScreen() {
 
       <label className="relative block">
         <span className="sr-only">{t.searchLabel}</span>
-        <Search aria-hidden className="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-slate-500" />
+        <Search
+          aria-hidden
+          className="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-slate-500"
+        />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -90,42 +105,61 @@ export function DialectScreen() {
         />
       </label>
 
-      {loading && <p role="status" className="py-4 text-center font-semibold text-slate-600">{t.loading}</p>}
+      {loading && (
+        <p role="status" className="py-4 text-center font-semibold text-slate-600">
+          {t.loading}
+        </p>
+      )}
       {failed && (
         <div role="alert" className="rounded-2xl bg-amber-50 p-4 text-center ring-1 ring-amber-200">
           <p className="font-semibold text-slate-800">{t.loadError}</p>
-          <button type="button" onClick={load} className="mt-2 inline-flex min-h-12 items-center rounded-full bg-brand-700 px-5 font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600">
+          <button
+            type="button"
+            onClick={load}
+            className="mt-2 inline-flex min-h-12 items-center rounded-full bg-brand-700 px-5 font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
             {t.retry}
           </button>
         </div>
       )}
       {!loading && !failed && groups.length === 0 && (
-        <p role="status" className="rounded-2xl bg-white p-4 text-center font-semibold text-slate-600">{t.noResults}</p>
+        <p
+          role="status"
+          className="rounded-2xl bg-white p-4 text-center font-semibold text-slate-600"
+        >
+          {t.noResults}
+        </p>
       )}
-      {!loading && !failed && groups.map(([state, dialects]) => (
-        <section key={state} aria-label={`${t.stateLabel}: ${state}`}>
-          <h2 className="mb-2 text-xs font-extrabold tracking-[0.12em] text-slate-500 uppercase">{state}</h2>
-          <ul className="grid gap-2">
-            {dialects.map((item) => (
-              <li key={`${state}-${item.id}`}>
-                <button
-                  type="button"
-                  onClick={() => select(item)}
-                  className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-white px-4 py-2 text-left shadow-soft ring-1 ring-brand-950/5 transition hover:ring-brand-500 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                >
-                  <span className="min-w-0">
-                    <span className="block font-extrabold text-slate-900">{item.name}</span>
-                    <span lang={item.parentLanguage} className="block text-sm text-slate-600">{item.nativeName}</span>
-                  </span>
-                  <Badge tone={item.testStatus === 'tested' ? 'success' : 'warning'}>
-                    {item.testStatus === 'tested' ? t.tested : t.experimental}
-                  </Badge>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {!loading &&
+        !failed &&
+        groups.map(([state, dialects]) => (
+          <section key={state} aria-label={`${t.stateLabel}: ${state}`}>
+            <h2 className="mb-2 text-xs font-extrabold tracking-[0.12em] text-slate-500 uppercase">
+              {state}
+            </h2>
+            <ul className="grid gap-2">
+              {dialects.map((item) => (
+                <li key={`${state}-${item.id}`}>
+                  <button
+                    type="button"
+                    onClick={() => select(item)}
+                    className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-white px-4 py-2 text-left shadow-soft ring-1 ring-brand-950/5 transition hover:ring-brand-500 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-extrabold text-slate-900">{item.name}</span>
+                      <span lang={item.parentLanguage} className="block text-sm text-slate-600">
+                        {item.nativeName}
+                      </span>
+                    </span>
+                    <Badge tone={item.testStatus === 'tested' ? 'success' : 'warning'}>
+                      {item.testStatus === 'tested' ? t.tested : t.experimental}
+                    </Badge>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
     </section>
   );
 }
