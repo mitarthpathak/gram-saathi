@@ -36,3 +36,15 @@
 - **Decision:** Calibration and eval use English standalone retrieval queries with `hi`, `mr`, `ta`, or `en` as requested answer-language metadata. No new Marathi or Tamil sample sentences are fabricated because the repo has no consented exemplars for those labels.
 - **Alternatives considered:** Copy existing FAQ translations into the eval set; invent regional-language queries; omit the language-specific output-script checks.
 - **Why:** The task's data policy forbids generating regional-language sample sentences. English query text still lets the harness check answer language/script for each language hint, while native-speaker input examples remain a human data-collection task.
+
+## Existing working-tree changes and README
+
+- **Decision:** Preserve the owner's pre-existing uncommitted edits in README, client files, `.env.example`, and scheme data. Do not stage those files as part of this branch's documentation commits.
+- **Alternatives considered:** Rewrite README and stage only intended hunks; temporarily stash or commit the owner's changes.
+- **Why:** The task explicitly says to leave unrelated starting-tree changes untouched. The current README still needs an owner review against `RUNBOOK.md` for the limitations, current TTS behavior, and complete environment table. The operational details are documented here without overwriting that working copy.
+
+## Health capability fields
+
+- **Decision:** Health returns booleans for whether dialect classification and Gemini TTS have their required model/key configuration and are not mocked. The fields are optional in the shared type so older client fixtures and servers remain compatible.
+- **Alternatives considered:** Return only feature-presence flags or make the new fields required immediately.
+- **Why:** Capability status should tell an operator whether the server can use the real feature, while the optional additive contract preserves old fixtures.

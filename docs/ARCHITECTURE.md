@@ -1,100 +1,67 @@
 # Architecture
 
-## Big picture
+## Current conversation flow
 
 ```mermaid
 flowchart LR
-  U((User)) -- speaks / types --> C[Client<br/>React PWA]
-  C -- "/api/voice/query<br/>/api/chat/query" --> S[Server<br/>Express]
-  subgraph S [Server: answer pipeline]
-    direction LR
-    V[voice<br/>verbatim transcription] --> CH[chat<br/>orchestrates]
-    V --> DL[dialect<br/>parallel ensemble]
-    CH -. "DIALECT_TEXT_DETECT" .-> DL
-    CH --> R[rag<br/>retrieve chunks]
-    R --> D[(data/schemes<br/>*.md)]
-    CH --> G[Gemini<br/>grounded answer]
-    CH --> SMS[sms<br/>SMS version]
-    CH --> F[fraud warning<br/>static text]
-    CH --> Q[QueryResponse]
-    DL --> Q
-  end
-  S -- QueryResponse --> C
-  C -- text + voice +<br/>sources + SMS --> U
+  U((User)) -->|types| CHAT[/POST /api/chat/query]
+  U -->|speaks| VOICE[/POST /api/voice/query]
+  VOICE --> STT[voice: transcript + language]
+  STT --> TURN
+  CHAT --> TURN[chat: shared handleTurn]
+  TURN --> UNDERSTAND[Gemini: intent, language, dialect, English query]
+  UNDERSTAND --> ROUTE{intent}
+  ROUTE -->|smalltalk / clarify / out of scope| DIRECT[spoken direct reply]
+  ROUTE -->|scheme question| SEARCH[RAG: English query to vector search]
+  SEARCH -->|no passage over RAG_MIN_SCORE| NOTFOUND[fixed reviewed not-found reply]
+  SEARCH -->|passages| ANSWER[Gemini: answer only from passages]
+  ANSWER -->|no supported answer / ids| NOTFOUND
+  ANSWER -->|grounded answer + used ids| MAP[map response + sources]
+  DIRECT --> MAP
+  NOTFOUND --> MAP
+  MAP --> TTS{Gemini TTS configured?}
+  TTS -->|yes, success| AUDIO[server audio URL]
+  TTS -->|none / failure| BROWSER[browser speech fallback]
+  AUDIO --> CLIENT[client renders by intent]
+  BROWSER --> CLIENT
+  SEARCH --> KB[(server/data/vectorstore.json)]
+  KB --> DOCS[(data/schemes)]
 ```
 
-1. The user speaks (push-to-talk) or types, in Hindi, Marathi, Tamil, English or a dialect.
-2. **voice** transcribes the speaker verbatim in the script they use and detects the answer language.
-   It preserves dialect words and spellings; it never translates or normalizes the transcript.
-3. **dialect** runs up to three independent Gemini views (audio, transcript, and both) in parallel
-   with the RAG and answer work. A pure vote function chooses a result or abstains with candidates.
-   A dialectHint from the user skips classification. Typed text is classified only when
-   DIALECT_TEXT_DETECT=true. Classification cannot change the answer prompt: answers stay in the
-   dialect's parent language.
-4. **chat** runs the pipeline: **rag** finds the most relevant chunks of the official scheme
-   documents in `data/schemes/`, Gemini writes an answer **only from those chunks** in the
-   user's language, **sms** produces an SMS-length version and a static fraud warning is attached.
-5. The client shows the answer with source cards and the fraud warning, reads it aloud
-   (browser speech synthesis by default) and can preview the SMS on a feature-phone mockup.
-6. If the documents do not answer the question, the API returns notFound: true and tells the
-   user where to ask instead. It never guesses.
+Typed messages and voice transcripts enter the same `handleTurn` conversation module. Voice first
+uses `server/src/modules/voice/service.ts` for transcription; explicit dialect selection is a
+strong hint, while the repo's automatic dialect result is forwarded only at high confidence.
+The understand step decides intent before retrieval. Smalltalk, clarification and out-of-scope
+messages return a direct answer and never search. A scheme question gets one standalone English
+search query; the RAG adapter skips its legacy query translation so translation cannot run twice.
 
-Side flows: the **eligibility** wizard asks a few questions and evaluates deterministic rules
-from `data/eligibility/`, and **faq** serves pre-generated answers to the top questions that
-low-bandwidth clients keep for offline use.
+Only passages at or above `RAG_MIN_SCORE` reach the answer model. The answer model can cite only
+the passage IDs returned by search. A missing passage, unsupported answer or invalid citation maps
+to the existing fixed not-found text. Grounded answers map only their used passages to sources;
+direct answers have no sources or fraud banner. Session history stores the latest six turns for up
+to 500 least-recently-used sessions per process. It is process-local and only used for live
+conversation context.
 
-## The answer pipeline
+The client tries optional server-side Gemini speech first; a missing provider or failed request
+returns `audioUrl: null`, and the Listen control uses browser speech synthesis. Dialect speech uses
+the parent language voice. The chat endpoint also prepares the SMS-length reply and fixed fraud
+warning for grounded responses.
 
+Supporting flows remain separate: **eligibility** evaluates local deterministic rules from
+`data/eligibility/`; **faq** serves pre-generated answers from `server/data/faq.json`; dialect
+metadata and consented exemplars load from `data/dialects/`.
+
+### Build artifacts for deployment
+
+```text
+data/schemes + GEMINI_API_KEY --npm run ingest--> server/data/vectorstore.json
+data/faq/questions.json      --npm run prewarm--> server/data/faq.json
+data/eligibility/*.json      --bundled directly by Vercel
 ```
-  spoken question                                 typed question
-  POST /api/voice/query (audio)                   POST /api/chat/query (text)
-          |                                                |
-          v                                                |
-  [voice] Gemini: audio in, verbatim transcript
-          { transcript, detectedLanguage, script }
-                 |                            \
-                 |                             [dialect] audio / transcript / both
-                 |                                      independent Gemini views
-                 v                                      majority vote or abstention
-  [chat] answer language from recognized language          |
-          (dialectHint skips classification)                |
-                 |                                          |
-                 +----------------------+-------------------+
-                                        v
-          answer cache: LRU + TTL, key = language + normalized question
-                 | hit ------------------------------------> response (usedCache: true)
-                 v miss (identical questions in flight share one run)
-  [rag]   optional: translate the question to English (RAG_TRANSLATE_QUERY)
-          embed it with the knowledge base's model (Gemini embeddings)
-          cosine similarity against every chunk in memory -> top RAG_TOP_K
-                 |
-          any chunk with score >= RAG_MIN_SCORE? --no--> notFound: fixed, reviewed text
-                 | yes                                   "not in the documents, confirm at
-                 v                                        your nearest CSC / gram panchayat"
-  [chat]  Gemini: passages + question in, JSON { answer, usedChunkIds } out
-          (only the passages; user's language; simple spoken words; short
-          sentences; scheme name; never invent amounts, dates or eligibility)
-                 |
-          usedChunkIds empty? --yes--> notFound: fixed text (as above)
-                 | no
-                 v
-          sources      = the passages listed in usedChunkIds
-          fraudWarning = static text per language (never model output)
-                 |
-  [sms]   fits SMS_MAX_SEGMENTS? --yes--> as it is
-                 | no
-                 v
-          Gemini rewrite under a character budget --fails / too long--> keep whole sentences
-                 |
-                 v
-          QueryResponse --> client: text, source cards, read aloud, SMS preview
 
-  Before deploying (offline):
-    data/schemes/*.md|.txt|.pdf --npm run ingest--> sections -> ~600-token chunks (80 overlap)
-        --> Gemini embeddings (batched, retried) --> server/data/vectorstore.json
-    data/faq/questions.json --npm run prewarm--> server/data/faq.json
-        (GET /api/faq/top, and seeds the answer cache)
-```
+`vercel.json` includes `server/data/*.json` and `data/eligibility/*.json`. Build the vector store
+and FAQ cache locally and commit them before deploy. Current `server/data/vectorstore.json` exists;
+`server/data/faq.json` is absent until `npm run prewarm -w server` runs.
 
 ## Dialect registry and identification
 
