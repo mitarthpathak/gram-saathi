@@ -245,7 +245,7 @@ async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
   }
 }
 
-/** Only unanimous automatic identification is used to select a dialect; medium stays a hint. */
+/** Only repo-classified high confidence survives as a prompt hint; medium and abstentions are omitted. */
 function conservativeDialectOutcome(outcome: DialectOutcome): DialectOutcome {
   if (outcome.dialect?.confidence !== 'medium') return outcome;
   return { dialect: null, dialectCandidates: outcome.dialectCandidates ?? [] };
