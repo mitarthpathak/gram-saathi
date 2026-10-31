@@ -114,3 +114,10 @@
 - Commands run: `git push -u origin feat/conversation-layer`; GitHub REST API request using the configured credential helper (credential values were not printed).
 - Results: pushed commit `fa776b8`; opened PR [#9](https://github.com/mitarthpathak/gram-saathi/pull/9) against `main` with a filled summary/checklist, including the exact verification results and open review items.
 - Open issues: the PR is open for review; the report's remaining verification items are listed under “Needs human verification.”
+
+## Phase 16 — resolve conflicts after main advanced
+
+- Files changed: `client/src/features/voice/SpeakButton.tsx`, `client/src/features/voice/speak.ts`, `client/src/lib/api.ts`, `client/src/mocks/dialects.ts`, `client/src/mocks/index.ts`, `docs/AGENT_LOG.md`.
+- Commands run: `git fetch origin main`; inspected branch/base file changes; `git merge-tree --write-tree` (first identified the listed conflicts, then returned exit code 0 after a forward-only conflict-resolution commit candidate); `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`.
+- Results: preserved the current main API/dialect mock additions, the conversation-aware native-script mock replies, and optional server TTS followed by browser fallback. No rebase or merge was performed. Typecheck, lint, and build passed. Tests: 132 passed and the same 3 baseline eligibility tests failed because rules remain unverified.
+- Open issues: push the forward-only conflict-resolution commit and confirm PR #9 reports no conflicts; the review/verification items in `FINAL_REPORT.md` remain.

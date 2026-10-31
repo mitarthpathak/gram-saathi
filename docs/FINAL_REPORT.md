@@ -4,6 +4,11 @@ Date: 2026-10-31
 Branch: `feat/conversation-layer`
 Pull request: [#9](https://github.com/mitarthpathak/gram-saathi/pull/9)
 
+After `main` advanced, the three reported client-file conflicts were resolved in a forward-only
+branch commit. The conflict result was checked with `git merge-tree --write-tree` (exit 0); no
+rebase or merge was performed. Typecheck, lint and build pass on the resolution; the same three
+baseline eligibility tests remain failing because the rules are unverified.
+
 ## Work completed by phase
 
 - **0 — Recon:** documented the original text, voice, dialect and Listen flows, configuration,
