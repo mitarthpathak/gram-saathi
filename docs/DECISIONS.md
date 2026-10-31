@@ -263,7 +263,7 @@ mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`
 - **Decision:** `speak()` (client/src/features/voice/speak.ts) plays the answer's `audioUrl`, else
   `POST /api/tts { text, language, dialectId? }`, else browser speech synthesis, and returns who
   spoke plus the server's `basis`. `dialectId` is sent only when `answerStyle.rendered ===
-  'dialect'`, so standard text is never labelled or voiced as a dialect.
+'dialect'`, so standard text is never labelled or voiced as a dialect.
 - **Low-bandwidth fix:** the setting is documented as "no server audio", but the old `speak()`
   still called `/api/tts` (only the answer's `audioUrl` was suppressed). Now low-bandwidth mode
   never requests or plays server audio, for every Listen button (the button reads the setting
@@ -289,3 +289,41 @@ mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`
 - **Alternatives considered:** a dialect selector or candidate chips (a redesign, out of scope);
   hard-coding "experimental" for all dialects (true today, wrong once a dialect is marked tested);
   streaming progress events from the server (larger change than the brief allows).
+
+## Phase 6: docs, final report and re-verification
+
+- **Resume point:** a new agent session resumed from `docs/AGENT_LOG.md`: Phases 0–5 of this job
+  were committed (`4c62fcb` … `38689dd`), so Phase 6 was the first unfinished phase. Nothing from
+  Phases 0–5 was redone.
+- **Re-verification before writing the report:** the earlier session's sandbox kit lived outside the
+  repo and was gone, so it was rebuilt from packages already on this machine (no registry access:
+  `CONNECT registry.npmjs.org:443` → 403, not retried or routed around) and the shim checks were
+  re-run. The results matched Phase 5 exactly (183 pass / 10 fail; identical audit statuses), which
+  is why the report repeats them. The regenerated audit files were restored, so the committed
+  `docs/PIPELINE_AUDIT.md` is still the Phase 5 "after" run.
+- **New checks that Phase 5 could not do:** this sandbox has Playwright and Chromium, so the real
+  `client/src/features/voice/speak.ts` was bundled with esbuild and run in Chromium against a stub
+  API (7/7), and Chromium's fake-microphone flag was confirmed to work. These harnesses live in the
+  agent's scratch space, not in the repo: adding Playwright or a client test setup would be a new
+  dependency (R9), and `main` already has its own client tests to adopt when merging.
+- **`FINAL_REPORT.md` replaced:** it now reports this job. The conversation-layer report stays in
+  git history (`git show 1b5d297:docs/FINAL_REPORT.md`) and its open owner items are carried over at
+  the end of the new report.
+- **No merge with `main`:** a read-only `git merge-tree` showed 11 conflicting files. Resolving them
+  means choosing between two client implementations of server speech, which is a product decision
+  and a merge (R3). The conflict list, the behavioural differences and a suggested order are in
+  `RUNBOOK.md` ("Before merging into `main`") and finding N12.
+- **Contract wording, no type change:** `API_CONTRACT.md` now says `audioUrl: null` is a
+  per-request answer and how long a TTS request can take, because `main`'s client treats one
+  `null` as "server speech is off" and gives up after 6 s.
+- **Audit variables in `.env.example`:** the `AUDIT_*` variables added in Phase 1 were missing from
+  `.env.example` (R4); they are added commented out, since only the audit script reads them.
+- **`ASK_AGAIN` rewording (finding N14) not fixed here:** Phase 6 is documentation; the fix is a
+  one-line behaviour change that should come with a test in a normal change.
+- **Formatting:** `docs/DECISIONS.md` was the only file this branch had left newly unformatted;
+  it, `RUNBOOK.md` and `FINAL_REPORT.md` (rewritten here) are formatted with prettier 3.8.1 (the repo
+  pins ^3.9.10, not installable here). README, ARCHITECTURE and API_CONTRACT were already
+  unformatted at the branch base and are left that way to avoid unrelated churn.
+- **"ki keh raho he":** running `main`'s own mock code showed a typed message cannot produce the
+  reported PM-KISAN reply in mock mode. The report therefore says mock mode explains the screenshot
+  only for a spoken question; a typed one points to a real-mode run (finding N13).

@@ -1,66 +1,133 @@
 # Owner runbook
 
-Use this sequence after pulling the feature branch. Commands are run from the repository root.
-The live flow can incur Gemini usage. Scheme facts only come from the generated vector store.
+Run these steps in this order after pulling `feat/dialect-voice`. Commands run from the repository
+root (bash; PowerShell variants where they differ). Real mode spends Gemini quota. Scheme facts
+only come from the generated vector store. Nothing in steps 1–8 has been run by the agent that
+wrote this file (no key, no npm registry): every result you get is the first real one.
 
-## First verification run
+For a public demo before step 6 is finished, set `DIALECT_REPLY=verified_only` (no dialect is
+verified yet, so replies stay in the standard language).
 
-1. Copy `.env.example` to `.env`, add `GEMINI_API_KEY` and set `USE_MOCKS=false`. Server speech
-   is then on by default (`GEMINI_TTS_MODEL=gemini-3.8-flash-lite-tts`, dialect replies with
-   `GEMINI_TTS_DIALECT_MODEL=gemini-3.8-flash-tts`); set `GEMINI_TTS_MODEL=none` to keep browser
-   speech only. Keep credentials out of logs, source control, and all `VITE_*` variables. Check the configured chat model with one
-   smalltalk call; this exercises the understand step without a scheme lookup:
+## 1. Keys, real mode, health check
 
-   ```bash
-   npm run query -w server -- "Hello"
-   ```
+```bash
+cp .env.example .env       # then edit .env: GEMINI_API_KEY=<your key>, USE_MOCKS=false
+npm install
+npm run typecheck && npm run lint && npm test -w server && npm run build
+npm run dev:server         # terminal 1
+curl -s http://localhost:4000/api/health   # terminal 2
+```
 
-2. Build the retrieval index and optional low-bandwidth FAQ data from the reviewed repo documents:
+- The repo checks above were never run with the real toolchain on this branch. Expected: the
+  3 eligibility tests fail by design (rules unverified); anything else is new and needs fixing.
+- `/api/health` must show `"mocks":false`. `true` means some module is still mocked: `USE_MOCKS`
+  must be exactly `false`. `"ttsConfigured":true` means server speech is on (set
+  `GEMINI_TTS_MODEL=none` to keep browser speech only).
+- One cheap model call (smalltalk, no scheme lookup): `npm run query -w server -- "Hello"`.
+- Keep the key out of logs, source control and every `VITE_*` variable.
 
-   ```bash
-   npm run ingest -w server
-   npm run prewarm -w server
-   ```
+## 2. Ingest and prewarm
 
-   Inspect the generated files before committing/deploying: `server/data/vectorstore.json` and
-   `server/data/faq.json`.
+```bash
+npm run ingest -w server
+npm run prewarm -w server
+```
 
-3. Measure retrieval scores, then set `RAG_MIN_SCORE` in `.env` to the recommended value and
-   review the printed score distributions. Do not copy a recommendation blindly if the two groups
-   overlap:
+Inspect `server/data/vectorstore.json` and `server/data/faq.json` before committing them. Ingest
+on the platform you deploy from, or line endings make the startup check warn that the index is
+stale (finding N1 in [AUDIT_FINDINGS.md](AUDIT_FINDINGS.md)).
 
-   ```bash
-   npm run calibrate -w server
-   ```
+## 3. Pipeline audit
 
-4. Run the live quality checks against the current index. They are advisory: inspect every failed
-   row and the cited scheme passages before treating results as acceptable.
+```bash
+AUDIT_BASE_URL=https://gram-saathi.vercel.app npm run audit -w server -- --label first-real
+# PowerShell
+$env:AUDIT_BASE_URL='https://gram-saathi.vercel.app'; npm run audit -w server -- --label first-real
+```
 
-   ```bash
-   # PowerShell
-   $env:EVAL_MODE='live'; npm run eval -w server; Remove-Item Env:EVAL_MODE
-   # bash
-   EVAL_MODE=live npm run eval -w server
-   ```
+- Writes `docs/PIPELINE_AUDIT.md` (before/after table on top, compared with the mock-mode
+  baseline), `audit/results.json`, `eval/review/dialect-review.csv` and sample WAVs in
+  `eval/out/tts/` (git-ignored).
+- Read Stage B first. If a model id does not resolve, fix it (step 8) and run again before reading
+  anything else.
+- Stage C prints a `RAG_MIN_SCORE` recommendation. Use it only if the scheme and non-scheme score
+  groups separate; restart the server and run the audit again after changing it. The older tools
+  still work for a second opinion: `npm run calibrate -w server` and
+  `EVAL_MODE=live npm run eval -w server`.
+- Stage D answers the "ki keh raho he" question for real mode. Stage J shows real latency (the voice
+  path makes 6 sequential model calls; finding N2).
+- Optional variables: `AUDIT_TEXT_PER_LANGUAGE` (default 3), `AUDIT_ENV_NOTE` (a note about this
+  machine), `AUDIT_WORKER_TIMEOUT_MS`. They are listed, commented out, in `.env.example`.
 
-5. Start the app and expose the client over HTTPS using a tunnel. If the tunnel hostname is not
-   already allowed by Vite, add it to `server.allowedHosts` in `client/vite.config.ts`:
+## 4. Real-speaker clips, then audit again
 
-   ```bash
-   npm run dev
-   cloudflared tunnel --url http://localhost:5173
-   ```
+Record and label clips exactly as [eval/audio/README.md](../eval/audio/README.md) says (10 per
+language or dialect, 5–10 s, 16 kHz mono WAV, consent first), then:
 
-   Open the HTTPS tunnel URL on a phone and speak five real sentences in the owner's language.
-   Check the transcript and any reported dialect against what was said. Repeat for typed and voice
-   questions. Do not use synthetic dialect phrases as evidence.
+```bash
+npm run audit -w server -- --label with-clips
+```
 
-6. Ask native speakers to review 15–20 replies. Collect explicit consent before adding any speech
-   to `data/dialects/exemplars/`; preserve their wording and keep eval speakers separate from
-   exemplar speakers.
+Optional Stage H (a real browser pressing the mic button with a fake microphone that plays a
+clip). Playwright is not a dependency of the repo, so install it only for this:
 
-7. Work through every item in [Needs human verification](FINAL_REPORT.md#needs-human-verification)
-   before presenting scheme answers as reliable.
+```bash
+npm install --no-save playwright && npx playwright install chromium
+npm run dev                                          # client :5173 against the real-mode API
+AUDIT_CLIENT_URL=http://localhost:5173 npm run audit -w server -- --label with-browser
+```
+
+## 5. Voice candidates and auditioning
+
+```bash
+npm run tts:voices -w server     # writes docs/tts-voice-candidates.md (hi-IN, mr-IN, ta-IN, en-IN, region IN)
+npm run tts:samples -w server    # renders each language's greeting in every configured voice
+```
+
+Put candidates into `server/src/config/tts-voices.json`, render samples again, and let a native
+speaker listen. Details in [Voices](#voices-auditioning-voice-design-and-voice-replication-owner-only)
+below.
+
+## 6. Native-speaker review, then (human) `verified: true`
+
+- Native speakers of each dialect fill the rating columns of `eval/review/dialect-review.csv`
+  (understandable, natural, correct dialect, facts correct, 1–5, reviewer, notes) and listen to the
+  WAVs in `eval/out/tts/` and `eval/out/tts/samples/`.
+- Only a person sets `"verified": true` for a dialect in `server/src/config/dialect-render.json`,
+  and only where the review earned it. With `DIALECT_REPLY=verified_only`, only those dialects get
+  dialect wording.
+- Registry `testStatus` changes go through the dialect calibration (real mode), which refuses until
+  a label has 20+ held-out native rows:
+  `npm run calibrate:dialect -- --target 0.90 --write-status`.
+- Also review the strings marked `TODO(review-native)` (new Marathi and Tamil UI text, `ASK_AGAIN`).
+
+## 7. Optional: voice design or voice replication (owner only, with consent)
+
+See [Voices](#voices-auditioning-voice-design-and-voice-replication-owner-only), items 4 and 5.
+The code never designs, clones or replicates a voice.
+
+## 8. Pin model ids
+
+When Stage B shows every model id resolving, write those exact ids into the deployment
+environment (Vercel → Project Settings → Environment Variables) and `.env`: `GEMINI_CHAT_MODEL`,
+`GEMINI_FALLBACK_MODEL`, `GEMINI_AUDIO_MODEL`, `GEMINI_EMBED_MODEL`, `GEMINI_TTS_MODEL`,
+`GEMINI_TTS_DIALECT_MODEL`. Do not use moving aliases (such as `-latest`). Re-run step 3 after any
+model change; changing `GEMINI_EMBED_MODEL` or `GEMINI_EMBED_DIMENSIONS` also needs step 2.
+
+## Before merging into `main`
+
+This branch was cut from `feat/conversation-layer` (`1b5d297`) and has not been merged. A read-only
+trial merge (`git merge-tree`, 2026-10-31) conflicts with `main` in 11 files and with the updated
+`feat/conversation-layer` in 9. `main`'s PR #12 independently added server-speech playback to the
+client (`client/src/features/voice/serverTts.ts`): a 6 s request timeout, server speech switched
+off for the whole session after one `audioUrl: null`, and no `dialectId`. Suggested order:
+
+1. Merge PR #9 (`feat/conversation-layer`, already reconciled with `main`).
+2. Merge `feat/conversation-layer` into this branch and resolve by hand. Keep: low-bandwidth never
+   fetches server audio; `dialectId` only for dialect-worded text; `basis` → honest labels. Raise or
+   remove `main`'s 6 s client timeout and its session-wide switch-off, since this server returns
+   `null` per request (for example an answer over the 3 MB audio cap).
+3. Run `npm test` in both workspaces (`main` added client tests) and steps 1 and 3 above.
 
 ## Dialect data needed
 
@@ -69,26 +136,27 @@ The consented exemplar store currently contains **0 examples** for every dialect
 starting floor, not a guarantee of accuracy. Do not write synthetic examples or normalize a
 speaker's words.
 
-| Dialect | Current consented exemplars | Suggested minimum |
-|---|---:|---:|
-| Awadhi | 0 | 20+ |
-| Bagri | 0 | 20+ |
-| Bhojpuri | 0 | 20+ |
-| Braj | 0 | 20+ |
-| Bundeli | 0 | 20+ |
-| Dhundhari/Jaipuri | 0 | 20+ |
-| Harauti | 0 | 20+ |
-| Haryanvi | 0 | 20+ |
-| Malvi | 0 | 20+ |
-| Marwari | 0 | 20+ |
-| Mewari | 0 | 20+ |
-| Mewati | 0 | 20+ |
-| Shekhawati | 0 | 20+ |
-| Wagdi | 0 | 20+ |
+| Dialect           | Current consented exemplars | Suggested minimum |
+| ----------------- | --------------------------: | ----------------: |
+| Awadhi            |                           0 |               20+ |
+| Bagri             |                           0 |               20+ |
+| Bhojpuri          |                           0 |               20+ |
+| Braj              |                           0 |               20+ |
+| Bundeli           |                           0 |               20+ |
+| Dhundhari/Jaipuri |                           0 |               20+ |
+| Harauti           |                           0 |               20+ |
+| Haryanvi          |                           0 |               20+ |
+| Malvi             |                           0 |               20+ |
+| Marwari           |                           0 |               20+ |
+| Mewari            |                           0 |               20+ |
+| Mewati            |                           0 |               20+ |
+| Shekhawati        |                           0 |               20+ |
+| Wagdi             |                           0 |               20+ |
 
 Braj and Wagdi are experimental Hindi entries in the registry. The client has no dialect selector;
 the API accepts a confirmed `dialectHint`. Exemplar prompts respect
 `DIALECT_EXEMPLARS_PER_LABEL` and `DIALECT_EXEMPLAR_TOKEN_BUDGET`; empty labels add no examples.
+Keep a speaker's recordings in either the exemplar set or the eval set, never both.
 
 ## Voices: auditioning, voice design and voice replication (owner only)
 
@@ -140,13 +208,13 @@ examples) marked `"status": "to-be-auditioned"`. Choosing better voices is a hum
 
 - `npm run query -w server -- "Hello"` checks the configured chat model. If it reports an AI error,
   confirm `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL`, account access, quota, and service availability.
-- The calibration CLI was not runnable in the agent environment: `tsx` failed before the script
-  started with `uv_os_get_passwd returned ENOMEM` (Node v24.18.0). Retry it on the owner's machine.
+- In the conversation-layer job's environment the calibration CLI did not start (`tsx`:
+  `uv_os_get_passwd returned ENOMEM`, Node v24.18.0). If you see that, try Node 22.
 - Bhashini/Dhruva is not wired. Account-specific pipeline details are needed; see
   [DECISIONS.md](DECISIONS.md#server-side-tts).
-- Dialect output is best-effort. Wagdi speech recognition is expected to be weak until reviewed
-  native audio and consented examples are available.
-- Browser voices vary by phone. Server Gemini TTS returns no audio (the client then uses the
-  browser voice) on any provider error or timeout, or when the audio would exceed about 3 MB
-  (roughly 70 s at 16 kHz). Dialect text not named by the TTS model is spoken with its
-  base-language voice (Hindi for Braj/Wagdi); the response says so (`basis`).
+- Dialect output is best-effort and unreviewed. Wagdi speech recognition is expected to be weak
+  until reviewed native audio and consented examples are available.
+- Browser voices vary by phone (many have no Marathi voice). Server speech returns no audio (the
+  client then uses the browser voice) on any provider error or timeout, or when the audio would
+  exceed about 3 MB (roughly 70 s at 16 kHz). Dialect text not named by the TTS model is spoken
+  with its base-language voice (Hindi for Braj/Wagdi); the response says so (`basis`).

@@ -10,21 +10,34 @@ Also included: an **eligibility check** (3–4 questions tell you which schemes 
 for), a **low-bandwidth mode** with answers saved for offline use, and an **SMS fallback
 preview**.
 
-> **Status: prototype.** The Gemini voice/chat pipeline, retrieval, eligibility, SMS, and mock
-> paths are implemented. Six concise scheme summaries were checked against their linked official
-> sources on 2026-10-31; PMAY-G remains a sample, eligibility rules remain unverified, and dialect
-> exemplars are empty. Ingest the reviewed documents before using live retrieval. Do not present
-> the unverified parts as production-ready.
+> **Status: prototype; the real pipeline is built but not yet proven.** The Gemini voice/chat
+> pipeline, intent routing, retrieval, dialect-worded replies with a facts lock, server speech
+> with honest labels, eligibility, SMS and the mock paths are implemented and tested with fake
+> models. On this branch (`feat/dialect-voice`) **nothing has been run against the real Gemini
+> models yet**, and the deployed demo serves mock data. Six scheme summaries were checked against
+> official sources on 2026-10-31; PMAY-G remains a sample, eligibility rules remain unverified and
+> dialect exemplars are empty. What works and what is unproven, per language and dialect:
+> [docs/FINAL_REPORT.md](docs/FINAL_REPORT.md) and [docs/PIPELINE_AUDIT.md](docs/PIPELINE_AUDIT.md).
 
 ## Quick start
 
 Requires **Node 22.22+** (or 24 LTS) and npm 10.
 
+**Mock mode (no key, canned answers):**
+
 ```bash
 npm install
-cp .env.example .env    # optional; set USE_MOCKS=true for a no-key demo
+cp .env.example .env    # USE_MOCKS=true is the default: every module serves fixtures
 npm run dev
 ```
+
+Mock answers come from fixtures and prove nothing about the real pipeline. In mock mode every
+spoken question gets a canned transcript, whatever was said.
+
+**Real mode (Gemini):** set `GEMINI_API_KEY` and `USE_MOCKS=false` in `.env`, then build the index
+(`npm run ingest -w server`) and follow [docs/RUNBOOK.md](docs/RUNBOOK.md) in order: health check,
+ingest, `npm run audit -w server`, real-speaker clips, voices, native review, model pinning.
+`GET /api/health` must report `"mocks":false`.
 
 `npm run dev` starts **both** the API and the UI. Run it once. If you prefer separate terminals,
 run `npm run dev:server` and `npm run dev:client` instead; do not start a second server workspace
@@ -71,6 +84,8 @@ One `.env` at the repo root is shared by both apps (template: [.env.example](.en
 | `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | API port and server CORS allow-list. |
 | `RAG_TOP_K` / `RAG_MIN_SCORE` | `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
 | `DIALECT_*` | see below | Classification, active labels and consented-example limits. |
+| `DIALECT_REPLY` / `DIALECT_RENDER_TIMEOUT_MS` | `best_effort` / `8000` | Dialect wording of replies: `off`, `best_effort` (a confirmed or high-confidence dialect) or `verified_only` (only dialects a native reviewer marked `verified` in `server/src/config/dialect-render.json`; none yet). Use `verified_only` for public demos until review. |
+| `AUDIT_*` | unset | Only for `npm run audit -w server`: deployed URL to probe, client URL for the browser test, notes, timeouts (commented in `.env.example`). |
 | `VITE_API_URL` / `VITE_USE_MOCKS` | empty / `false` | Client API origin and browser-only mocks. Never put secrets in `VITE_*`. |
 
 The remaining server settings cover timeouts/retries, dialect confidence, translation, cache,
@@ -96,17 +111,38 @@ scheme guidance.
 
 ## Known limitations
 
-- Dialect output is best-effort until native speakers review model replies and consented examples.
-  Wagdi speech recognition is expected to be weak with the current data.
-- Dialect text is spoken using its base-language voice (Hindi for Braj/Wagdi): a
-  base-language approximation, not a dialect accent. Bhojpuri and Awadhi are named by the TTS
-  model, but nobody has listened yet. Browser speech voices vary by phone; in real mode server
-  Gemini TTS is on by default (`GEMINI_TTS_MODEL=none` turns it off). The voices in
-  `server/src/config/tts-voices.json` are placeholders until a person auditions them.
+- **Nothing on this branch has run against the real models yet.** Every real-mode result in
+  `docs/PIPELINE_AUDIT.md` is NOT-TESTED or MOCK-ONLY until the owner runs the audit with a key.
+- **Dialect text is model-generated and unverified.** A reply is reworded into a dialect only
+  after the standard answer is written, and a deterministic facts lock keeps its numbers, amounts,
+  links and scheme names; but whether the wording is natural or even the right dialect is unknown
+  until native speakers review it. All 14 dialects have zero consented examples, so the rewording
+  is zero-shot.
+- **Braj, Marwari, Wagdi and the other dialects the TTS model does not name are spoken by a Hindi
+  voice**: a base-language approximation, not a dialect accent (the response says so with
+  `basis: "base-language-approximation"`). Bhojpuri and Awadhi are named by the TTS model, but
+  nobody has listened yet. The voices in `server/src/config/tts-voices.json` are placeholders
+  until a person auditions them.
+- **Wagdi speech recognition is expected to be weak**, and no dialect's speech recognition has
+  been tested with real speakers.
+- **Synthetic-audio tests do not prove real-speaker accuracy.** Machine-generated clips (Stage F
+  without real recordings) are labelled SYNTHETIC-ONLY for that reason.
+- **Browser voices vary by phone**; many phones have no Marathi voice. In real mode server speech
+  is on by default (`GEMINI_TTS_MODEL=none` turns it off); low-bandwidth mode always uses the
+  phone's voice.
 - Six scheme summaries have linked official sources; PMAY-G remains a sample. Eligibility rules
   remain unverified and the eligibility endpoint is disabled until every rule is verified.
 - The retrieval score default is uncalibrated. Review sources and run calibration/eval before
   treating live answers as reliable.
+
+## Checking what really works
+
+`npm run audit -w server` runs the pipeline audit and writes
+[docs/PIPELINE_AUDIT.md](docs/PIPELINE_AUDIT.md): every stage from speech-to-text to speech output
+per language and dialect, with a status (PASS, FAIL, PARTIAL, MOCK-ONLY, SYNTHETIC-ONLY,
+NEEDS-HUMAN, NOT-TESTED) and the evidence for it. Mock-mode results never count as proof of the
+real pipeline. Real-speaker clips go in `eval/audio/` (see its README); open problems are tracked in
+[docs/AUDIT_FINDINGS.md](docs/AUDIT_FINDINGS.md).
 
 ## Project structure
 
@@ -116,7 +152,7 @@ gram-saathi/
 │   └── src/
 │       ├── app/            App, router, providers, layout (header + bottom nav)
 │       ├── features/
-│       │   ├── voice/      MicButton, useRecorder, speak (browser TTS)
+│       │   ├── voice/      MicButton, useRecorder, speak (server speech, browser fallback), voice notes
 │       │   ├── chat/       ChatScreen, ChatWindow, MessageBubble, FraudWarning
 │       │   ├── sources/    SourceCard, SourceList
 │       │   ├── eligibility/ EligibilityWizard, ResultCard
@@ -128,14 +164,19 @@ gram-saathi/
 ├── server/                 Node + Express + TypeScript (tsx in dev), zod, multer
 │   └── src/
 │       ├── index.ts, app.ts, createApp.ts, config/env.ts
-│       ├── modules/        health, voice, chat, rag, eligibility, sms, tts, faq
+│       ├── modules/        health, voice, chat, dialect, rag, eligibility, sms, tts, faq
 │       │                   (each: routes.ts, controller.ts, service.ts)
+│       ├── config/         env.ts, dialect-render.json, tts-voices.json
 │       ├── middleware/     errorHandler, requestLogger, upload
-│       ├── lib/            geminiClient, cache, languages, vectors, logger
+│       ├── lib/            geminiClient, facts (facts lock), wav, cache, languages, vectors, logger
 │       └── mocks/          multilingual mock payloads
+│   └── scripts/            ingest, prewarm, query, calibrate, audit, tts-voices, tts-samples
 ├── shared/src/             API contract types (types.ts, index.ts)
 ├── data/schemes/           scheme documents for retrieval (+ how to add one)
-├── docs/                   API_CONTRACT.md, ARCHITECTURE.md, TASKS.md, DEPLOYMENT.md
+├── data/dialects/          dialect registry and consented exemplars (empty)
+├── eval/                   real-speaker clip guide (audio/), native review sheet (review/)
+├── audit/                  generated audit results (results.json)
+├── docs/                   RUNBOOK, FINAL_REPORT, PIPELINE_AUDIT, API_CONTRACT, ARCHITECTURE, …
 └── .github/                PR template, CI (lint + build)
 ```
 
@@ -153,6 +194,10 @@ naming, PR rules and the API contract rule are in [CONTRIBUTING.md](CONTRIBUTING
 
 ## Docs
 
+- [docs/RUNBOOK.md](docs/RUNBOOK.md): the owner's steps from first key to verified dialects, in order
+- [docs/FINAL_REPORT.md](docs/FINAL_REPORT.md): what was built, how it was checked, the regional readiness matrix and the risks
+- [docs/PIPELINE_AUDIT.md](docs/PIPELINE_AUDIT.md) (generated) and [docs/AUDIT_FINDINGS.md](docs/AUDIT_FINDINGS.md): audit results and open findings
+- [docs/DECISIONS.md](docs/DECISIONS.md): design decisions and their alternatives
 - [docs/API_CONTRACT.md](docs/API_CONTRACT.md): every endpoint with examples (types in `shared/src/types.ts`)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it fits together, mock mode, roadmap
 - [docs/TASKS.md](docs/TASKS.md): workstreams, folder ownership, 24-hour plan, demo checklist

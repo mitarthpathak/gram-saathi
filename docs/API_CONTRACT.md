@@ -465,6 +465,12 @@ ends and joined into one WAV. Audio whose data URL would exceed about 3 MB (roug
 failure returns `null` rather than an error, so the client can always fall back to browser speech;
 only invalid requests get `400`. The endpoint uses the shared AI rate limiter.
 
+`audioUrl: null` is a per-request answer (for example one answer was over the size cap, or the
+provider timed out once); it does not mean server speech is off. Clients should not switch server
+speech off for the session after one `null`: `GET /api/health` → `ttsConfigured` says whether it is
+configured at all. One request can take up to `TTS_TIMEOUT_MS` (default 15 s) plus one retry, so a
+client timeout much shorter than that turns most server speech into browser speech.
+
 ---
 
 ### `POST /api/rag/search` (internal)

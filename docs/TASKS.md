@@ -1,18 +1,27 @@
 # Workstreams
 
-## Current status — 2026-10-31
+## Current status — 2026-10-31 (branch `feat/dialect-voice`)
 
-The conversation layer, shared text/voice routing, intent response contract, optional Gemini TTS,
-score calibration script, offline/live eval harness and health capability flags are implemented.
-Client typecheck/build and the mock API smoke test passed. The full automated suite still has three
-known eligibility failures because unverified eligibility rules intentionally disable that flow.
-These statuses supersede the historical step-2/step-3 checklist below where they conflict.
+Built on top of the conversation layer (PR #9, not yet merged): dialect-worded replies with a
+deterministic facts lock and `answerStyle`, a facts guard on clarifications, server speech
+(`POST /api/tts`) with `dialectId` and honest `basis` labels, the Listen button using server speech
+with browser fallback and low-bandwidth respected, and the pipeline audit
+(`npm run audit -w server`). All of it is tested with fake models only; nothing has run against the
+real Gemini models, and the repo's own `npm install` / typecheck / lint / test / build were not run
+on this branch (the agent's sandbox could not install packages). These statuses supersede the
+historical step-2/step-3 checklist below where they conflict.
 
-Owner work remaining: verify scheme documents and eligibility rules against official sources,
-regenerate the vector store and FAQ cache, run live calibration and evaluation on a configured
-machine, collect consented dialect examples, and review replies with native speakers. See
-[`RUNBOOK.md`](RUNBOOK.md) for the exact sequence and [`FINAL_REPORT.md`](FINAL_REPORT.md) for
-verification results.
+| Who    | What                                                                                          | Where                                              |
+| ------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Owner  | Repo checks, real-mode health check, ingest, first real audit, model pinning                  | [RUNBOOK.md](RUNBOOK.md) steps 1–3, 8              |
+| Owner  | Merge PR #9, then reconcile this branch with `main` (11 conflicting files, Listen path)       | [RUNBOOK.md](RUNBOOK.md#before-merging-into-main)  |
+| Team   | Record consented real-speaker clips (10 per language/dialect) and exemplars (20+ per dialect) | `eval/audio/README.md`, `data/dialects/exemplars/` |
+| Native | Rate `eval/review/dialect-review.csv`, audition voices, review `TODO(review-native)` strings  | [RUNBOOK.md](RUNBOOK.md) steps 5–6                 |
+| Owner  | Set `"verified": true` per dialect only after that review                                     | `server/src/config/dialect-render.json`            |
+| Owner  | Verify PMAY-G and eligibility rules; prewarm the FAQ; calibrate `RAG_MIN_SCORE`               | carried over from the conversation-layer job       |
+
+Results and risks: [`FINAL_REPORT.md`](FINAL_REPORT.md). Open audit findings:
+[`AUDIT_FINDINGS.md`](AUDIT_FINDINGS.md).
 
 Four workstreams, each owning its own folders, so 3–4 people can work in parallel with few
 merge conflicts. Everything already runs on mock data, so nobody waits for anybody: build your

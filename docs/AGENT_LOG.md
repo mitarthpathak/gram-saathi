@@ -283,3 +283,51 @@ Earlier sections above belong to the finished conversation-layer job. This job's
   (dialectId only with dialect text). Everything else is listed in `docs/AUDIT_FINDINGS.md`.
 - Note: the report says "uncommitted changes present" because the harness edits above are
   committed together with the report (one commit per phase).
+
+## Phase 6 — docs, final report and independent re-check
+
+- Resumed in a new agent session from this log (R2): Phases 0–5 committed, Phase 6 open. Branch
+  checked out from `origin/feat/dialect-voice` at `38689dd`; no other branch touched.
+- Files changed: `README.md` (status, mock vs real quickstart, `DIALECT_REPLY` / `AUDIT_*` rows,
+  known limitations, "Checking what really works", docs list, structure), `docs/ARCHITECTURE.md`
+  (real-mode pipeline diagram: identify → answer → dialect render → speech; call counts; audit;
+  TTS and dialect variables; roadmap; client notes), `docs/API_CONTRACT.md` (`audioUrl: null` is
+  per request; TTS request duration; no type change), `docs/TASKS.md` (current status and owner
+  table), `docs/DECISIONS.md` (Phase 6 section; prettier), `docs/RUNBOOK.md` (rewritten in the
+  required 8-step order plus "Before merging into `main`"), `docs/FINAL_REPORT.md` (rewritten for
+  this job), `docs/AUDIT_FINDINGS.md` (N6 checked; N12–N14 added), `.env.example` (commented
+  `AUDIT_*` variables), `docs/AGENT_LOG.md`.
+- Commands run (sandbox: npm registry 403 at the proxy, no key; kit rebuilt from packages on disk:
+  TypeScript 6.0.3, `@types/node` 26.1.2, `yaml` 2.9.0, zod 3.25.76 `zod/v4`, shims for vitest,
+  express, cors, multer, dotenv, unpdf, `@google/genai`):
+  - `tsc --noEmit -p shared/tsconfig.json`, `tsc --noEmit -p server/tsconfig.json` → 0 errors each;
+    negative control (wrong `LanguageCode` in an `AnswerStyle`) → TS2322 reported.
+  - `tsx --test --test-reporter=spec test/*.test.ts` (server, vitest env) → 183 pass, 10 fail:
+    rate limit ×2, `GET /api/dialects` ×2, mock voice flow ×1 and `dialectTranscribe.test.ts` (2
+    tests, file cannot load) need real Express; 3 eligibility tests fail by design. Same as Phase 5.
+  - `tsx scripts/audit.ts --skip-static --label recheck` → 85 checks, every status, the matrix and
+    the "ki keh raho he" verdict identical to the committed run; generated files restored with
+    `git checkout`.
+  - prettier 3.8.1 `--check`: 24 files repo-wide (29 at base `1b5d297`); of this branch's files
+    only `docs/DECISIONS.md` was newly unformatted (now formatted).
+  - Real Chromium 153 via the preinstalled Playwright: fake microphone flag
+    (`--use-file-for-fake-audio-capture`) tone → peak 0.195, silence → 0; the real `speak.ts`
+    bundled with esbuild against a stub API: 7/7 (dialectId only when given; low-bandwidth makes no
+    `/api/tts` call; null audio and request errors fall back to browser speech; answer audio needs
+    no request; `basis` → note). A WAV made with `encodeWav(concatPcm(…, 250))` decodes (1.45 s).
+    Headless Chromium has 0 speech voices, so browser speech reports `ok: false`. Harnesses are in
+    the agent's scratch space, not the repo.
+  - `main`'s own mock `answerQuestion("ki keh raho he")` via `tsx` (temporary worktree, removed) →
+    not-found text, no sources; client and server mock `query.ts` identical on `main`.
+  - `git merge-tree --write-tree HEAD main` / `HEAD origin/feat/conversation-layer` (read-only) →
+    11 / 9 conflicting files.
+  - WebFetch: deployed `/api/health` → `{"status":"ok","mocks":true}`; `/api/dialects` → 14
+    dialects; speech-generation docs → same model ids and language table as Phase 3, no input
+    token limit stated, "Last updated 2026-10-28 UTC". `curl` to the deployed app from the shell →
+    proxy 403 (not retried).
+  - `mmdc` render of the new architecture diagram → renders.
+- Results: no code changed in this phase. Stage statuses unchanged (A NOT-TESTED, B PARTIAL, C–G
+  MOCK-ONLY, H NOT-TESTED, I PARTIAL, J FAIL); no matrix cell changed.
+- Open issues: everything real-mode (owner, runbook steps 1–8); merge with `main` (N12); typed
+  "ki keh raho he" points to a real-mode run (N13); `ASK_AGAIN` rewording (N14). Push: see the
+  commit's delivery note in the final message.
