@@ -4,6 +4,7 @@ import { LruCache } from '../../lib/cache';
 import { generateJson } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
 import { mockDialectFields, mockGenerateAnswer } from '../../mocks';
+import { getDialectExemplars, renderPromptExemplars } from '../dialect/exemplars';
 import {
   classifyDialect,
   getActiveDialectLabels,
@@ -21,6 +22,7 @@ import {
   type ReplyScript,
 } from './language';
 import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply } from './messages';
+import { getHistory, handleTurn, recordTurn, type Passage } from './conversation';
 
 export interface AnswerInput {
   text: string;
@@ -35,7 +37,7 @@ export interface AnswerInput {
   };
   /** Language already known from speech recognition; skips text-based detection. */
   detectedLanguage?: LanguageCode;
-  sessionId: string;
+  sessionId?: string;
   /** Set when `text` came from speech-to-text. */
   transcript?: string;
 }
@@ -64,13 +66,13 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
     detectTextLanguage(input.text, input.language);
   const script = detectTextScript(input.text) ?? defaultScriptForLanguage(language);
 
-  const greeting = getGreetingReply(input.text, language, script);
+  const greeting = isMocked('chat') ? getGreetingReply(input.text, language, script) : undefined;
   if (greeting) {
     const dialect = input.dialectHint
       ? (dialectHintOutcome(input.dialectHint) ?? { dialect: null, dialectCandidates: [] })
       : { dialect: null, dialectCandidates: [] };
     return {
-      sessionId: input.sessionId,
+      sessionId: input.sessionId ?? '',
       transcript: input.transcript,
       ...dialect,
       detectedLanguage: language,
@@ -85,13 +87,13 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
     };
   }
 
-  const smallTalk = getSmallTalkReply(input.text, language, script);
+  const smallTalk = isMocked('chat') ? getSmallTalkReply(input.text, language, script) : undefined;
   if (smallTalk) {
     const dialect = input.dialectHint
       ? (dialectHintOutcome(input.dialectHint) ?? { dialect: null, dialectCandidates: [] })
       : { dialect: null, dialectCandidates: [] };
     return {
-      sessionId: input.sessionId,
+      sessionId: input.sessionId ?? '',
       transcript: input.transcript,
       ...dialect,
       detectedLanguage: language,
@@ -108,6 +110,12 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
 
   const dialect = await getDialectOutcome(input);
   const dialectId = input.dialectHint ?? dialect.dialect?.id;
+
+  // Preserve the pre-existing mocked answer pipeline byte-for-byte in USE_MOCKS mode.
+  if (!isMocked('chat')) {
+    return answerConversation(input, language, dialect, dialectId);
+  }
+
   const key = cacheKey(input.text, language, dialectId, script);
 
   const cached = answerCache.get(key);
@@ -127,6 +135,89 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
   }
   const answer = await pending;
   return { ...toResponse(answer, input, false), ...dialect };
+}
+
+async function answerConversation(
+  input: AnswerInput,
+  fallbackLanguage: LanguageCode,
+  dialect: DialectOutcome,
+  dialectId?: string,
+): Promise<QueryResponse> {
+  let retrieved: ScoredChunk[] = [];
+  const result = await handleTurn(
+    {
+      minScore: env.RAG_MIN_SCORE,
+      generateJson: ({ system, prompt, schema }) =>
+        generateJson({ label: 'conversation', system, input: prompt, schema }),
+      search: async (queryEn) => {
+        retrieved = await searchSchemes({ query: queryEn, language: 'en', skipTranslation: true });
+        return retrieved.map((chunk): Passage => ({
+          id: chunk.chunkId,
+          schemeName: chunk.schemeName,
+          section: chunk.section,
+          text: chunk.text,
+          score: chunk.score,
+        }));
+      },
+      dialectExamples: (label) =>
+        renderPromptExemplars([label], getDialectExemplars()),
+    },
+    {
+      text: input.text,
+      history: input.sessionId ? getHistory(input.sessionId) : [],
+      dialectHint: input.dialectHint ?? dialectId,
+      languageHint: input.detectedLanguage ?? input.language ?? fallbackLanguage,
+    },
+  );
+
+  let response: QueryResponse;
+  if (result.kind === 'direct') {
+    const smsText = truncateAtSentence(result.answer, env.SMS_MAX_SEGMENTS);
+    response = {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+      ...dialect,
+      detectedLanguage: result.language,
+      answer: result.answer,
+      sources: [],
+      fraudWarning: getFraudWarning(result.language),
+      smsText,
+      smsSegments: countSmsSegments(smsText),
+      audioUrl: null,
+      usedCache: false,
+      notFound: false,
+    };
+  } else if (result.kind === 'notFound') {
+    response = {
+      sessionId: input.sessionId ?? '',
+      transcript: input.transcript,
+      ...dialect,
+      ...notFoundAnswer(result.language ?? fallbackLanguage),
+      usedCache: false,
+    };
+  } else {
+    const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
+    if (!result.answer || usedChunks.length === 0 || !preservesContextNumbers(result.answer, usedChunks)) {
+      response = {
+        sessionId: input.sessionId ?? '',
+        transcript: input.transcript,
+        ...dialect,
+        ...notFoundAnswer(result.language),
+        usedCache: false,
+      };
+    } else {
+      const { sms } = await compressForSms({ text: result.answer, language: result.language });
+      response = {
+        sessionId: input.sessionId ?? '',
+        transcript: input.transcript,
+        ...dialect,
+        ...foundAnswer(result.language, result.answer, usedChunks, sms),
+        usedCache: false,
+      };
+    }
+  }
+  if (input.sessionId) recordTurn(input.sessionId, input.text, response.answer);
+  return response;
 }
 
 async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
@@ -238,7 +329,7 @@ function notFoundAnswer(language: LanguageCode, script?: ReplyScript): CachedAns
 
 function toResponse(answer: CachedAnswer, input: AnswerInput, usedCache: boolean): QueryResponse {
   return {
-    sessionId: input.sessionId,
+    sessionId: input.sessionId ?? '',
     transcript: input.transcript,
     ...answer,
     usedCache,

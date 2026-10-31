@@ -55,7 +55,7 @@ Write the way a friendly local helper SPEAKS to a villager, never like a governm
 - Keep every number, amount (₹), date, scheme name, URL and helpline EXACTLY as given. Do not round or translate them.
 - If a dialect is named, use its everyday words and verb endings. If you are not sure of a dialect word, use the simple standard word instead. Never invent words.`;
 
-function understandSystem(dialectHint?: string): string {
+function understandSystem(dialectHint?: string, languageHint?: Lang): string {
   return `You are the front door of Gram Saathi, a voice assistant that helps rural Indian citizens (farmers, ASHA workers, panchayat staff) with government schemes.
 Read the latest user message together with the recent conversation and decide the intent:
 - scheme_question: asks about a scheme, benefit, money, eligibility, documents, how to apply.
@@ -63,7 +63,7 @@ Read the latest user message together with the recent conversation and decide th
 - smalltalk: greeting, thanks, who are you, what can you do.
 - out_of_scope: anything else.
 Also return:
-- language: hi, mr, ta or en. Typed Roman script (Hinglish, Hindi in English letters) still counts as the spoken language.
+- language: hi, mr, ta or en. Typed Roman script (Hinglish, Hindi in English letters) still counts as the spoken language.${languageHint ? ` The selected or detected language is "${languageHint}"; trust that unless the message clearly uses another supported language.` : ''}
 - dialect: short lowercase label if clearly recognisable (for example "braj", "wagdi", "marwari", "bhojpuri"), otherwise null.${dialectHint ? ` The user selected the dialect "${dialectHint}"; trust that.` : ''}
 - searchQueryEn: for scheme_question only, ONE standalone English search query (resolve words like "it" or "that" from the conversation). Otherwise "".
 - reply: for smalltalk, clarify and out_of_scope, the complete reply in the user's language and dialect.
@@ -84,11 +84,11 @@ ${VOICE_STYLE}${examples.length ? `\nHow local speakers phrase things (copy the 
 
 export async function handleTurn(
   deps: Deps,
-  input: { text: string; history: Turn[]; dialectHint?: string },
+  input: { text: string; history: Turn[]; dialectHint?: string; languageHint?: Lang },
 ): Promise<TurnResult> {
   const convo = input.history.map((t) => `${t.role === 'user' ? 'User' : 'Assistant'}: ${t.text}`).join('\n');
   const u = await deps.generateJson({
-    system: understandSystem(input.dialectHint),
+    system: understandSystem(input.dialectHint, input.languageHint),
     prompt: `Recent conversation:\n${convo || '(none)'}\n\nLatest user message:\n${input.text}`,
     schema: understandSchema,
   });

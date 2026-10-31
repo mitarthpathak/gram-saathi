@@ -15,6 +15,8 @@ export interface SearchInput {
   language?: LanguageCode;
   /** Defaults to RAG_TOP_K. */
   topK?: number;
+  /** Query is already English; bypass the optional legacy query translation. */
+  skipTranslation?: boolean;
 }
 
 let knowledgeBase: VectorStore | undefined;
@@ -61,7 +63,7 @@ export async function searchSchemes(input: SearchInput): Promise<ScoredChunk[]> 
     );
   }
   const query =
-    env.RAG_TRANSLATE_QUERY && input.language !== 'en'
+    !input.skipTranslation && env.RAG_TRANSLATE_QUERY && input.language !== 'en'
       ? await translateQueryToEnglish(input.query)
       : input.query;
   // Query vectors must come from the same model and size as the stored document vectors.
