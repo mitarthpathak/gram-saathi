@@ -29,3 +29,7 @@ data/eval/dialect/audio/*
 !data/eval/dialect/audio/.gitkeep
 server/data/eval-cache/
 server/data/eval-report/
+
+# Pipeline audit: generated speech for listening, and real-speaker recordings (personal data)
+eval/out/
+eval/audio/*.wav

@@ -142,3 +142,37 @@ Earlier sections above belong to the finished conversation-layer job. This job's
   "ki keh raho he" cannot produce PM-KISAN in mock mode while any spoken query does.
 - Open issues: no dependency install, no Gemini key and no client toolchain in this sandbox. All
   repo-tooling checks are NOT-TESTED here; sandbox-shim results are labelled as such.
+
+## Phase 1 — honest audit harness and baseline
+
+- Files changed: `server/scripts/audit.ts` and `server/scripts/audit/{types,checks,context,goldset,kb,transport,stagesText,stagesSpeech,e2e,worker,fakeWorker,report,ttsLanguages}.ts`,
+  `server/src/lib/facts.ts` (pure fact extraction, used by the audit now and the facts lock in
+  Phase 2), `server/src/lib/geminiClient.ts` (diagnostics observer only),
+  `server/eval/audit-goldset.json`, `server/test/audit.test.ts`, `server/package.json`
+  (`audit` script), `eval/audio/README.md`, `eval/audio/labels.example.json`, `.gitignore`,
+  `.prettierignore`, generated `docs/PIPELINE_AUDIT.md`, `docs/PIPELINE_AUDIT.baseline.md`,
+  `audit/results.json`, `audit/results.baseline.json`, `eval/review/dialect-review.csv`,
+  `docs/DECISIONS.md`.
+- Commands run (sandbox kit): `tsc --noEmit -p server/tsconfig.json` (0 errors);
+  `tsx --test server/test/audit.test.ts` (13/13 pass); full server suite (148 tests: 138 pass,
+  the same 10 failures as baseline — 7 Express-only, 3 known eligibility); `prettier --check` on
+  touched files (clean); `tsx scripts/audit.ts --baseline` with `AUDIT_BASE_URL` and an
+  `AUDIT_ENV_NOTE` describing this sandbox.
+- Baseline results (mock mode, no key, in-process API): A NOT-TESTED (no dependencies),
+  B PARTIAL (models NOT-TESTED; index present; index fingerprint matches only as CRLF; PMAY-G
+  sample), C/D/E/F/G MOCK-ONLY, H NOT-TESTED, I PARTIAL (7 error-code checks PASS with a fake
+  backend; multer limits and the client path NOT-TESTED), J FAIL (voice path: 8 calls, 6
+  sequential, over the 4-call budget; typed scheme path 4 sequential).
+- "ki keh raho he": typed in mock mode → fixed not-found text (not reproduced); any spoken query
+  in mock mode → canned PM-KISAN transcript and formal-Hindi answer (reproduced). Real mode
+  NOT-TESTED (no key). Deployed app not reachable from the shell; the earlier WebFetch evidence
+  (`mocks:true`, mock FAQ ids) is in the report's environment note.
+- Findings (not fixed here, out of scope or human-owned): (1) `fingerprintDocuments` hashes raw
+  text, so the Windows-built index looks stale on Linux/Vercel and startup logs a false warning;
+  (2) the voice path makes 6 sequential model calls; (3) the verified PM-KISAN summary says
+  "₹6,000 per year in three equal instalments" — a correct derived "₹2,000" in an answer is not in
+  the passage, and `preservesContextNumbers` would turn such answers into notFound (real-mode
+  risk, NOT-TESTED); (4) mock fixtures mention ₹2,000, pmkisan.gov.in etc. that the verified
+  passages do not.
+- Open issues: everything real-mode is NOT-TESTED here; Stage H code was never executed (no
+  Playwright, no client server); the in-process transport skips multer and the rate limiter.

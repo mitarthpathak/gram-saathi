@@ -15,7 +15,8 @@
     "prewarm": "tsx scripts/prewarm.ts",
     "query": "tsx scripts/query.ts",
     "calibrate": "tsx scripts/calibrate-rag.ts",
-    "eval": "vitest run --silent=false --config vitest.eval.config.mts test/evalHarness.test.ts"
+    "eval": "vitest run --silent=false --config vitest.eval.config.mts test/evalHarness.test.ts",
+    "audit": "tsx scripts/audit.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",

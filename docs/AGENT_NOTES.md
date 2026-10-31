@@ -47,7 +47,7 @@ Code was read on this branch; where these notes and the code disagree, trust the
      to `null` and keeps candidates. `dialectId = dialectHint ?? dialect.dialect?.id`.
 3. **Real mode** (`USE_MOCKS` does not contain `chat`) → `answerConversation()` →
    `handleTurn()` in `server/src/modules/chat/conversation.ts`:
-   - *Understand* call (`generateJson`, label `conversation`): intent
+   - _Understand_ call (`generateJson`, label `conversation`): intent
      (`scheme_question | smalltalk | clarify | out_of_scope`), `language`, a free-form `dialect`
      string, `searchQueryEn`, and a direct `reply` for non-scheme intents. The prompt names
      "ki keh raho he" as a `clarify` example.
@@ -62,7 +62,7 @@ Code was read on this branch; where these notes and the code disagree, trust the
    - Direct replies (smalltalk/clarify/out_of_scope) are written by the understand call "in the
      user's language and dialect"; `clarify` restates the previous answer with **no facts check**.
    - Scheme questions: one English search (`rag/service.ts` `searchSchemes`, translation skipped),
-     `RAG_MIN_SCORE` filter, *answer* call (`answersQuestion`, `usedChunkIds`), then in
+     `RAG_MIN_SCORE` filter, _answer_ call (`answersQuestion`, `usedChunkIds`), then in
      `service.ts` `preservesContextNumbers()` (every digit run in the answer must appear in a cited
      chunk; Western digits only), then `compressForSms` (another Gemini call unless `sms` mocked).
    - `detectedLanguage` in the response is the understand model's `language`, not the
@@ -92,7 +92,7 @@ Code was read on this branch; where these notes and the code disagree, trust the
 - Exemplar store `data/dialects/exemplars/<label>.jsonl` (loader `dialect/exemplars.ts`, rows must
   have `consent: true`): **all 22 files are empty (0 rows)**. Every dialect is zero-shot.
 - Classification `dialect/classifier.ts` (ensemble votes, calibration file optional), env
-  `DIALECT_*`. There is no dialect *text generation* step besides the answer prompt's
+  `DIALECT_*`. There is no dialect _text generation_ step besides the answer prompt's
   "spoken the X way" line.
 - Client: **no dialect UI**. The client never sends `dialectHint` (`ChatProvider.tsx` sends
   `{ text, language, sessionId }`) and never shows `dialect` or `dialectCandidates`. So "the
@@ -102,7 +102,7 @@ Code was read on this branch; where these notes and the code disagree, trust the
 
 - Server: `QueryResponse.audioUrl` is always `null` (`chat/service.ts`, all branches).
 - `POST /api/tts` (`tts/controller.ts` → `tts/service.ts` `synthesizeSpeech`): only `{ text,
-  language }`; enabled when `GEMINI_TTS_MODEL` and `GEMINI_API_KEY` are set and `tts` is not
+language }`; enabled when `GEMINI_TTS_MODEL` and `GEMINI_API_KEY` are set and `tts` is not
   mocked. It calls the Interactions REST endpoint with plain `fetch`, hard-coded voice `Kore`,
   a style annotation `warm, clear, conversational`, `response_format: { type: 'audio' }` with no
   mime type or sample rate, and returns `data:audio/wav;base64,…`. No retries, no concurrency cap,
@@ -175,15 +175,15 @@ the same fixtures in the browser.
 
 ## Baseline verification (before any behaviour change)
 
-| Check | Command | Result here |
-|---|---|---|
-| install | `npm install` | **FAIL (environment)**: registry blocked (ENOTFOUND / proxy 403) |
-| typecheck (repo tooling) | `npm run typecheck` | **FAIL (environment)**: no `node_modules` |
-| lint | `npm run lint` | **FAIL (environment)**: ESLint plugins missing |
-| format | `prettier --check .` (3.8.1) | 29 files differ (pre-existing) |
-| test (repo tooling) | `npm test -w server` | **FAIL (environment)**: `vitest` missing |
-| build | `npm run build` | **FAIL (environment)** |
-| server typecheck, sandbox shim | `tsc --noEmit -p server/tsconfig.json` (TS 6.0.3) | 0 errors |
-| shared typecheck, sandbox shim | `tsc --noEmit -p shared/tsconfig.json` | 0 errors |
-| server tests, sandbox shim | `tsx --test server/test/*.test.ts` | 135 tests: 125 pass, 10 fail = 7 need real Express (sandbox-only) + 3 known eligibility failures (rules unverified; same 3 as the previous job's real `npm test`: 132 pass / 3 fail) |
-| client typecheck/build | — | **NOT-TESTED**: client dependencies unavailable |
+| Check                          | Command                                           | Result here                                                                                                                                                                          |
+| ------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| install                        | `npm install`                                     | **FAIL (environment)**: registry blocked (ENOTFOUND / proxy 403)                                                                                                                     |
+| typecheck (repo tooling)       | `npm run typecheck`                               | **FAIL (environment)**: no `node_modules`                                                                                                                                            |
+| lint                           | `npm run lint`                                    | **FAIL (environment)**: ESLint plugins missing                                                                                                                                       |
+| format                         | `prettier --check .` (3.8.1)                      | 29 files differ (pre-existing)                                                                                                                                                       |
+| test (repo tooling)            | `npm test -w server`                              | **FAIL (environment)**: `vitest` missing                                                                                                                                             |
+| build                          | `npm run build`                                   | **FAIL (environment)**                                                                                                                                                               |
+| server typecheck, sandbox shim | `tsc --noEmit -p server/tsconfig.json` (TS 6.0.3) | 0 errors                                                                                                                                                                             |
+| shared typecheck, sandbox shim | `tsc --noEmit -p shared/tsconfig.json`            | 0 errors                                                                                                                                                                             |
+| server tests, sandbox shim     | `tsx --test server/test/*.test.ts`                | 135 tests: 125 pass, 10 fail = 7 need real Express (sandbox-only) + 3 known eligibility failures (rules unverified; same 3 as the previous job's real `npm test`: 132 pass / 3 fail) |
+| client typecheck/build         | —                                                 | **NOT-TESTED**: client dependencies unavailable                                                                                                                                      |

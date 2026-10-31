@@ -322,6 +322,55 @@ function createSdkBackend(apiKey: string): GeminiBackend {
 
 let backend: GeminiBackend | undefined;
 
+// ---------------------------------------------------------------------------
+// Observation (diagnostics only): lets the pipeline audit count calls and inspect prompts.
+// ---------------------------------------------------------------------------
+
+/** One backend call as seen by the audit. Kept in memory by the observer; never logged here. */
+export interface GeminiCallRecord {
+  /** Caller label, e.g. "conversation", "answer", "sms", "transcribe", "dialect-…", "embed". */
+  label: string;
+  kind: 'generate' | 'embed';
+  model: string;
+  startedAt: number;
+  durationMs: number;
+  ok: boolean;
+  /** System prompt (generate only). */
+  system?: string;
+  /** Text input; audio parts are replaced by "[audio]". */
+  inputText?: string;
+}
+
+export type GeminiObserver = (record: GeminiCallRecord) => void;
+
+let observer: GeminiObserver | undefined;
+
+/** Installs (or removes, with undefined) a diagnostics observer. No effect on behaviour. */
+export function setGeminiObserver(next: GeminiObserver | undefined): void {
+  observer = next;
+}
+
+async function observed<T>(
+  record: Omit<GeminiCallRecord, 'startedAt' | 'durationMs' | 'ok'>,
+  call: () => Promise<T>,
+): Promise<T> {
+  if (!observer) return call();
+  const startedAt = Date.now();
+  try {
+    const result = await call();
+    observer({ ...record, startedAt, durationMs: Date.now() - startedAt, ok: true });
+    return result;
+  } catch (error) {
+    observer({ ...record, startedAt, durationMs: Date.now() - startedAt, ok: false });
+    throw error;
+  }
+}
+
+function inputAsText(input: string | GeminiInputPart[]): string {
+  if (typeof input === 'string') return input;
+  return input.map((part) => (part.type === 'text' ? part.text : '[audio]')).join('\n');
+}
+
 /** True when an API key is set (or a fake backend is installed). */
 export function isGeminiConfigured(): boolean {
   return backend !== undefined || Boolean(env.GEMINI_API_KEY);
@@ -384,14 +433,24 @@ export async function generateJson<T>(options: GenerateJsonOptions<T>): Promise<
           const { text, usage } = await withGeminiConcurrency(
             options.label.startsWith('dialect-') ? 'dialect' : 'answer',
             () =>
-              client.generate({
-                model,
-                system: options.system,
-                input: options.input,
-                jsonSchema,
-                maxOutputTokens: options.maxOutputTokens ?? 2048,
-                timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
-              }),
+              observed(
+                {
+                  label: options.label,
+                  kind: 'generate',
+                  model,
+                  system: options.system,
+                  inputText: inputAsText(options.input),
+                },
+                () =>
+                  client.generate({
+                    model,
+                    system: options.system,
+                    input: options.input,
+                    jsonSchema,
+                    maxOutputTokens: options.maxOutputTokens ?? 2048,
+                    timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
+                  }),
+              ),
             options.signal,
           );
           const result = options.schema.safeParse(parseJsonOutput(text));
@@ -496,13 +555,15 @@ export async function embedTexts(texts: string[], options: EmbedOptions): Promis
     const values = await withRetries(
       () =>
         withGeminiConcurrency('answer', () =>
-          client.embed({
-            model,
-            texts: batch,
-            taskType,
-            dimensions,
-            timeoutMs: env.GEMINI_TIMEOUT_MS,
-          }),
+          observed({ label: 'embed', kind: 'embed', model }, () =>
+            client.embed({
+              model,
+              texts: batch,
+              taskType,
+              dimensions,
+              timeoutMs: env.GEMINI_TIMEOUT_MS,
+            }),
+          ),
         ),
       { label: 'embed', maxRetries: options.maxRetries, maxDelayMs: options.maxDelayMs },
     );

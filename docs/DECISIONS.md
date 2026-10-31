@@ -93,3 +93,50 @@
 - **Decision:** `docs/AGENT_NOTES.md` is replaced with this job's recon; the previous job's notes
   stay in git history.
 - **Why:** The old notes described the pre-conversation-layer code and would mislead.
+
+## Audit gold set comes from repo data
+
+- **Decision:** Stages C–E use the team-written FAQ seed questions in `data/faq/questions.json`
+  (12 questions × hi/mr/ta/en) mapped to scheme ids in `server/eval/audit-goldset.json`, plus the
+  10 non-scheme messages already in `server/eval/testset.json`. No new Hindi, Marathi, Tamil or
+  dialect sentence was written for the audit.
+- **Alternatives considered:** English-only queries with language hints (the previous job's eval
+  choice); writing new Marathi/Tamil questions.
+- **Why:** Native-script retrieval and answers are exactly what the audit must measure, and these
+  questions already ship in the app (offline FAQ), so they are repo data rather than invented text.
+  The previous job's English-only choice still stands for `npm run eval`.
+
+## Diagnostics observer in the Gemini client
+
+- **Decision:** `server/src/lib/geminiClient.ts` gained `setGeminiObserver()`, called after every
+  generate/embed attempt with label, model, timing and (in memory only) the prompt text. Unset by
+  default; it changes no behaviour.
+- **Why:** The audit must show whether a dialect instruction reached a generation prompt and how
+  many sequential calls a request makes. Wrapping the private SDK backend from outside was not
+  possible without exporting it, which would be a larger change.
+
+## Audit thresholds (documented, not tuned)
+
+- Retrieval recall@k: PASS ≥ 0.9, PARTIAL ≥ 0.6 per language. Speech CER: PASS ≤ 0.15 with the
+  right language, PARTIAL ≤ 0.35. Latency shape: more than 4 sequential model calls per request is
+  flagged FAIL. TTS duration plausibility: 2–30 characters per second (catches empty or truncated
+  audio, not accents).
+- **Why:** Fixed, simple cut-offs make runs comparable; they are reported next to every result so
+  the owner can disagree with them. Nothing human-judged (dialect quality, accent) is ever PASS.
+
+## Audit process layout
+
+- **Decision:** `npm run audit -w server` runs three worker processes: `configured` (the API as
+  `.env` configures it), `mock-reference` (only when the configured run is not fully mocked, to
+  reproduce mock behaviour for the "ki keh raho he" verdict) and `fake` (`NODE_ENV=test`,
+  `USE_MOCKS=false`, no key, fake Gemini backend, for error codes and call shape). Each worker
+  reaches the API through the real Express app on a local port, or — when the app cannot start —
+  by calling the controllers and the error handler directly, which the report states.
+- **Why:** Each mode needs a clean environment (`env.ts` is parsed once per process), a crashed
+  worker must not crash the audit, and the fake worker must never read a developer's real key.
+
+## Generated audit files and recordings
+
+- **Decision:** `docs/PIPELINE_AUDIT*.md`, `audit/` and `eval/review/` are excluded from Prettier
+  (rewritten on every run); `eval/out/` (generated speech) and `eval/audio/*.wav` (real voices,
+  personal data) are git-ignored.
