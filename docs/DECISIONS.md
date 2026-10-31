@@ -20,9 +20,10 @@
 
 ## Server-side TTS
 
-- **Decision:** Gemini TTS may be implemented using the current official speech-generation documentation and the selected model must be configured by environment. Bhashini/Dhruva remains behind an adapter until its live pipeline callback URL, auth header, selected TTS pipeline, payload and response are confirmed from the owner's account.
+- **Decision:** Gemini TTS is implemented against the current official speech-generation API, and is enabled only when `GEMINI_TTS_MODEL` and `GEMINI_API_KEY` are configured. Bhashini/Dhruva remains unimplemented until the owner's callback URL, auth header and selected pipeline are confirmed.
 - **Alternatives considered:** Hardcode a public example endpoint or model/service id; implement only browser speech.
-- **Why:** Bhashini's official docs say compute endpoint and auth header are returned by a per-account pipeline config call; they do not supply a safe universal default. No guessed request shape or endpoint will be shipped.
+- **Why:** The current Gemini docs provide the Interactions request and WAV output format. Bhashini's official docs say its compute endpoint and auth header come from an account-specific pipeline config, and an account's selected service/pipeline is required; there is no safe universal endpoint, service id or credential default. The adapter must be verified against an owner's account before it is wired.
+- **References checked 2026-10-31:** [Gemini speech generation](https://ai.google.dev/gemini-api/docs/speech-generation); [Bhashini pipeline compute](https://dibd-bhashini.gitbook.io/bhashini-apis/pipeline-compute-call); [Bhashini available models](https://dibd-bhashini.gitbook.io/bhashini-apis/available-models-for-usage).
 
 ## Scheme data
 

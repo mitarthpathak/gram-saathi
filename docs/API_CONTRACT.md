@@ -397,8 +397,10 @@ The answers are generated ahead of time from `data/faq/questions.json` by
 { "audioUrl": null }
 ```
 
-Optional. `null` tells the client to use the browser's speech synthesis, which is the default.
-A future implementation returns the URL of a generated audio file. `text` is 1–2000 characters.
+Optional. With no configured TTS model or when the provider fails, `audioUrl` is `null` and
+the client uses browser speech synthesis. When available, the server returns a WAV `data:` URL.
+`text` is 1–2000 characters. The endpoint uses the shared AI rate limiter. Dialect text is
+spoken with the selected base-language voice; browser voice availability varies by phone.
 
 ---
 

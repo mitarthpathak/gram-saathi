@@ -82,6 +82,9 @@ const envSchema = z.object({
   GEMINI_FALLBACK_MODEL: fromEnv(z.string().trim().default('gemini-3.6-flash')),
   /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
   GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
+  /** Optional Gemini TTS model; empty disables server-side TTS. */
+  GEMINI_TTS_MODEL: fromEnv(z.string().trim().optional()),
+  GEMINI_TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).default(15_000)),
   GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
   GEMINI_EMBED_DIMENSIONS: fromEnv(z.coerce.number().int().min(128).max(3072).default(768)),
   /** `default` sends no thinking level and lets the model decide. */

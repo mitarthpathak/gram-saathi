@@ -1,15 +1,37 @@
 import { getLanguage } from '@/features/language/languages';
+import { api } from '@/lib/api';
 
 /**
  * Reads text aloud: plays `audioUrl` when the server sent one, otherwise uses the browser's
  * speech synthesis (free and offline). Returns false when the device cannot speak.
  */
-export function speak(text: string, language: string, audioUrl?: string | null): boolean {
+export async function speak(
+  text: string,
+  language: string,
+  audioUrl?: string | null,
+  onFailure?: () => void,
+): Promise<boolean> {
   if (audioUrl) {
-    new Audio(audioUrl).play().catch(() => speakWithBrowser(text, language));
-    return true;
+    if (await playAudio(audioUrl)) return true;
   }
-  return speakWithBrowser(text, language);
+  try {
+    const response = await api.tts({ text, language: language as 'hi' | 'mr' | 'ta' | 'en' });
+    if (response.audioUrl && await playAudio(response.audioUrl)) return true;
+  } catch {
+    // The browser voice is the fallback when the optional server provider is unavailable.
+  }
+  const spoke = speakWithBrowser(text, language);
+  if (!spoke) onFailure?.();
+  return spoke;
+}
+
+async function playAudio(url: string): Promise<boolean> {
+  try {
+    await new Audio(url).play();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function stopSpeaking(): void {
