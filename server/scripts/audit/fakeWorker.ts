@@ -96,6 +96,10 @@ export function fakeReply(request: GenerateRequest): unknown {
     return { answersQuestion: true, answer: FAKE_ANSWER, usedChunkIds: id ? [id] : [] };
   }
   if (keys.includes('sms')) return { sms: 'पीएम-किसान: साल में ₹6,000।' };
+  // Dialect rewording step: return the answer unchanged (the facts lock then passes).
+  if (keys.includes('text') && request.system?.startsWith('You reword')) {
+    return { text: /<answer>\n([\s\S]*?)\n<\/answer>/.exec(text)?.[1] ?? FAKE_ANSWER };
+  }
   // Any other structured call (for example a dialect rendering step): echo the answer text.
   const answer = /"answer"\s*:\s*"([^"]+)"/.exec(text)?.[1] ?? FAKE_ANSWER;
   return Object.fromEntries(keys.map((key) => [key, answer]));

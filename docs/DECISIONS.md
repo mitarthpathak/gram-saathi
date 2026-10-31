@@ -140,3 +140,46 @@
 - **Decision:** `docs/PIPELINE_AUDIT*.md`, `audit/` and `eval/review/` are excluded from Prettier
   (rewritten on every run); `eval/out/` (generated speech) and `eval/audio/*.wav` (real voices,
   personal data) are git-ignored.
+
+## Dialect replies: two steps and a facts lock
+
+- **Decision:** The answer prompt no longer carries any dialect instruction: the grounded answer
+  (and every conversational reply) is written in the standard base language. A separate step
+  (`server/src/modules/chat/dialectRender.ts`) rewords only the wording into the dialect, and a
+  deterministic facts lock (`checkFactsLock` in `server/src/lib/facts.ts`) rejects any rewrite
+  whose numbers (any digit script), rupee amounts, URLs/domains, hyphenated phone numbers or scheme
+  names differ from the standard answer. Rejections, timeouts (`DIALECT_RENDER_TIMEOUT_MS`), model
+  errors, non-native-script output, newly added Roman words and rewrites far longer than the
+  original (> 1.6× + 40 characters) all keep the standard answer, and `answerStyle` says why.
+- **Policy:** a user-confirmed `dialectHint` always applies; a classifier result applies only at
+  `high` confidence; medium/abstention gives `low_confidence`; typed text without a hint has no
+  dialect. The understand step's free-form `dialect` guess is no longer used for anything (it used
+  to style the answer prompt even for typed text with no hint, against the conservative policy).
+- **Details:** Fixed reviewed texts (not-found) are never reworded (`render_off`); a reply whose
+  language is not the dialect's parent language is not reworded (`render_off`, rewording is not
+  translation); non-native or new Roman output is reported as `error`. The SMS keeps the checked
+  standard wording and is computed in parallel with the rewording, so a dialect reply adds one
+  model call but no sequential step (fake-backend shape: 4 sequential). The rewording call uses
+  the label `reply-dialect` so it shares the answer lane of the concurrency limiter, not the
+  classifier lane. All 14 dialects currently have zero consented exemplars, so every rewording is
+  zero-shot best effort; this is logged and visible in the audit, not added to the contract.
+- **Next step rule:** the tone guide asks the rewording to keep an existing next step; it cannot add
+  one because it only sees the standard answer, not the passages (adding content would break the
+  "wording only" guarantee).
+- **Scheme names in the lock:** a small alias table built from repo text (`data/schemes` names,
+  `data/faq/questions.json` Devanagari and Tamil spellings); generic words such as "किसान" are not
+  aliases. A domain such as pmkisan.gov.in counts as a PM-KISAN mention.
+- **Test change:** `server/test/conversation.test.ts` asserted "spoken the braj way" in the answer
+  prompt; it now asserts the opposite, which is the intended new behaviour.
+- **Alternatives considered:** one-step generation in dialect (no way to check facts); comparing
+  only digits (misses URLs and scheme names); rewording the SMS too (unchecked facts in SMS).
+
+## Clarifications cannot introduce facts
+
+- **Decision:** A smalltalk / clarify / out-of-scope reply whose numbers, rupee amounts, URLs or
+  phone numbers are not all present in the session's earlier assistant answers is replaced by a
+  fixed "please ask again" message (`ASK_AGAIN` in `chat/messages.ts`; Hindi, Marathi and Tamil
+  marked for native review).
+- **Why:** This is the real-mode guard for the reported "ki keh raho he" class of bug: the intent
+  router exists (so a fix is in scope), but a clarification produced by the model was never
+  checked against what the user had actually been told.

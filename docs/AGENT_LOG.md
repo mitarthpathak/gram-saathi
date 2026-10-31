@@ -176,3 +176,27 @@ Earlier sections above belong to the finished conversation-layer job. This job's
   passages do not.
 - Open issues: everything real-mode is NOT-TESTED here; Stage H code was never executed (no
   Playwright, no client server); the in-process transport skips multer and the rate limiter.
+
+## Phase 2 — dialect-aware text replies and tone
+
+- Files changed: `shared/src/types.ts` (`AnswerStyle`, `QueryResponse.answerStyle?`),
+  `docs/API_CONTRACT.md` (field, section, changelog v4), `server/src/config/env.ts`
+  (`DIALECT_REPLY`, `DIALECT_RENDER_TIMEOUT_MS`), `.env.example`,
+  `server/src/config/dialect-render.json` (14 dialects, all `verified: false`; bhojpuri and
+  awadhi `ttsNamedLanguage: true`), `server/src/modules/dialect/renderConfig.ts`,
+  `server/src/lib/facts.ts` (scheme aliases, `checkFactsLock`),
+  `server/src/modules/chat/dialectRender.ts` (pure rewording step, tone rules, policy),
+  `server/src/modules/chat/conversation.ts` (standard-language answer; model dialect guess no
+  longer used), `server/src/modules/chat/service.ts` (decision, rewording in parallel with SMS,
+  `answerStyle` on every path incl. mocks, clarify facts guard), `server/src/modules/chat/messages.ts`
+  (`ASK_AGAIN`), tests `server/test/dialectRender.test.ts`, `server/test/answerStyleMock.test.ts`,
+  updated `server/test/conversation.test.ts`, `server/scripts/audit/fakeWorker.ts`.
+- Commands run (sandbox kit): server and shared `tsc --noEmit` (0 errors); new tests 23/23 pass;
+  full server suite 172 tests: 162 pass, the same 10 baseline failures (7 Express-only, 3
+  eligibility); `audit --skip-static` in mock mode (E now reports `render_off` in mock mode; the
+  fake-backend shape of a typed dialect question is 5 calls, 4 sequential).
+- Results: with a hint or high-confidence identification, the reply is reworded and facts-locked;
+  otherwise `answerStyle` explains why not. Clarifications cannot add facts. Verified with fake
+  model output only.
+- Open issues: dialect quality and naturalness NEEDS-HUMAN; real-model behaviour NOT-TESTED (no
+  key); exemplars are all empty, so rewording is zero-shot; `ASK_AGAIN` strings need native review.

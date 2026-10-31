@@ -1,4 +1,4 @@
-import type { LanguageCode, QueryResponse, Source } from '@gram-saathi/shared';
+import type { AnswerStyle, LanguageCode, QueryResponse, Source } from '@gram-saathi/shared';
 import { env, isMocked } from '../../config/env';
 import { LruCache } from '../../lib/cache';
 import { generateJson } from '../../lib/geminiClient';
@@ -11,6 +11,9 @@ import {
   type DialectOutcome,
 } from '../dialect/classifier';
 import { dialectHintOutcome, parentLanguageForDialect } from '../dialect/language';
+import { getDialectEntry } from '../dialect/registry';
+import { dialectRenderEntry } from '../dialect/renderConfig';
+import { extractFacts, hasFacts, mergeFacts, missingFacts } from '../../lib/facts';
 import { ANSWER_SYSTEM_PROMPT, answerSchema, buildAnswerInput } from '../rag/prompts';
 import { searchSchemes } from '../rag/service';
 import type { ScoredChunk } from '../rag/vectorStore';
@@ -21,8 +24,9 @@ import {
   detectTextScript,
   type ReplyScript,
 } from './language';
-import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply } from './messages';
-import { getHistory, handleTurn, recordTurn, type Passage } from './conversation';
+import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply, ASK_AGAIN } from './messages';
+import { getHistory, handleTurn, recordTurn, type Passage, type Turn } from './conversation';
+import { decideReplyDialect, renderInDialect, type DialectDecision } from './dialectRender';
 
 export interface AnswerInput {
   text: string;
@@ -84,6 +88,7 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
       audioUrl: null,
       usedCache: false,
       notFound: false,
+      answerStyle: mockAnswerStyle(language, input.dialectHint),
     };
   }
 
@@ -105,22 +110,31 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
       audioUrl: null,
       usedCache: false,
       notFound: false,
+      answerStyle: mockAnswerStyle(language, input.dialectHint),
     };
   }
 
   const dialect = await getDialectOutcome(input);
   const dialectId = input.dialectHint ?? dialect.dialect?.id;
+  const decision = decideReplyDialect(input.dialectHint, dialect);
 
-  // Preserve the pre-existing mocked answer pipeline byte-for-byte in USE_MOCKS mode.
+  // Preserve the pre-existing mocked answer pipeline byte-for-byte in USE_MOCKS mode; it only
+  // gains the additive `answerStyle` field (always the standard language: mocks never reword).
   if (!isMocked('chat')) {
-    return answerConversation(input, language, dialect, dialectId);
+    return answerConversation(input, language, dialect, decision);
   }
+  const mockStyle: AnswerStyle = {
+    language,
+    dialectId: decision.dialectId,
+    rendered: 'standard',
+    reason: decision.dialectId ? 'render_off' : decision.reason,
+  };
 
   const key = cacheKey(input.text, language, dialectId, script);
 
   const cached = answerCache.get(key);
   if (cached) {
-    return { ...toResponse(cached, input, true), ...dialect };
+    return { ...toResponse(cached, input, true), ...dialect, answerStyle: { ...mockStyle, language: cached.detectedLanguage } };
   }
 
   let pending = inFlight.get(key);
@@ -134,16 +148,86 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
     inFlight.set(key, pending);
   }
   const answer = await pending;
-  return { ...toResponse(answer, input, false), ...dialect };
+  return { ...toResponse(answer, input, false), ...dialect, answerStyle: { ...mockStyle, language: answer.detectedLanguage } };
+}
+
+/** Fixed reviewed texts (not found) are never reworded. */
+function fixedTextStyle(language: LanguageCode, decision: DialectDecision): AnswerStyle {
+  return decision.dialectId
+    ? { language, dialectId: decision.dialectId, rendered: 'standard', reason: 'render_off' }
+    : { language, dialectId: null, rendered: 'standard', reason: decision.reason ?? 'no_dialect' };
+}
+
+function mockAnswerStyle(language: LanguageCode, dialectHint?: string): AnswerStyle {
+  return dialectHint
+    ? { language, dialectId: dialectHint, rendered: 'standard', reason: 'render_off' }
+    : { language, dialectId: null, rendered: 'standard', reason: 'no_dialect' };
+}
+
+/** Applies the dialect decision to one reply: rewording plus facts lock, or the standard text. */
+async function styleReply(
+  text: string,
+  language: LanguageCode,
+  decision: DialectDecision,
+): Promise<{ text: string; style: AnswerStyle }> {
+  const standard = (reason: AnswerStyle['reason']) => ({
+    text,
+    style: { language, dialectId: decision.dialectId, rendered: 'standard' as const, reason },
+  });
+  if (!decision.dialectId) return standard(decision.reason ?? 'no_dialect');
+  const entry = getDialectEntry(decision.dialectId);
+  // Rewording is not translation: a reply in another language than the dialect's parent stays as is.
+  if (!entry || entry.parentLanguage !== language) return standard('render_off');
+
+  const result = await renderInDialect(
+    text,
+    entry,
+    {
+      mode: env.DIALECT_REPLY,
+      verified: dialectRenderEntry(entry.id).verified,
+      exemplars: renderPromptExemplars([entry.id], getDialectExemplars()),
+      timeoutMs: env.DIALECT_RENDER_TIMEOUT_MS,
+    },
+    {
+      generateJson: ({ system, prompt, schema, timeoutMs }) =>
+        generateJson({ label: 'reply-dialect', system, input: prompt, schema, timeoutMs, maxRetries: 0 }),
+    },
+  );
+  logger.debug(
+    `dialect reply ${entry.id}: ${result.rendered}${result.reason ? ` (${result.reason})` : ''}` +
+      `${result.zeroShot ? ', no consented exemplars (best effort)' : ''}${result.detail ? `: ${result.detail}` : ''}`,
+  );
+  return {
+    text: result.text,
+    style: {
+      language,
+      dialectId: entry.id,
+      rendered: result.rendered,
+      ...(result.reason && { reason: result.reason }),
+    },
+  };
+}
+
+/**
+ * A conversational reply (smalltalk / clarify / out of scope) may repeat facts the assistant
+ * already gave, never new ones: "ki keh raho he" must not turn into a fresh, unsourced scheme
+ * answer. Facts are numbers, rupee amounts, URLs and phone numbers.
+ */
+function introducesNewFacts(reply: string, history: Turn[]): boolean {
+  const known = mergeFacts(
+    ...history.filter((turn) => turn.role === 'assistant').map((turn) => extractFacts(turn.text)),
+  );
+  return hasFacts(missingFacts(extractFacts(reply), known));
 }
 
 async function answerConversation(
   input: AnswerInput,
   fallbackLanguage: LanguageCode,
   dialect: DialectOutcome,
-  dialectId?: string,
+  decision: DialectDecision,
 ): Promise<QueryResponse> {
   let retrieved: ScoredChunk[] = [];
+  const history = input.sessionId ? getHistory(input.sessionId) : [];
   const result = await handleTurn(
     {
       minScore: env.RAG_MIN_SCORE,
@@ -159,27 +243,30 @@ async function answerConversation(
           score: chunk.score,
         }));
       },
-      dialectExamples: (label) =>
-        renderPromptExemplars([label], getDialectExemplars()),
     },
     {
       text: input.text,
-      history: input.sessionId ? getHistory(input.sessionId) : [],
-      dialectHint: input.dialectHint ?? dialectId,
+      history,
+      dialectHint: decision.dialectId ?? undefined,
       languageHint: input.detectedLanguage ?? input.language ?? fallbackLanguage,
     },
   );
 
   let response: QueryResponse;
   if (result.kind === 'direct') {
-    const smsText = truncateAtSentence(result.answer, env.SMS_MAX_SEGMENTS);
+    const direct = introducesNewFacts(result.answer, history)
+      ? ASK_AGAIN[result.language]
+      : result.answer;
+    const styled = await styleReply(direct, result.language, decision);
+    const smsText = truncateAtSentence(direct, env.SMS_MAX_SEGMENTS);
     response = {
       sessionId: input.sessionId ?? '',
       transcript: input.transcript,
       ...dialect,
       detectedLanguage: result.language,
-      answer: result.answer,
+      answer: styled.text,
       intent: result.intent,
+      answerStyle: styled.style,
       sources: [],
       fraudWarning: '',
       smsText,
@@ -189,13 +276,15 @@ async function answerConversation(
       notFound: false,
     };
   } else if (result.kind === 'notFound') {
+    const language = result.language ?? fallbackLanguage;
     response = {
       sessionId: input.sessionId ?? '',
       transcript: input.transcript,
-        ...dialect,
-        ...notFoundAnswer(result.language ?? fallbackLanguage),
-        intent: result.intent,
-        usedCache: false,
+      ...dialect,
+      ...notFoundAnswer(language),
+      intent: result.intent,
+      usedCache: false,
+      answerStyle: fixedTextStyle(language, decision),
     };
   } else {
     const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
@@ -207,16 +296,22 @@ async function answerConversation(
         ...notFoundAnswer(result.language),
         intent: result.intent,
         usedCache: false,
+        answerStyle: fixedTextStyle(result.language, decision),
       };
     } else {
-      const { sms } = await compressForSms({ text: result.answer, language: result.language });
+      // The SMS keeps the checked standard wording; the dialect rewording runs alongside it.
+      const [{ sms }, styled] = await Promise.all([
+        compressForSms({ text: result.answer, language: result.language }),
+        styleReply(result.answer, result.language, decision),
+      ]);
       response = {
         sessionId: input.sessionId ?? '',
         transcript: input.transcript,
         ...dialect,
-        ...foundAnswer(result.language, result.answer, usedChunks, sms),
+        ...foundAnswer(result.language, styled.text, usedChunks, sms),
         intent: result.intent,
         usedCache: false,
+        answerStyle: styled.style,
       };
     }
   }

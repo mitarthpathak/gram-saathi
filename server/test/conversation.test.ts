@@ -95,13 +95,21 @@ describe('conversation layer', () => {
     expect(fake.queries).toHaveLength(0);
   });
 
-  it('lets a user dialect hint override the model dialect and includes it in the prompt', async () => {
+  it('passes a dialect hint to understanding but writes the grounded answer in the standard language', async () => {
     const fake = deps({ dialect: 'model-label' });
-    fake.dialectExamples = () => [];
     const result = await handleTurn(fake, { text: 'scheme details', history: [], dialectHint: 'braj' });
     expect(result).toMatchObject({ kind: 'grounded', dialect: 'braj' });
     expect(fake.systems[0]).toContain('selected the dialect "braj"');
-    expect(fake.systems[1]).toContain('spoken the braj way');
+    // Dialect wording is a separate, facts-checked step (dialectRender.ts), not the answer prompt.
+    expect(fake.systems[1]).not.toContain('braj');
+    expect(fake.systems[1]).not.toContain('model-label');
+  });
+
+  it('never lets the model\'s own dialect guess style or label a reply', async () => {
+    const fake = deps({ dialect: 'model-label' });
+    const result = await handleTurn(fake, { text: 'scheme details', history: [] });
+    expect(result).toMatchObject({ kind: 'grounded', dialect: null });
+    expect(fake.systems[1]).not.toContain('model-label');
   });
 
   it('caps history at six turns and evicts least-recently-used sessions above 500', () => {

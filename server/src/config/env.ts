@@ -104,6 +104,14 @@ const envSchema = z.object({
   DIALECT_ACTIVE: fromEnv(z.string().trim().default('all')),
   DIALECT_EXEMPLARS_PER_LABEL: fromEnv(z.coerce.number().int().min(0).max(20).default(4)),
   DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(z.coerce.number().int().min(0).max(20_000).default(1800)),
+  /**
+   * Dialect wording of replies: `off` keeps the standard language; `best_effort` renders every
+   * confirmed or high-confidence dialect; `verified_only` renders only dialects a native speaker
+   * reviewed (`verified: true` in config/dialect-render.json).
+   */
+  DIALECT_REPLY: fromEnv(z.enum(['off', 'best_effort', 'verified_only']).default('best_effort')),
+  /** Longest wait for the dialect rewording step before falling back to the standard answer. */
+  DIALECT_RENDER_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(500).max(60_000).default(8000)),
 
   // Retrieval
   RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),

@@ -106,6 +106,31 @@ export interface VoiceQueryFields {
 /** Optional conversation route chosen by the server's intent-understanding step. */
 export type ConversationIntent = 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope';
 
+/** Why an answer stayed in the standard language instead of a dialect's spoken form. */
+export type AnswerStyleReason =
+  | 'no_dialect'
+  | 'low_confidence'
+  | 'render_off'
+  | 'facts_check_failed'
+  | 'timeout'
+  | 'error'
+  | 'not_verified';
+
+/**
+ * How the answer text was written. `rendered: 'dialect'` means the grounded standard-language
+ * answer was reworded into the dialect's spoken form and passed the deterministic facts check;
+ * dialect wording is model-generated and unverified unless a native speaker reviewed it.
+ */
+export interface AnswerStyle {
+  /** Same as `detectedLanguage`. */
+  language: LanguageCode;
+  /** The dialect the answer was (or would have been) rendered in; null when none applies. */
+  dialectId: string | null;
+  rendered: 'dialect' | 'standard';
+  /** Set when `rendered` is 'standard'. */
+  reason?: AnswerStyleReason;
+}
+
 export interface QueryResponse {
   sessionId: string;
   /** What the user said. Present for voice queries only. */
@@ -123,6 +148,8 @@ export interface QueryResponse {
   answer: string;
   /** Route for rendering or follow-up behavior; absent on older servers and mock fixtures. */
   intent?: ConversationIntent;
+  /** Whether the answer is in a dialect's spoken form or the standard language, and why. */
+  answerStyle?: AnswerStyle;
   /** The passages the answer uses. Empty when `notFound`. */
   sources: Source[];
   /** Anti-fraud reminder; empty for direct conversational replies. */

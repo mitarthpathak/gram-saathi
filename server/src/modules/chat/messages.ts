@@ -212,3 +212,18 @@ export function getMessage(
 export function getFraudWarning(language: LanguageCode, script?: ReplyScript): string {
   return getMessage(language, 'fraudWarning', script);
 }
+
+/**
+ * Fixed reply when a conversational answer (smalltalk, clarification, out of scope) would state
+ * facts that the conversation never had: the user is asked to repeat instead of getting an
+ * unsourced claim.
+ */
+export const ASK_AGAIN: Record<LanguageCode, string> = {
+  en: 'Sorry, I did not understand. Please ask your question about a government scheme again.',
+  // TODO(review-native): have a native Hindi speaker review this message.
+  hi: 'माफ़ कीजिए, मैं समझ नहीं पाया। कृपया सरकारी योजना के बारे में अपना सवाल फिर से पूछें।',
+  // TODO(review-native): have a native Marathi speaker review this message.
+  mr: 'माफ करा, मला समजले नाही. कृपया सरकारी योजनेबद्दल तुमचा प्रश्न पुन्हा विचारा.',
+  // TODO(review-native): have a native Tamil speaker review this message.
+  ta: 'மன்னிக்கவும், எனக்குப் புரியவில்லை. அரசுத் திட்டம் பற்றிய உங்கள் கேள்வியை மீண்டும் கேளுங்கள்.',
+};

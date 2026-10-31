@@ -33,7 +33,6 @@ export interface Deps {
   generateJson: <T>(args: { system: string; prompt: string; schema: z.ZodType<T> }) => Promise<T>;
   search: (queryEn: string) => Promise<Passage[]>;
   minScore: number;
-  dialectExamples?: (dialect: string) => string[];
 }
 
 export type TurnResult =
@@ -53,7 +52,7 @@ Write the way a friendly local helper SPEAKS to a villager, never like a governm
 - Short sentences (about 15 words max). Everyday words. Avoid bookish words such as "पात्र", "लाभार्थी", "प्रावधान".
 - Use the native script of the language so text-to-speech pronounces it correctly. Never reply in Roman script.
 - Keep every number, amount (₹), date, scheme name, URL and helpline EXACTLY as given. Do not round or translate them.
-- If a dialect is named, use its everyday words and verb endings. If you are not sure of a dialect word, use the simple standard word instead. Never invent words.`;
+- Write the standard form of the language, even if the user speaks a dialect: a separate, checked step adapts the wording to the dialect.`;
 
 function understandSystem(dialectHint?: string, languageHint?: Lang): string {
   return `You are the front door of Gram Saathi, a voice assistant that helps rural Indian citizens (farmers, ASHA workers, panchayat staff) with government schemes.
@@ -66,7 +65,7 @@ Also return:
 - language: hi, mr, ta or en. Typed Roman script (Hinglish, Hindi in English letters) still counts as the spoken language.${languageHint ? ` The selected or detected language is "${languageHint}"; trust that unless the message clearly uses another supported language.` : ''}
 - dialect: short lowercase label if clearly recognisable (for example "braj", "wagdi", "marwari", "bhojpuri"), otherwise null.${dialectHint ? ` The user selected the dialect "${dialectHint}"; trust that.` : ''}
 - searchQueryEn: for scheme_question only, ONE standalone English search query (resolve words like "it" or "that" from the conversation). Otherwise "".
-- reply: for smalltalk, clarify and out_of_scope, the complete reply in the user's language and dialect.
+- reply: for smalltalk, clarify and out_of_scope, the complete reply in the user's language.
    clarify -> say your previous answer again in simpler, shorter words.
    smalltalk -> one warm sentence, then invite a question about schemes (give one example).
    out_of_scope -> politely say you only help with government schemes, with two example questions.
@@ -74,12 +73,13 @@ Also return:
 ${VOICE_STYLE}`;
 }
 
-function answerSystem(lang: Lang, dialect: string | null, examples: string[]): string {
+/** The grounded answer is always written in the standard language; dialect wording is a later, checked step. */
+function answerSystem(lang: Lang): string {
   return `You answer a question about Indian government schemes using ONLY the numbered passages provided.
-Reply language: ${LANG_NAME[lang]}${dialect ? `, spoken the ${dialect} way` : ''}.
+Reply language: ${LANG_NAME[lang]}.
 If the passages do not answer the question, set answersQuestion=false, answer="" and usedChunkIds=[].
 Never add a fact, amount, date or eligibility rule that is not in the passages. Report the ids of the passages you used.
-${VOICE_STYLE}${examples.length ? `\nHow local speakers phrase things (copy the flavour, not the content):\n${examples.map((e) => `- ${e}`).join('\n')}` : ''}`;
+${VOICE_STYLE}`;
 }
 
 export async function handleTurn(
@@ -92,7 +92,9 @@ export async function handleTurn(
     prompt: `Recent conversation:\n${convo || '(none)'}\n\nLatest user message:\n${input.text}`,
     schema: understandSchema,
   });
-  const dialect = input.dialectHint ?? u.dialect;
+  // Only the dialect the caller decided on (user hint or high-confidence identification) is
+  // reported; the understand step's own free-form dialect guess never styles a reply.
+  const dialect = input.dialectHint ?? null;
 
   if (u.intent !== 'scheme_question') {
     if (u.reply.trim()) {
@@ -109,7 +111,7 @@ export async function handleTurn(
 
   const sourceText = passages.map((p) => `[${p.id}] ${p.schemeName} / ${p.section}\n${p.text}`).join('\n\n');
   const a = await deps.generateJson({
-    system: answerSystem(u.language, dialect, dialect ? (deps.dialectExamples?.(dialect) ?? []) : []),
+    system: answerSystem(u.language),
     prompt: `Passages:\n${sourceText}\n\nQuestion (English form): ${u.searchQueryEn}\nUser's own words: ${input.text}`,
     schema: answerSchema,
   });

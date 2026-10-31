@@ -183,3 +183,73 @@ export function describeFacts(facts: Facts): string {
   );
   return parts.join('; ') || 'none';
 }
+
+// ---------------------------------------------------------------------------
+// Scheme names (for the dialect facts lock)
+// ---------------------------------------------------------------------------
+
+/**
+ * Spellings that identify each scheme, compared after removing spaces, hyphens, dots and
+ * zero-width joiners. Latin forms come from data/schemes front matter; Devanagari and Tamil forms
+ * are copied from the team-written questions in data/faq/questions.json. Tamil forms omit the
+ * final virama so inflected forms (கிசானில்) still match. Generic words such as "किसान" (farmer)
+ * are deliberately not aliases.
+ */
+export const SCHEME_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  'pm-kisan': ['pmkisan', 'kisansammannidhi', 'पीएमकिसान', 'किसानसम्माननिधि', 'கிசான'],
+  'ayushman-bharat-pmjay': ['ayushman', 'pmjay', 'आयुष्मान', 'ஆயுஷ்மான'],
+  'atal-pension-yojana': ['atalpension', 'अटलपेंशन', 'अटलपेन्शन', 'அடல்ஓய்வூதிய'],
+  'pm-suraksha-bima-yojana': ['surakshabima', 'pmsby', 'सुरक्षाबीमा', 'सुरक्षाविमा', 'சுரக்ஷா'],
+  'pm-ujjwala-yojana': ['ujjwala', 'pmuy', 'उज्ज्वला', 'உஜ்வாலா'],
+  mgnrega: ['mgnrega', 'nrega', 'manrega', 'मनरेगा', 'नरेगा', 'நூறுநாள்வேலை'],
+  'pmay-gramin': ['pmay', 'awasyojana', 'आवासयोजना', 'ஆவாஸ'],
+};
+
+function compactForAliases(text: string): string {
+  return text
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[\s\-‐–.·'’()‌‍]+/gu, '');
+}
+
+/** Scheme ids whose name appears in `text`. */
+export function schemeMentions(text: string): string[] {
+  const compact = compactForAliases(text);
+  return Object.entries(SCHEME_ALIASES)
+    .filter(([, aliases]) => aliases.some((alias) => compact.includes(alias)))
+    .map(([id]) => id)
+    .sort();
+}
+
+export interface FactsLockResult {
+  ok: boolean;
+  /** Facts of the original that the rewrite lost. */
+  lost: Facts;
+  /** Facts the rewrite added. */
+  added: Facts;
+  schemesLost: string[];
+  schemesAdded: string[];
+}
+
+/**
+ * The facts lock: a reworded answer must keep exactly the original's numbers (any digit script),
+ * rupee amounts, URLs/domains, phone numbers and scheme names — nothing lost, nothing added.
+ */
+export function checkFactsLock(original: string, rewrite: string): FactsLockResult {
+  const before = extractFacts(original);
+  const after = extractFacts(rewrite);
+  const schemesBefore = schemeMentions(original);
+  const schemesAfter = schemeMentions(rewrite);
+  const lost = missingFacts(before, after);
+  const added = missingFacts(after, before);
+  const schemesLost = schemesBefore.filter((id) => !schemesAfter.includes(id));
+  const schemesAdded = schemesAfter.filter((id) => !schemesBefore.includes(id));
+  return {
+    ok:
+      !hasFacts(lost) && !hasFacts(added) && schemesLost.length === 0 && schemesAdded.length === 0,
+    lost,
+    added,
+    schemesLost,
+    schemesAdded,
+  };
+}
