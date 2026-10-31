@@ -187,15 +187,22 @@ then compares the two: every number (Devanagari, Tamil and Western digits are tr
 rupee amount, URL, phone number and scheme name must be identical, nothing added or dropped.
 Any mismatch, timeout, error or non-native-script output keeps the standard answer.
 
+With `DIALECT_REPLY=mirror` (the default), a **spoken** question whose dialect is not confirmed or
+identified with high confidence is reworded to follow the speaker's own words (their transcript is
+the style sample), under the same facts lock. Such an answer has `rendered: "dialect"` and
+`dialectId: null`: dialect-worded, variety not named. Its speech is a base-language voice, so
+clients send no `dialectId` to `POST /api/tts` for it. An unchanged rewrite counts as `standard`.
+
 ```text
 "answerStyle": { "language": "hi", "dialectId": "braj", "rendered": "dialect" }
+"answerStyle": { "language": "hi", "dialectId": null, "rendered": "dialect" }
 "answerStyle": { "language": "hi", "dialectId": null, "rendered": "standard", "reason": "no_dialect" }
 ```
 
 | Field        | Type                         | Notes                                                                                       |
 | ------------ | ---------------------------- | ------------------------------------------------------------------------------------------- |
 | `language`   | `LanguageCode`               | Same as `detectedLanguage`                                                                  |
-| `dialectId`  | string \| null               | The dialect that applied (hint or high confidence); `null` when none did                     |
+| `dialectId`  | string \| null               | The dialect that applied (hint or high confidence); `null` when none did, or when a spoken answer mirrors the speaker without a named dialect |
 | `rendered`   | `'dialect'` \| `'standard'`  | `dialect`: reworded and facts-checked; dialect wording is model-generated and unverified     |
 | `reason`     | string?                      | Only with `standard`: `no_dialect`, `low_confidence` (medium confidence or abstention with suggestions), `render_off` (`DIALECT_REPLY=off`, a fixed reviewed message such as not-found, a reply in another language, or mock mode), `facts_check_failed`, `timeout`, `error` (failed or non-native-script output), `not_verified` (`DIALECT_REPLY=verified_only` and no native review yet) |
 
@@ -507,3 +514,4 @@ For the RAG workstream to test retrieval with curl. The UI does not call it.
 | 3       | Add optional dialect results and candidates, dialect hints, and `GET /api/dialects`. Dialect ids map to parent answer languages; voice transcripts remain verbatim.                                                                                                                                                                                                                         |
 | 4       | Additive: optional `answerStyle` on query responses (dialect rewording status and reason). No existing field changed.                                                                                                                                                                                                                                                                        |
 | 5       | Additive: optional `TtsRequest.dialectId` and `TtsResponse.basis` (`TtsBasis`). `POST /api/tts` now returns server speech by default in real mode (`GEMINI_TTS_MODEL` defaults to a TTS model; `none` disables it). No existing field changed.                                                                                                                                                 |
+| 6       | No type change. `answerStyle` may be `{ rendered: 'dialect', dialectId: null }` (`DIALECT_REPLY=mirror`: a spoken answer follows the speaker's own words); `USE_MOCKS` defaults to `auto` (real when `GEMINI_API_KEY` is set). |

@@ -6,12 +6,14 @@ only come from the generated vector store. Nothing in steps 1–8 has been run b
 wrote this file (no key, no npm registry): every result you get is the first real one.
 
 For a public demo before step 6 is finished, set `DIALECT_REPLY=verified_only` (no dialect is
-verified yet, so replies stay in the standard language).
+verified yet, so replies stay in the standard language). The default `mirror` rewords spoken
+answers to sound like the speaker (for example Haryanvi in, Haryanvi-worded answer out), with the
+facts locked but the wording unreviewed.
 
 ## 1. Keys, real mode, health check
 
 ```bash
-cp .env.example .env       # then edit .env: GEMINI_API_KEY=<your key>, USE_MOCKS=false
+cp .env.example .env       # then edit .env: GEMINI_API_KEY=<your key>; USE_MOCKS=auto (or false)
 npm install
 npm run typecheck && npm run lint && npm test -w server && npm run build
 npm run dev:server         # terminal 1
@@ -20,8 +22,13 @@ curl -s http://localhost:4000/api/health   # terminal 2
 
 - The repo checks above were never run with the real toolchain on this branch. Expected: the
   3 eligibility tests fail by design (rules unverified); anything else is new and needs fixing.
-- `/api/health` must show `"mocks":false`. `true` means some module is still mocked: `USE_MOCKS`
-  must be exactly `false`. `"ttsConfigured":true` means server speech is on (set
+- `/api/health` must show `"mocks":false`. `true` means some module is still mocked: the key is
+  missing, or `USE_MOCKS` is set to `true` or a module list (an older `.env` copied
+  `USE_MOCKS=true`; change it to `auto` or `false`). Also keep `VITE_USE_MOCKS=false`, or the
+  browser answers from its own fixtures and never sends your recording.
+- On Vercel: set `GEMINI_API_KEY` for Production and Preview, and delete `USE_MOCKS` there (or set
+  it to `auto`/`false`), then redeploy. Until then the deployed mic keeps answering the canned demo
+  question. `"ttsConfigured":true` means server speech is on (set
   `GEMINI_TTS_MODEL=none` to keep browser speech only).
 - One cheap model call (smalltalk, no scheme lookup): `npm run query -w server -- "Hello"`.
 - Keep the key out of logs, source control and every `VITE_*` variable.

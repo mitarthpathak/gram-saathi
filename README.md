@@ -23,21 +23,23 @@ preview**.
 
 Requires **Node 22.22+** (or 24 LTS) and npm 10.
 
-**Mock mode (no key, canned answers):**
+**Real mode (your own voice, real answers):** put a Gemini key in `.env` and start the app.
+`USE_MOCKS=auto` (the default) switches to the real pipeline as soon as `GEMINI_API_KEY` is set.
 
 ```bash
 npm install
-cp .env.example .env    # USE_MOCKS=true is the default: every module serves fixtures
+cp .env.example .env    # then set GEMINI_API_KEY=<your key>; keep USE_MOCKS=auto (or false)
 npm run dev
 ```
 
-Mock answers come from fixtures and prove nothing about the real pipeline. In mock mode every
-spoken question gets a canned transcript, whatever was said.
+`GET /api/health` must report `"mocks":false`. Then the mic sends your recording to Gemini
+speech-to-text, the answer comes from the scheme documents, and a spoken question in a regional
+way of talking (for example Haryanvi) gets the answer reworded the same way, with the facts locked.
+Follow [docs/RUNBOOK.md](docs/RUNBOOK.md) for the full checks.
 
-**Real mode (Gemini):** set `GEMINI_API_KEY` and `USE_MOCKS=false` in `.env`, then build the index
-(`npm run ingest -w server`) and follow [docs/RUNBOOK.md](docs/RUNBOOK.md) in order: health check,
-ingest, `npm run audit -w server`, real-speaker clips, voices, native review, model pinning.
-`GET /api/health` must report `"mocks":false`.
+**Mock mode (no key):** without `GEMINI_API_KEY` (or with `USE_MOCKS=true`) every module serves
+fixtures. Mock answers prove nothing about the real pipeline, and every spoken question gets the same
+canned transcript, whatever was said. `VITE_USE_MOCKS=true` does the same inside the browser.
 
 `npm run dev` starts **both** the API and the UI. Run it once. If you prefer separate terminals,
 run `npm run dev:server` and `npm run dev:client` instead; do not start a second server workspace
@@ -80,11 +82,11 @@ One `.env` at the repo root is shared by both apps (template: [.env.example](.en
 | `GEMINI_EMBED_MODEL` / `GEMINI_EMBED_DIMENSIONS` | `gemini-embedding-2` / `768` | Vector store model and size; changing either requires ingest. |
 | `GEMINI_TTS_MODEL` / `GEMINI_TTS_DIALECT_MODEL` | `gemini-3.8-flash-lite-tts` / `gemini-3.8-flash-tts` | Server speech model, and the model for dialect-worded replies. `none` keeps browser speech only. |
 | `GEMINI_TTS_SAMPLE_RATE` / `TTS_TIMEOUT_MS` / `TTS_MAX_CHARS` / `TTS_STYLE` | `16000` / `15000` / `600` / empty | Speech output rate (falls back to 24000), per-call timeout (older name `GEMINI_TTS_TIMEOUT_MS`), split size, one constant delivery style (never an accent). |
-| `USE_MOCKS` | `true` | `true`, `false`, or comma-separated mocked modules. |
+| `USE_MOCKS` | `auto` | `auto` = real pipeline when `GEMINI_API_KEY` is set, mock data otherwise; `true`, `false`, or comma-separated mocked modules. With mocks on, the mic ignores your audio and returns a canned demo question. |
 | `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | API port and server CORS allow-list. |
 | `RAG_TOP_K` / `RAG_MIN_SCORE` | `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
 | `DIALECT_*` | see below | Classification, active labels and consented-example limits. |
-| `DIALECT_REPLY` / `DIALECT_RENDER_TIMEOUT_MS` | `best_effort` / `8000` | Dialect wording of replies: `off`, `best_effort` (a confirmed or high-confidence dialect) or `verified_only` (only dialects a native reviewer marked `verified` in `server/src/config/dialect-render.json`; none yet). Use `verified_only` for public demos until review. |
+| `DIALECT_REPLY` / `DIALECT_RENDER_TIMEOUT_MS` | `mirror` / `8000` | Dialect wording of replies: `mirror` (a spoken answer follows the speaker's own words, e.g. Haryanvi in → Haryanvi-worded answer out, even before the dialect is confirmed), `best_effort` (only a confirmed or high-confidence dialect), `verified_only` (only dialects a native reviewer marked `verified`; none yet) or `off`. Facts are locked in every mode. |
 | `AUDIT_*` | unset | Only for `npm run audit -w server`: deployed URL to probe, client URL for the browser test, notes, timeouts (commented in `.env.example`). |
 | `VITE_API_URL` / `VITE_USE_MOCKS` | empty / `false` | Client API origin and browser-only mocks. Never put secrets in `VITE_*`. |
 
@@ -117,7 +119,8 @@ scheme guidance.
   after the standard answer is written, and a deterministic facts lock keeps its numbers, amounts,
   links and scheme names; but whether the wording is natural or even the right dialect is unknown
   until native speakers review it. All 14 dialects have zero consented examples, so the rewording
-  is zero-shot.
+  is zero-shot. By default (`DIALECT_REPLY=mirror`) a spoken answer is reworded to sound like the
+  speaker's own words even before the dialect is named; set `verified_only` for public demos.
 - **Braj, Marwari, Wagdi and the other dialects the TTS model does not name are spoken by a Hindi
   voice**: a base-language approximation, not a dialect accent (the response says so with
   `basis: "base-language-approximation"`). Bhojpuri and Awadhi are named by the TTS model, but

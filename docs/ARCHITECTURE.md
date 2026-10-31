@@ -2,8 +2,9 @@
 
 ## Current conversation flow (real mode)
 
-Real mode means `USE_MOCKS=false`. Mock mode keeps the older fixture pipeline unchanged (see
-[Mock mode](#mock-mode)). Every arrow labelled "Gemini" is one model call.
+Real mode means `USE_MOCKS=false`, or the default `USE_MOCKS=auto` with `GEMINI_API_KEY` set. Mock
+mode keeps the older fixture pipeline unchanged (see [Mock mode](#mock-mode)); there the mic's
+audio is ignored and a canned question is answered. Every arrow labelled "Gemini" is one model call.
 
 ```mermaid
 flowchart TB
@@ -60,10 +61,13 @@ above `RAG_MIN_SCORE` reach the answer model, which may cite only those passage 
 digit run in the answer must appear in a cited passage, or the fixed not-found text is returned.
 The answer is always written in the standard base language first.
 
-**Dialect render.** When a dialect applies and `DIALECT_REPLY` allows it (`best_effort`, or
-`verified_only` with `"verified": true` in `server/src/config/dialect-render.json`),
+**Dialect render.** When a dialect applies and `DIALECT_REPLY` allows it (`mirror`, `best_effort`,
+or `verified_only` with `"verified": true` in `server/src/config/dialect-render.json`),
 `renderInDialect()` (`chat/dialectRender.ts`) rewords only the wording, zero-shot or with consented
-exemplars. `checkFactsLock()` (`server/src/lib/facts.ts`, no AI) compares numbers in Devanagari,
+exemplars. With `mirror` (the default) a spoken question that is not confirmed or identified with
+high confidence is still reworded, towards the speaker's own transcript (quoted as a style sample,
+never as facts or instructions), with the classifier's candidates only as hints; the answer then
+has `answerStyle.dialectId: null` and is spoken with the base-language voice. `checkFactsLock()` (`server/src/lib/facts.ts`, no AI) compares numbers in Devanagari,
 Tamil and Western digits, rupee amounts, URLs and domains, phone numbers and scheme names; any
 difference, a timeout (`DIALECT_RENDER_TIMEOUT_MS`), an error, non-native script or new Roman words
 keep the standard answer. `answerStyle` reports `rendered: 'dialect' | 'standard'` and the reason.
@@ -259,7 +263,10 @@ Gemini asks for), and typed `GeminiError`s that become `429 AI_RATE_LIMITED`, `5
 
 ### Mock mode
 
-- `USE_MOCKS=true` (default): every module serves mock data, with no API key needed.
+- `USE_MOCKS=auto` (default): the real pipeline when `GEMINI_API_KEY` is set, otherwise every
+  module serves mock data.
+- `USE_MOCKS=true`: every module serves mock data, with no API key needed. The voice route ignores
+  the recording and answers a canned question.
 - `USE_MOCKS=false`: everything real. Needs `GEMINI_API_KEY`, the knowledge base
   (`npm run ingest -w server`) and, for `/api/faq/top`, the FAQ (`npm run prewarm -w server`).
   Without them the endpoints answer 503 with the command to run; the eligibility wizard works
@@ -346,7 +353,7 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | ------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `NODE_ENV`                      | `development`                                 | `production` lowers the default log level to `info`; `test` skips `.env` files                            |
 | `PORT`                          | `4000`                                        | HTTP port of the API (and the target of the Vite dev proxy)                                               |
-| `USE_MOCKS`                     | `true`                                        | `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
+| `USE_MOCKS`                     | `auto`                                        | `auto` (real when `GEMINI_API_KEY` is set), `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
 | `CLIENT_ORIGIN`                 | `http://localhost:5173`                       | Origins allowed by CORS, comma-separated                                                                  |
 | `LOG_LEVEL`                     | `debug` (dev), `info` (prod), `error` (tests) | `debug`, `info`, `warn` or `error`; debug shows each Gemini call with timings and token counts            |
 | `GEMINI_API_KEY`                | none                                          | Google AI Studio key. Needed for every real AI call; server only                                          |
@@ -372,7 +379,7 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | `DIALECT_ACTIVE`                | `all`                                         | `all` or comma-separated dialect ids; a smaller set means higher accuracy                                 |
 | `DIALECT_EXEMPLARS_PER_LABEL`   | `4`                                           | Maximum deterministic real examples injected per label                                                    |
 | `DIALECT_EXEMPLAR_TOKEN_BUDGET` | `1800`                                        | Shared conservative budget for prompt examples; whole examples are omitted when the budget is exhausted   |
-| `DIALECT_REPLY`                 | `best_effort`                                 | Dialect wording of replies: `off`, `best_effort` (confirmed or high-confidence dialect), `verified_only` (only `"verified": true` in `server/src/config/dialect-render.json`) |
+| `DIALECT_REPLY`                 | `mirror`                                      | Dialect wording of replies: `mirror` (also rewords spoken answers towards the speaker's own words), `best_effort` (confirmed or high-confidence dialect), `verified_only` (only `"verified": true` in `server/src/config/dialect-render.json`), `off` |
 | `DIALECT_RENDER_TIMEOUT_MS`     | `8000`                                        | Longest wait for the rewording step before the standard answer is used (500–60000)                        |
 | `RAG_TOP_K`                     | `4`                                           | Chunks retrieved per question (1–10)                                                                      |
 | `RAG_MIN_SCORE`                 | `0.5`                                         | Cosine similarity a chunk needs to be used; none left means `notFound`. Calibrate with `npm run query`    |

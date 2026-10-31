@@ -1,6 +1,6 @@
 # Pipeline audit
 
-Generated 2026-10-31T06:03:32.254Z by `npm run audit -w server` (label **after**) on branch `feat/dialect-voice` at `36895b1` (uncommitted changes present).
+Generated 2026-10-31T11:03:12.429Z by `npm run audit -w server` (label **phase-8-mirror**) on branch `feat/dialect-voice` at `1342b45` (uncommitted changes present).
 
 Statuses: PASS (ran and met the check), FAIL, PARTIAL, MOCK-ONLY (fixtures, proves nothing about the real pipeline), SYNTHETIC-ONLY (machine-generated audio, weak evidence), NEEDS-HUMAN (code cannot judge it), NOT-TESTED (with the reason). Nothing here is called PASS without a run.
 
@@ -8,7 +8,7 @@ Problems this audit raised that are not fixed in code are tracked by hand in [AU
 
 ## Before / after
 
-Baseline: baseline at `4c62fcb` (2026-10-31T05:21:13.835Z). Now: after at `36895b1`.
+Baseline: baseline at `4c62fcb` (2026-10-31T05:21:13.835Z). Now: phase-8-mirror at `1342b45`.
 
 | Stage | Before | After |
 |---|---|---|
@@ -46,9 +46,9 @@ A stage status aggregates its checks, so new passing checks do not change a stag
 
 **Environment notes**
 
-- Agent sandbox, 2026-10-31: no GEMINI_API_KEY, npm registry blocked (no express, vite, react, playwright); a sandbox shim kit provides typescript, tsx, zod, dotenv and a node:test-based vitest shim. The deployed app (https://gram-saathi.vercel.app/api/health, fetched with WebFetch on 2026-10-31) answered {"status":"ok","mocks":true} without dialectConfigured/ttsConfigured, i.e. an older build in mock mode; it is not reachable from the shell.
-- configured worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
-- fake worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
+- Agent sandbox, 2026-10-31 (Phase 8): no GEMINI_API_KEY, npm registry blocked; sandbox shim kit. Deployed app: /api/health {"status":"ok","mocks":true} (WebFetch).
+- configured worker: Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
+- fake worker: Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.
 
 ## Regional readiness matrix
 
@@ -294,7 +294,7 @@ A stage status aggregates its checks, so new passing checks do not change a stag
 
 | Stage | Status | Mode | Checks | Note |
 |---|---|---|---|---|
-| A Static checks | NOT-TESTED | static | 0 | Dependencies are not installed (node_modules/.bin lacks tsc, vitest, eslint, vite, tsx). Run `npm install` first; no static result can be claimed without the repo's own toolchain. |
+| A Static checks | NOT-TESTED | static | 0 | skipped with --skip-static |
 | B Real-mode preflight | PARTIAL | static | 9 |  |
 | C Retrieval | MOCK-ONLY | mock | 6 |  |
 | D Text answers (POST /api/chat/query) | MOCK-ONLY | mock | 25 |  |
@@ -307,7 +307,7 @@ A stage status aggregates its checks, so new passing checks do not change a stag
 
 ### A. Static checks — NOT-TESTED
 
-_Dependencies are not installed (node_modules/.bin lacks tsc, vitest, eslint, vite, tsx). Run `npm install` first; no static result can be claimed without the repo's own toolchain._
+_skipped with --skip-static_
 
 _No checks ran._
 
@@ -420,8 +420,8 @@ _No checks ran._
 |---|---|---|---|
 | PASS | Voice request without audio | Expected 400 AUDIO_REQUIRED; got 400 AUDIO_REQUIRED (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
 | PASS | Silent audio (STT returns no speech) | Expected 422 NO_SPEECH_DETECTED; got 422 NO_SPEECH_DETECTED (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
-| NOT-TESTED | Audio over the 10 MB limit | Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.). | server/src/middleware/upload.ts |
-| NOT-TESTED | Non-audio upload | Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.). | server/src/middleware/upload.ts |
+| NOT-TESTED | Audio over the 10 MB limit | Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.). | server/src/middleware/upload.ts |
+| NOT-TESTED | Non-audio upload | Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.). | server/src/middleware/upload.ts |
 | PASS | Per-IP rate limit reached | Third request in the window got 429 RATE_LIMITED with Retry-After 60 s. | server/src/middleware/rateLimit.ts |
 | PASS | Gemini timeout on a text question | Expected 504 AI_TIMEOUT; got 504 AI_TIMEOUT (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
 | PASS | Gemini 429 on a text question | Expected 429 AI_RATE_LIMITED; got 429 AI_RATE_LIMITED (controllers called directly, fake Gemini backend). | scripts/audit/fakeWorker.ts |
@@ -443,21 +443,21 @@ _No checks ran._
 | PASS | Typed scheme question | 4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | PASS | Typed scheme question with dialectHint (bhojpuri) | 5 Gemini call(s) (understand×1, embed×1, answer×1, sms×1, reply-dialect×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | PASS | Typed clarification (“ki keh raho he”) | 1 Gemini call(s) (understand×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
-| FAIL | Spoken scheme question (dialect identification on) | 8 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
+| FAIL | Spoken scheme question (dialect identification on) | 9 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1, reply-dialect×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | PASS | Listen (server speech, one piece) | 1 Gemini call(s) (tts×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 | PASS | Listen on a long answer (split into pieces) | 3 Gemini call(s) (tts×3), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J. | scripts/audit/fakeWorker.ts |
 
 ## NOT-TESTED
 
-- A · Static checks (whole stage): Dependencies are not installed (node_modules/.bin lacks tsc, vitest, eslint, vite, tsx). Run `npm install` first; no static result can be claimed without the repo's own toolchain.
+- A · Static checks (whole stage): skipped with --skip-static
 - H · Browser end-to-end mic test (optional) (whole stage): AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API).
 - B · Chat model id resolves: Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id "gemini-3.8-flash" was not resolved.
 - B · Fallback model id resolves: Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id "gemini-3.6-flash" was not resolved.
 - B · Speech-to-text model id resolves (text-only ping): Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id "gemini-3.8-flash" was not resolved.
 - B · Embedding model id resolves: Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id "gemini-embedding-2" was not resolved.
 - B · Text-to-speech model id resolves: tts is mocked (USE_MOCKS), so no TTS call was made.
-- I · Audio over the 10 MB limit: Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).
-- I · Non-audio upload: Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).
+- I · Audio over the 10 MB limit: Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).
+- I · Non-audio upload: Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).
 - I · Friendly, localized error message in the client: The client (ChatProvider errorText) is not exercised by this server-side audit, and no client test runner exists for it.
 - J · text request latency (p50 / p95): Latency is only meaningful against real Gemini calls; this run made none on this path.
 - J · voice request latency (p50 / p95): Latency is only meaningful against real Gemini calls; this run made none on this path.

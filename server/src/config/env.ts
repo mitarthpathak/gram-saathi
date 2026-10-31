@@ -42,9 +42,14 @@ export const MOCKABLE_MODULES = [
 ] as const;
 export type MockableModule = (typeof MOCKABLE_MODULES)[number];
 
-/** USE_MOCKS is `true`, `false` or a comma-separated list such as `eligibility,sms`. */
-function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableModule> {
+/**
+ * USE_MOCKS is `auto` (the default), `true`, `false` or a comma-separated list such as
+ * `eligibility,sms`. `auto` is resolved after parsing: real pipeline when GEMINI_API_KEY is set,
+ * mock data for every module otherwise.
+ */
+function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableModule> | 'auto' {
   const value = raw.trim().toLowerCase();
+  if (value === 'auto') return 'auto';
   if (['true', '1', 'yes', 'all'].includes(value)) return new Set(MOCKABLE_MODULES);
   if (['false', '0', 'no', 'none'].includes(value)) return new Set();
 
@@ -63,14 +68,23 @@ function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableM
   return new Set(names as MockableModule[]);
 }
 
+/** `auto`: the real pipeline when a Gemini key is set, mock data for every module otherwise. */
+export function resolveMockSetting(
+  setting: ReadonlySet<MockableModule> | 'auto',
+  geminiApiKey: string | undefined,
+): ReadonlySet<MockableModule> {
+  if (setting !== 'auto') return setting;
+  return new Set(geminiApiKey?.trim() ? [] : MOCKABLE_MODULES);
+}
+
 /** Treats `KEY=` (empty value) like an unset variable so the default applies. */
 const fromEnv = <T extends z.ZodType>(schema: T) =>
   z.preprocess((value) => (value === '' ? undefined : value), schema);
 
-const envSchema = z.object({
+const envObject = z.object({
   NODE_ENV: fromEnv(z.enum(['development', 'test', 'production']).default('development')),
   PORT: fromEnv(z.coerce.number().int().min(1).max(65535).default(4000)),
-  USE_MOCKS: fromEnv(z.string().default('true').transform(parseMockList)),
+  USE_MOCKS: fromEnv(z.string().default('auto').transform(parseMockList)),
   CLIENT_ORIGIN: fromEnv(z.string().default('http://localhost:5173')),
   /** Read by lib/logger directly; validated here. Default: debug (dev), info (production). */
   LOG_LEVEL: fromEnv(z.enum(['debug', 'info', 'warn', 'error']).optional()),
@@ -121,11 +135,14 @@ const envSchema = z.object({
   DIALECT_EXEMPLARS_PER_LABEL: fromEnv(z.coerce.number().int().min(0).max(20).default(4)),
   DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(z.coerce.number().int().min(0).max(20_000).default(1800)),
   /**
-   * Dialect wording of replies: `off` keeps the standard language; `best_effort` renders every
-   * confirmed or high-confidence dialect; `verified_only` renders only dialects a native speaker
-   * reviewed (`verified: true` in config/dialect-render.json).
+   * Dialect wording of replies: `off` keeps the standard language; `mirror` (default) also rewords
+   * spoken answers to match the speaker's own words when the dialect is only partly identified;
+   * `best_effort` renders every confirmed or high-confidence dialect; `verified_only` renders only
+   * dialects a native speaker reviewed (`verified: true` in config/dialect-render.json).
    */
-  DIALECT_REPLY: fromEnv(z.enum(['off', 'best_effort', 'verified_only']).default('best_effort')),
+  DIALECT_REPLY: fromEnv(
+    z.enum(['off', 'mirror', 'best_effort', 'verified_only']).default('mirror'),
+  ),
   /** Longest wait for the dialect rewording step before falling back to the standard answer. */
   DIALECT_RENDER_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(500).max(60_000).default(8000)),
 
@@ -149,6 +166,13 @@ const envSchema = z.object({
   TRUST_PROXY: fromEnv(z.coerce.number().int().min(0).max(10).default(1)),
 });
 
+/** `auto` in USE_MOCKS is resolved here, once the Gemini key is known. */
+const envSchema = envObject.transform((values) => ({
+  ...values,
+  USE_MOCKS: resolveMockSetting(values.USE_MOCKS, values.GEMINI_API_KEY),
+  USE_MOCKS_AUTO: values.USE_MOCKS === 'auto',
+}));
+
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
   logger.error(`Invalid environment variables (check .env):\n${z.prettifyError(parsed.error)}`);
@@ -170,6 +194,9 @@ export function isMocked(module: MockableModule): boolean {
 }
 
 export function describeMocks(): string {
+  if (env.USE_MOCKS_AUTO && env.USE_MOCKS.size === MOCKABLE_MODULES.length) {
+    return 'all modules (USE_MOCKS=auto and GEMINI_API_KEY is not set)';
+  }
   if (env.USE_MOCKS.size === MOCKABLE_MODULES.length) return 'all modules';
   return env.USE_MOCKS.size === 0 ? 'off' : [...env.USE_MOCKS].join(', ');
 }

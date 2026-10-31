@@ -390,3 +390,26 @@ Earlier sections above belong to the finished conversation-layer job. This job's
 - Not done: building or rendering the client (Vite, Tailwind, UI packages unavailable); real
   `npm test -w client`.
 - Open issues: N9 (typed questions send no `dialectHint`), N13, N14, N15 in `AUDIT_FINDINGS.md`.
+
+## Phase 8 — the mic answers your own speech, in your own way (owner request)
+
+- Request: the mic must answer the captured audio, not a canned demo; Haryanvi in → Haryanvi out.
+- Diagnosis: client uploads real audio (`useRecorder.ts`; placeholder audio only without a
+  recorder); the server defaulted to `USE_MOCKS=true`, where `mockTranscribe()` ignores audio; the
+  deployed app reports `mocks: true`. Regional replies needed a confirmed or high-confidence dialect.
+- Files changed: `server/src/config/env.ts` (`USE_MOCKS=auto` default, `resolveMockSetting`,
+  `DIALECT_REPLY=mirror` default), `server/src/modules/chat/dialectRender.ts` (`SpeakerStyle`,
+  unnamed target, speaker block, unchanged-rewrite rule, `decideReplyDialect` context),
+  `server/src/modules/chat/service.ts` (speaker sample, mirror decision in real mode only, fixed
+  `ASK_AGAIN` not reworded), tests `server/test/dialectMirror.test.ts`,
+  `server/test/useMocksAuto.test.ts`, `.env.example`, `README.md`, `docs/API_CONTRACT.md` (v6, no
+  type change), `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`, `docs/AUDIT_FINDINGS.md` (F6, F7, N16),
+  `docs/FINAL_REPORT.md`, `docs/DECISIONS.md`, regenerated `docs/PIPELINE_AUDIT.md` and
+  `audit/results.json` (label `phase-8-mirror`).
+- Commands run (sandbox, no key): server `tsc --noEmit` 0 errors; new tests 10/10; full server suite
+  202 tests: 193 pass, the same 9 environment failures (Express-bound + 3 eligibility);
+  `describeMocks()` in separate processes for `auto`/no key (all mocked), `auto`/key (off),
+  `true`/key (all), `eligibility,sms`/key (those two); audit `--skip-static --label phase-8-mirror`
+  (stage statuses unchanged; `J-shape-voice` now 9 calls, still 6 sequential).
+- Not done: any real-model or real-speaker run (no key); client unchanged (it already labels
+  dialect-worded answers and sends no `dialectId` when `answerStyle.dialectId` is null).

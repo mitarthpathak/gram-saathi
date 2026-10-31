@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-31T06:03:32.254Z",
+  "generatedAt": "2026-10-31T11:03:12.429Z",
   "git": {
     "branch": "feat/dialect-voice",
-    "commit": "36895b1",
+    "commit": "1342b45",
     "dirty": true
   },
-  "label": "after",
+  "label": "phase-8-mirror",
   "workers": [
     {
       "worker": "configured",
@@ -22,7 +22,7 @@
       ],
       "keyConfigured": false,
       "transport": "in-process",
-      "transportNote": "Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+      "transportNote": "Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
       "models": {
         "chat": "gemini-3.8-flash",
         "fallback": "gemini-3.6-flash",
@@ -35,7 +35,7 @@
       "useMocks": [],
       "keyConfigured": false,
       "transport": "in-process",
-      "transportNote": "Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+      "transportNote": "Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
       "models": {
         "chat": "gemini-3.8-flash",
         "tts": "gemini-3.8-flash-lite-tts"
@@ -48,7 +48,7 @@
       "name": "Static checks",
       "status": "NOT-TESTED",
       "mode": "static",
-      "reason": "Dependencies are not installed (node_modules/.bin lacks tsc, vitest, eslint, vite, tsx). Run `npm install` first; no static result can be claimed without the repo's own toolchain.",
+      "reason": "skipped with --skip-static",
       "checks": [],
       "durationMs": 0
     },
@@ -155,7 +155,7 @@
           }
         }
       ],
-      "durationMs": 27
+      "durationMs": 37
     },
     {
       "stage": "C",
@@ -543,7 +543,7 @@
           ]
         }
       ],
-      "durationMs": 21
+      "durationMs": 27
     },
     {
       "stage": "E",
@@ -767,7 +767,7 @@
         "standardAnswer": "पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in प…",
         "reviewFile": "eval/review/dialect-review.csv"
       },
-      "durationMs": 10
+      "durationMs": 12
     },
     {
       "stage": "F",
@@ -931,7 +931,7 @@
           "id": "I-oversized-audio",
           "title": "Audio over the 10 MB limit",
           "status": "NOT-TESTED",
-          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
+          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
           "evidence": [
             "server/src/middleware/upload.ts"
           ]
@@ -940,7 +940,7 @@
           "id": "I-wrong-mime",
           "title": "Non-audio upload",
           "status": "NOT-TESTED",
-          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
+          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
           "evidence": [
             "server/src/middleware/upload.ts"
           ]
@@ -1039,7 +1039,7 @@
           ]
         }
       ],
-      "durationMs": 356
+      "durationMs": 365
     },
     {
       "stage": "J",
@@ -1127,12 +1127,12 @@
           "id": "J-shape-voice",
           "title": "Spoken scheme question (dialect identification on)",
           "status": "FAIL",
-          "detail": "8 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "detail": "9 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1, reply-dialect×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
           "evidence": [
             "scripts/audit/fakeWorker.ts"
           ],
           "data": {
-            "calls": 8,
+            "calls": 9,
             "sequential": 6,
             "labels": {
               "transcribe": 1,
@@ -1142,7 +1142,8 @@
               "understand": 1,
               "embed": 1,
               "answer": 1,
-              "sms": 1
+              "sms": 1,
+              "reply-dialect": 1
             }
           }
         },
@@ -1179,7 +1180,7 @@
           }
         }
       ],
-      "durationMs": 452,
+      "durationMs": 456,
       "data": {}
     }
   ],
@@ -1798,9 +1799,9 @@
     }
   ],
   "sandboxNotes": [
-    "Agent sandbox, 2026-10-31: no GEMINI_API_KEY, npm registry blocked (no express, vite, react, playwright); a sandbox shim kit provides typescript, tsx, zod, dotenv and a node:test-based vitest shim. The deployed app (https://gram-saathi.vercel.app/api/health, fetched with WebFetch on 2026-10-31) answered {\"status\":\"ok\",\"mocks\":true} without dialectConfigured/ttsConfigured, i.e. an older build in mock mode; it is not reachable from the shell.",
-    "configured worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
-    "fake worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter."
+    "Agent sandbox, 2026-10-31 (Phase 8): no GEMINI_API_KEY, npm registry blocked; sandbox shim kit. Deployed app: /api/health {\"status\":\"ok\",\"mocks\":true} (WebFetch).",
+    "configured worker: Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+    "fake worker: Express app could not be started (express is not installed in this sandbox (npm registry blocked; sandbox shim)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter."
   ],
   "kiKeh": {
     "text": "- Real mode (this branch, with the intent router): NOT-TESTED — no run with a Gemini key. The router prompt lists \"ki keh raho he\" as a clarification, but a prompt is not proof.\n- Mock mode, typed: not reproduced — the mock keyword search finds no scheme, so the fixed not-found text is returned (no PM-KISAN answer).\n- Mock mode, spoken: REPRODUCED for any recording — the mock speech-to-text ignores the audio and returns the canned question “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, which gets the canned formal-Hindi scheme answer.\n- Real-mode guard (added in this branch): a clarification may not state numbers, amounts, URLs or phone numbers the user was not already told; otherwise the fixed “please ask again” text is returned. With a fake model this check is PASS.\n- Fix status: in real mode the intent router (prompt) and the facts guard (code) address the reported reply; neither has been run against the real model here. USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.",

@@ -26,7 +26,12 @@ import {
 } from './language';
 import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply, ASK_AGAIN } from './messages';
 import { getHistory, handleTurn, recordTurn, type Passage, type Turn } from './conversation';
-import { decideReplyDialect, renderInDialect, type DialectDecision } from './dialectRender';
+import {
+  decideReplyDialect,
+  renderInDialect,
+  type DialectDecision,
+  type SpeakerStyle,
+} from './dialectRender';
 
 export interface AnswerInput {
   text: string;
@@ -116,7 +121,14 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
 
   const dialect = await getDialectOutcome(input);
   const dialectId = input.dialectHint ?? dialect.dialect?.id;
-  const decision = decideReplyDialect(input.dialectHint, dialect);
+  // Mock mode keeps its old answerStyle (R8): the speaker-mirroring step only exists in real mode.
+  const decision = decideReplyDialect(
+    input.dialectHint,
+    dialect,
+    isMocked('chat')
+      ? {}
+      : { mode: env.DIALECT_REPLY, spoken: Boolean(input.dialectEvidence?.audio) },
+  );
 
   // Preserve the pre-existing mocked answer pipeline byte-for-byte in USE_MOCKS mode; it only
   // gains the additive `answerStyle` field (always the standard language: mocks never reword).
@@ -153,7 +165,7 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
 
 /** Fixed reviewed texts (not found) are never reworded. */
 function fixedTextStyle(language: LanguageCode, decision: DialectDecision): AnswerStyle {
-  return decision.dialectId
+  return decision.dialectId || decision.mirror
     ? { language, dialectId: decision.dialectId, rendered: 'standard', reason: 'render_off' }
     : { language, dialectId: null, rendered: 'standard', reason: decision.reason ?? 'no_dialect' };
 }
@@ -169,24 +181,31 @@ async function styleReply(
   text: string,
   language: LanguageCode,
   decision: DialectDecision,
+  speaker?: SpeakerStyle,
 ): Promise<{ text: string; style: AnswerStyle }> {
   const standard = (reason: AnswerStyle['reason']) => ({
     text,
     style: { language, dialectId: decision.dialectId, rendered: 'standard' as const, reason },
   });
-  if (!decision.dialectId) return standard(decision.reason ?? 'no_dialect');
-  const entry = getDialectEntry(decision.dialectId);
+  if (!decision.dialectId && !decision.mirror) return standard(decision.reason ?? 'no_dialect');
+  const entry = decision.dialectId ? getDialectEntry(decision.dialectId) : undefined;
   // Rewording is not translation: a reply in another language than the dialect's parent stays as is.
-  if (!entry || entry.parentLanguage !== language) return standard('render_off');
+  if (decision.dialectId && (!entry || entry.parentLanguage !== language)) {
+    return standard('render_off');
+  }
+  // Mirroring needs the person's words and a regional variety to mirror (not English).
+  if (!entry && (!speaker || language === 'en')) return standard('no_dialect');
 
   const result = await renderInDialect(
     text,
-    entry,
+    entry ?? null,
     {
       mode: env.DIALECT_REPLY,
-      verified: dialectRenderEntry(entry.id).verified,
-      exemplars: renderPromptExemplars([entry.id], getDialectExemplars()),
+      verified: entry ? dialectRenderEntry(entry.id).verified : false,
+      exemplars: entry ? renderPromptExemplars([entry.id], getDialectExemplars()) : [],
       timeoutMs: env.DIALECT_RENDER_TIMEOUT_MS,
+      speaker,
+      language,
     },
     {
       generateJson: ({ system, prompt, schema, timeoutMs }) =>
@@ -194,14 +213,14 @@ async function styleReply(
     },
   );
   logger.debug(
-    `dialect reply ${entry.id}: ${result.rendered}${result.reason ? ` (${result.reason})` : ''}` +
+    `dialect reply ${entry?.id ?? 'mirror'}: ${result.rendered}${result.reason ? ` (${result.reason})` : ''}` +
       `${result.zeroShot ? ', no consented exemplars (best effort)' : ''}${result.detail ? `: ${result.detail}` : ''}`,
   );
   return {
     text: result.text,
     style: {
       language,
-      dialectId: entry.id,
+      dialectId: entry?.id ?? null,
       rendered: result.rendered,
       ...(result.reason && { reason: result.reason }),
     },
@@ -228,6 +247,7 @@ async function answerConversation(
 ): Promise<QueryResponse> {
   let retrieved: ScoredChunk[] = [];
   const history = input.sessionId ? getHistory(input.sessionId) : [];
+  const speaker = speakerStyle(input, dialect);
   const result = await handleTurn(
     {
       minScore: env.RAG_MIN_SCORE,
@@ -254,10 +274,12 @@ async function answerConversation(
 
   let response: QueryResponse;
   if (result.kind === 'direct') {
-    const direct = introducesNewFacts(result.answer, history)
-      ? ASK_AGAIN[result.language]
-      : result.answer;
-    const styled = await styleReply(direct, result.language, decision);
+    const guarded = introducesNewFacts(result.answer, history);
+    const direct = guarded ? ASK_AGAIN[result.language] : result.answer;
+    // The fixed "please ask again" text is reviewed wording: never reworded (finding N14).
+    const styled = guarded
+      ? { text: direct, style: fixedTextStyle(result.language, decision) }
+      : await styleReply(direct, result.language, decision, speaker);
     const smsText = truncateAtSentence(direct, env.SMS_MAX_SEGMENTS);
     response = {
       sessionId: input.sessionId ?? '',
@@ -302,7 +324,7 @@ async function answerConversation(
       // The SMS keeps the checked standard wording; the dialect rewording runs alongside it.
       const [{ sms }, styled] = await Promise.all([
         compressForSms({ text: result.answer, language: result.language }),
-        styleReply(result.answer, result.language, decision),
+        styleReply(result.answer, result.language, decision, speaker),
       ]);
       response = {
         sessionId: input.sessionId ?? '',
@@ -342,6 +364,22 @@ async function getDialectOutcome(input: AnswerInput): Promise<DialectOutcome> {
     logger.warn('dialect classifier unavailable; returning an abstention');
     return { dialect: null, dialectCandidates: [] };
   }
+}
+
+/**
+ * The person's own words as a style sample for the rewording step: the transcript of a spoken
+ * question, or a typed question when the user confirmed a dialect. Candidate names are hints.
+ */
+function speakerStyle(input: AnswerInput, dialect: DialectOutcome): SpeakerStyle | undefined {
+  const spoken = Boolean(input.dialectEvidence?.audio);
+  if (!spoken && !input.dialectHint) return undefined;
+  const sample = (input.transcript ?? input.text).trim();
+  if (!sample) return undefined;
+  const candidates = [
+    ...(dialect.dialect ? [dialect.dialect.name] : []),
+    ...(dialect.dialectCandidates ?? []).map((option) => option.name),
+  ];
+  return { sample, ...(candidates.length ? { candidates: [...new Set(candidates)] } : {}) };
 }
 
 /** Only repo-classified high confidence survives as a prompt hint; medium and abstentions are omitted. */

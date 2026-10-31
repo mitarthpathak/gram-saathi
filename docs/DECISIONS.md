@@ -363,3 +363,36 @@ mime_type: audio/wav, sample_rate}`, `generation_config.speech_config [{voice}]`
   test with esbuild and runs every test in fresh modules (19/19, and a mutation of the per-request
   rule makes the new test fail), and the merged Listen logic in real Chromium against a stubbed API
   (7/7). None of these harnesses is committed (new dependencies, R9).
+
+## Phase 8: the mic answers your own speech, in your own way (owner request)
+
+- **Owner request (2026-10-31):** clicking the mic must answer what was actually said, not a
+  hard-coded demo, and speaking Haryanvi must give a Haryanvi answer, "however it is done".
+- **Cause of the canned answer:** `USE_MOCKS` defaulted to `true`; in mock mode
+  `mockTranscribe()` ignores the recording and returns a canned PM-KISAN question (finding F7).
+  The client records and uploads real audio; only `VITE_USE_MOCKS=true` would bypass the server.
+- **`USE_MOCKS=auto` (new default):** real pipeline when `GEMINI_API_KEY` is set, all mocks when it
+  is not. Explicit `true`, `false` and module lists behave exactly as before (R8). In real mode the
+  eligibility wizard reports its existing "rules unverified" message and the offline FAQ needs
+  `npm run prewarm`; mocking them selectively would keep the "demo data" badge on, hiding that the
+  mic is real. Alternative rejected: a silent mock fallback when the key fails (it would make demo
+  content look like sourced answers).
+- **`DIALECT_REPLY=mirror` (new default):** the brief's policy rewords only for a confirmed or
+  high-confidence dialect, and with zero exemplars the classifier often stays at medium or abstains,
+  so a Haryanvi speaker mostly got standard Hindi. `mirror` keeps that policy for named dialects and
+  adds one case: a spoken question that is not confirmed or high-confidence is reworded towards the
+  speaker's own transcript (Gemini STT keeps dialect words verbatim). The transcript is the style
+  sample (their own words, so no dialect text is invented), quoted in `<person>` tags as data, never
+  as facts or instructions; classifier candidates are hints only. The facts lock, script check and
+  fallbacks are unchanged; an unchanged rewrite reports `standard`. `answerStyle` is
+  `{ rendered: 'dialect', dialectId: null }`, so the client labels it experimental and the speech as
+  a Hindi-voice approximation, and no dialect is claimed. Typed text is unchanged (no mirroring
+  without a confirmed dialect). Mock mode keeps its old `answerStyle`.
+- **Speech:** a dialect the TTS model does not name (Haryanvi included) is still spoken by the
+  Hindi voice; style prompts are not used for accents (docs advise against it). A Haryana-accent
+  voice from the Extended Voice Library can be configured per dialect after auditioning (runbook
+  step 5).
+- **Cost:** one extra model call per spoken answer, in parallel with the SMS step, so no extra
+  sequential step (audit `J-shape-voice`: 9 calls, 6 sequential, as before).
+- **Also fixed:** the fixed `ASK_AGAIN` text is no longer reworded (N14 → F6).
+- **Not verified:** no real recording or real model output; Haryanvi quality is NEEDS-HUMAN.
