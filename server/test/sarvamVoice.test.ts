@@ -17,8 +17,8 @@ async function loadProviders(options: { mocks?: string; stt?: string; tts?: stri
   vi.stubEnv('SARVAM_TIMEOUT_MS', '1000');
   vi.resetModules();
   return {
-    voice: await import('../src/modules/voice/service'),
-    tts: await import('../src/modules/tts/service'),
+    voice: await import('../src/modules/voice/service.js'),
+    tts: await import('../src/modules/tts/service.js'),
   };
 }
 
