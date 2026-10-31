@@ -3,11 +3,11 @@ import { cn } from '@/lib/cn';
 
 const VARIANTS = {
   primary:
-    'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft hover:brightness-110 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-600 disabled:shadow-none',
+    'bg-linear-to-br from-leaf-500 to-leaf-600 text-white shadow-soft hover:brightness-110 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-600 disabled:shadow-none',
   secondary:
-    'bg-white text-brand-800 ring-2 ring-brand-600/25 hover:bg-brand-50 hover:ring-brand-600 disabled:text-slate-500 disabled:ring-slate-200',
-  soft: 'bg-brand-50 text-brand-800 hover:bg-brand-100 disabled:text-slate-500',
-  ghost: 'text-brand-800 hover:bg-brand-50 disabled:text-slate-500',
+    'bg-white text-leaf-600 ring-2 ring-leaf-600/25 hover:bg-leaf-50 hover:ring-leaf-600 disabled:text-slate-500 disabled:ring-slate-200',
+  soft: 'bg-leaf-50 text-leaf-600 hover:bg-leaf-100 disabled:text-slate-500',
+  ghost: 'text-leaf-600 hover:bg-leaf-50 disabled:text-slate-500',
   danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-600',
 };
 
@@ -35,7 +35,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
+        'inline-flex items-center justify-center gap-2 font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
         VARIANTS[variant],
         SIZES[size],
         className,

@@ -48,9 +48,9 @@ function QuestionBubble({
 }) {
   const t = useStrings(chatStrings);
   return (
-    <div className="ml-auto w-fit max-w-[85%] animate-fade-up rounded-3xl rounded-br-md bg-linear-to-br from-brand-600 to-brand-800 px-4 py-3 text-[17px] leading-snug text-white shadow-soft">
+    <div className="ml-auto w-fit max-w-[85%] animate-fade-up rounded-3xl rounded-br-md bg-linear-to-br from-leaf-600 to-leaf-600 px-4 py-3 text-[17px] leading-snug text-white shadow-soft">
       {viaVoice && (
-        <p className="mb-1 flex items-center gap-1 text-[13px] font-bold text-brand-100">
+        <p className="mb-1 flex items-center gap-1 text-[13px] font-bold text-leaf-100">
           <Mic aria-hidden className="size-3.5" />
           {t.youSaid}
         </p>
@@ -81,7 +81,7 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
   return (
     <article lang={response.detectedLanguage} className="flex animate-fade-up items-start gap-2.5">
       <Logo className="mt-1 size-8 rounded-[0.6rem]" />
-      <div className="flex min-w-0 flex-1 flex-col gap-3 rounded-3xl rounded-tl-md bg-white p-4 shadow-soft ring-1 ring-brand-950/5">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 rounded-3xl rounded-tl-md bg-white p-4 shadow-soft ring-1 ring-ink/5">
         {(scheme || response.notFound || response.usedCache) && (
           <div className="flex flex-wrap gap-1.5">
             {scheme && <Badge tone="success">{scheme}</Badge>}
@@ -109,7 +109,7 @@ function AnswerBubble({ response }: { response: QueryResponse }) {
           <Link
             to="/sms"
             state={smsState}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-cream-100 px-3.5 text-sm font-bold text-slate-700 ring-1 ring-brand-950/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-cream-100 px-3.5 text-sm font-bold text-slate-700 ring-1 ring-ink/10 transition hover:bg-cream-200 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600"
           >
             <MessageSquareText aria-hidden className="size-4" />
             {t.viewSms} · {response.smsSegments}

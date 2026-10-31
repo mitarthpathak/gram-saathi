@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ChatProvider } from '@/features/chat/ChatProvider';
 import { detectBrowserLanguage, getLanguage } from '@/features/language/languages';
+import { MotionProvider } from '@/lib/motion/MotionProvider';
 import { SettingsContext, type Settings } from '@/lib/settings';
 import { storage } from '@/lib/storage';
 
@@ -63,9 +64,11 @@ function SettingsProvider({ children }: { children: ReactNode }) {
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <SettingsProvider>
-      <ToastProvider>
-        <ChatProvider>{children}</ChatProvider>
-      </ToastProvider>
+      <MotionProvider>
+        <ToastProvider>
+          <ChatProvider>{children}</ChatProvider>
+        </ToastProvider>
+      </MotionProvider>
     </SettingsProvider>
   );
 }

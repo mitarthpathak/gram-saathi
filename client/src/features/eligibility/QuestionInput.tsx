@@ -12,7 +12,7 @@ interface QuestionInputProps {
 }
 
 const TILE =
-  'transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60';
+  'transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60';
 
 /** Big answer controls for the three question types: number, choice and yes/no. */
 export function QuestionInput({ question, onAnswer, disabled }: QuestionInputProps) {
@@ -26,7 +26,7 @@ export function QuestionInput({ question, onAnswer, disabled }: QuestionInputPro
             type="button"
             disabled={disabled}
             onClick={() => onAnswer(true)}
-            className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-3xl bg-linear-to-br from-brand-500 to-brand-700 text-2xl font-extrabold text-white shadow-lift ${TILE}`}
+            className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-3xl bg-linear-to-br from-leaf-500 to-leaf-600 text-2xl font-extrabold text-white shadow-lift ${TILE}`}
           >
             <span className="flex size-12 items-center justify-center rounded-full bg-white/20">
               <Check aria-hidden className="size-7" strokeWidth={3} />
@@ -37,7 +37,7 @@ export function QuestionInput({ question, onAnswer, disabled }: QuestionInputPro
             type="button"
             disabled={disabled}
             onClick={() => onAnswer(false)}
-            className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-3xl bg-white text-2xl font-extrabold text-slate-800 shadow-soft ring-2 ring-brand-950/10 hover:ring-brand-400 ${TILE}`}
+            className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-3xl bg-white text-2xl font-extrabold text-slate-800 shadow-soft ring-2 ring-ink/10 hover:ring-leaf-400 ${TILE}`}
           >
             <span className="flex size-12 items-center justify-center rounded-full bg-slate-100">
               <X aria-hidden className="size-7 text-slate-600" strokeWidth={3} />
@@ -55,11 +55,11 @@ export function QuestionInput({ question, onAnswer, disabled }: QuestionInputPro
               type="button"
               disabled={disabled}
               onClick={() => onAnswer(option)}
-              className={`group flex min-h-16 items-center gap-3 rounded-2xl bg-white px-4 text-left text-lg font-bold text-slate-800 shadow-soft ring-1 ring-brand-950/5 hover:ring-2 hover:ring-brand-500 ${TILE}`}
+              className={`group flex min-h-16 items-center gap-3 rounded-2xl bg-white px-4 text-left text-lg font-bold text-slate-800 shadow-soft ring-1 ring-ink/5 hover:ring-2 hover:ring-leaf-500 ${TILE}`}
             >
               <span
                 aria-hidden
-                className="size-5 shrink-0 rounded-full ring-2 ring-brand-300 transition group-hover:bg-brand-500 group-hover:ring-brand-500"
+                className="size-5 shrink-0 rounded-full ring-2 ring-leaf-300 transition group-hover:bg-leaf-500 group-hover:ring-leaf-500"
               />
               {option}
               <ChevronRight aria-hidden className="ml-auto size-5 shrink-0 text-slate-400" />
@@ -92,7 +92,7 @@ function NumberAnswer({ onAnswer, disabled }: Omit<QuestionInputProps, 'question
         onChange={(event) => setValue(event.target.value)}
         placeholder={t.numberPlaceholder}
         aria-label={t.numberPlaceholder}
-        className="min-h-16 w-full min-w-0 rounded-2xl bg-white px-5 text-3xl font-extrabold tracking-tight shadow-soft ring-2 ring-brand-950/10 placeholder:text-xl placeholder:font-semibold placeholder:text-slate-400 focus:ring-brand-500 focus:outline-none"
+        className="min-h-16 w-full min-w-0 rounded-2xl bg-white px-5 text-3xl font-extrabold tracking-tight shadow-soft ring-2 ring-ink/10 placeholder:text-xl placeholder:font-semibold placeholder:text-slate-400 focus:ring-leaf-500 focus:outline-none"
       />
       <Button type="submit" size="xl" disabled={disabled || !Number.isFinite(number)}>
         {t.next}

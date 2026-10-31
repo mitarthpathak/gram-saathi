@@ -17,11 +17,11 @@ export function SourceCard({ source, index }: SourceCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-2xl bg-cream-100 px-3 py-2.5 ring-1 ring-brand-950/5">
+    <div className="rounded-2xl bg-cream-100 px-3 py-2.5 ring-1 ring-ink/5">
       <div className="flex items-center gap-2">
         <span
           aria-hidden
-          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-extrabold text-white"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-leaf-600 text-xs font-extrabold text-white"
         >
           {index}
         </span>
@@ -32,7 +32,7 @@ export function SourceCard({ source, index }: SourceCardProps) {
       </div>
       <blockquote
         className={cn(
-          'mt-1.5 border-l-2 border-brand-300 pl-2.5 text-sm leading-snug text-slate-600',
+          'mt-1.5 border-l-2 border-leaf-300 pl-2.5 text-sm leading-snug text-slate-600',
           !expanded && 'line-clamp-2',
         )}
       >
@@ -42,7 +42,7 @@ export function SourceCard({ source, index }: SourceCardProps) {
         type="button"
         onClick={() => setExpanded((open) => !open)}
         aria-expanded={expanded}
-        className="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-bold text-brand-700"
+        className="mt-1 inline-flex min-h-8 items-center gap-1 text-[13px] font-bold text-leaf-600"
       >
         {expanded ? t.showLess : t.showMore}
         <ChevronDown aria-hidden className={cn('size-4 transition', expanded && 'rotate-180')} />

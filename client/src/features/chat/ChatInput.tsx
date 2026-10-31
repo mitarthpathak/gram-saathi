@@ -24,7 +24,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   return (
     <form
       onSubmit={submit}
-      className="mt-2 flex items-center gap-2 rounded-full bg-cream-50 p-1.5 pl-4 ring-1 ring-brand-950/10 transition focus-within:ring-2 focus-within:ring-brand-500"
+      className="mt-2 flex items-center gap-2 rounded-full bg-cream-50 p-1.5 pl-4 ring-1 ring-ink/10 transition focus-within:ring-2 focus-within:ring-leaf-500"
     >
       <label htmlFor="chat-question" className="sr-only">
         {t.inputLabel}
@@ -43,7 +43,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         type="submit"
         aria-label={t.send}
         disabled={disabled || !question}
-        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft transition hover:brightness-110 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-95 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-leaf-500 to-leaf-600 text-white shadow-soft transition hover:brightness-110 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-95 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none"
       >
         <Send aria-hidden className="size-5" />
       </button>

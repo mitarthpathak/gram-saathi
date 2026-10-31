@@ -138,14 +138,14 @@ export function MicButton({ onRecorded, busy = false }: MicButtonProps) {
           onClick={handleClick}
           onContextMenu={(event) => event.preventDefault()}
           className={cn(
-            'relative flex size-[5.25rem] touch-none items-center justify-center rounded-full text-white transition duration-200 select-none focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-brand-600',
+            'relative flex size-[5.25rem] touch-none items-center justify-center rounded-full text-white transition duration-200 select-none focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-leaf-600',
             busy && 'bg-slate-300 text-slate-600',
             !busy &&
               recording &&
               'scale-105 bg-linear-to-br from-marigold-400 to-marigold-600 shadow-[0_18px_40px_-12px_rgb(221_102_2/0.7)]',
             !busy &&
               !recording &&
-              'animate-breathe bg-linear-to-br from-brand-400 via-brand-600 to-brand-800 hover:scale-105 active:scale-95',
+              'animate-breathe bg-linear-to-br from-leaf-400 via-leaf-600 to-leaf-600 hover:scale-105 active:scale-95',
           )}
         >
           {busy ? (

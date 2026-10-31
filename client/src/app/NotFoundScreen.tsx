@@ -7,7 +7,7 @@ export function NotFoundScreen() {
   return (
     <div className="flex flex-col items-center gap-4 px-4 py-12 text-center">
       <h1 className="text-2xl font-bold">{t.notFoundTitle}</h1>
-      <Link to="/" className="text-lg font-semibold text-brand-800 underline">
+      <Link to="/" className="text-lg font-semibold text-leaf-600 underline">
         {t.goHome}
       </Link>
     </div>

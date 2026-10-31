@@ -56,7 +56,7 @@ export function Showcase({ className }: { className?: string }) {
         <Logo className="size-12 rounded-2xl ring-2 ring-white/20" />
         <div>
           <p className="text-2xl font-extrabold tracking-tight">{config.appName}</p>
-          <p className="text-sm font-semibold text-brand-200">ग्राम साथी · Your village helper</p>
+          <p className="text-sm font-semibold text-leaf-200">ग्राम साथी · Your village helper</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export function Showcase({ className }: { className?: string }) {
         </span>
       </h1>
 
-      <p className="max-w-lg text-lg leading-relaxed text-brand-100/90 [@media(max-height:700px)]:hidden">
+      <p className="max-w-lg text-lg leading-relaxed text-leaf-100/90 [@media(max-height:700px)]:hidden">
         A voice assistant for rural India: speak a question, get a short answer taken only from
         official scheme documents, with its source, an SMS copy and a fraud warning.
       </p>
@@ -84,7 +84,7 @@ export function Showcase({ className }: { className?: string }) {
         ))}
       </ul>
 
-      <ol className="flex items-center gap-2 text-sm font-semibold text-brand-50">
+      <ol className="flex items-center gap-2 text-sm font-semibold text-leaf-50">
         {STEPS.map(({ Icon, label }, index) => (
           <li key={label} className="flex items-center gap-2">
             {index > 0 && <ArrowRight aria-hidden className="size-4 shrink-0 text-marigold-300" />}
@@ -106,14 +106,14 @@ export function Showcase({ className }: { className?: string }) {
               <Icon aria-hidden className="size-5 text-marigold-300" />
             </span>
             <p className="mt-2.5 font-bold">{title}</p>
-            <p className="mt-1 text-sm leading-snug text-brand-100/80 [@media(max-height:820px)]:hidden">
+            <p className="mt-1 text-sm leading-snug text-leaf-100/80 [@media(max-height:820px)]:hidden">
               {text}
             </p>
           </li>
         ))}
       </ul>
 
-      <p className="flex items-center gap-2 text-sm font-semibold text-brand-200">
+      <p className="flex items-center gap-2 text-sm font-semibold text-leaf-200">
         Try it on the phone: hold the mic, or tap a scheme
         <ArrowRight aria-hidden className="size-4" />
       </p>

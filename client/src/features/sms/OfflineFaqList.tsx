@@ -51,14 +51,14 @@ export function OfflineFaqList() {
       {items?.map((item) => (
         <details
           key={item.id}
-          className="rounded-2xl bg-white p-4 shadow-soft ring-1 ring-brand-950/5 open:ring-brand-300"
+          className="rounded-2xl bg-white p-4 shadow-soft ring-1 ring-ink/5 open:ring-leaf-300"
         >
-          <summary className="min-h-8 cursor-pointer text-base font-bold text-slate-800 marker:text-brand-600">
+          <summary className="min-h-8 cursor-pointer text-base font-bold text-slate-800 marker:text-leaf-600">
             {item.question}
           </summary>
           <p className="mt-2 text-base leading-relaxed text-slate-700">{item.answer}</p>
           {item.sources.length > 0 && (
-            <p className="mt-2 text-sm font-semibold text-brand-700">
+            <p className="mt-2 text-sm font-semibold text-leaf-600">
               {item.sources.map((source) => `${source.schemeName} · ${source.section}`).join(', ')}
             </p>
           )}

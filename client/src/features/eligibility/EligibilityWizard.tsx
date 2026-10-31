@@ -41,7 +41,7 @@ type Phase =
   | { name: 'results'; results: EligibilityResult[] };
 
 const INTRO_ICONS = [
-  { Icon: Wheat, tone: 'text-brand-700' },
+  { Icon: Wheat, tone: 'text-leaf-600' },
   { Icon: HeartPulse, tone: 'text-rose-600' },
   { Icon: PiggyBank, tone: 'text-marigold-600' },
   { Icon: ShieldPlus, tone: 'text-sky-700' },
@@ -108,7 +108,7 @@ export function EligibilityWizard() {
     return (
       <div key={question.id} className="flex animate-fade-up flex-col gap-5">
         <ProgressBar current={progress?.current ?? step} total={progress?.total} />
-        <div className="rounded-3xl bg-white p-5 shadow-soft ring-1 ring-brand-950/5">
+        <div className="rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink/5">
           <h1 className="text-2xl leading-snug font-extrabold tracking-tight text-slate-900">
             {question.text}
           </h1>
@@ -136,14 +136,14 @@ export function EligibilityWizard() {
           : format(t.summaryMany, { count: eligible });
     return (
       <div className="flex animate-fade-up flex-col gap-4">
-        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-600 to-brand-900 p-5 text-white shadow-lift">
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-leaf-600 p-5 text-white shadow-lift">
           <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
           <PartyPopper aria-hidden className="relative size-9 text-marigold-300" />
-          <h1 className="relative mt-3 text-sm font-extrabold tracking-[0.12em] text-brand-200 uppercase">
+          <h1 className="relative mt-3 text-sm font-extrabold tracking-[0.12em] text-leaf-200 uppercase">
             {t.resultsTitle}
           </h1>
           <p className="relative mt-1 text-2xl leading-tight font-extrabold">{summary}</p>
-          <p className="relative mt-2 text-base text-brand-100">{t.resultsHint}</p>
+          <p className="relative mt-2 text-base text-leaf-100">{t.resultsHint}</p>
         </section>
         <ul className="flex flex-col gap-3">
           {phase.results.map((result) => (
@@ -166,7 +166,7 @@ export function EligibilityWizard() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-5">
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-700 to-brand-950 p-6 text-white shadow-lift">
+      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-ink p-6 text-white shadow-lift">
         <div aria-hidden className="absolute inset-0 bg-kolam opacity-50" />
         <div
           aria-hidden
@@ -176,7 +176,7 @@ export function EligibilityWizard() {
           {INTRO_ICONS.map(({ Icon, tone }) => (
             <span
               key={tone}
-              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-brand-800"
+              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-leaf-600"
             >
               <Icon className={`size-6 ${tone}`} />
             </span>
@@ -185,7 +185,7 @@ export function EligibilityWizard() {
         <h1 className="relative mt-5 text-[1.7rem] leading-tight font-extrabold tracking-tight text-balance">
           {t.title}
         </h1>
-        <p className="relative mt-2 text-lg text-brand-100">{t.intro}</p>
+        <p className="relative mt-2 text-lg text-leaf-100">{t.intro}</p>
         <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-bold ring-1 ring-white/20">
           <Clock aria-hidden className="size-4" />
           {t.duration}
@@ -207,7 +207,7 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
   const t = useStrings(eligibilityStrings);
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-extrabold tracking-wide text-brand-700">
+      <p className="text-sm font-extrabold tracking-wide text-leaf-600">
         {total ? format(t.progress, { current, total }) : format(t.progressUnknown, { current })}
       </p>
       {total && (
@@ -216,10 +216,10 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={current}
-          className="h-2.5 overflow-hidden rounded-full bg-brand-100"
+          className="h-2.5 overflow-hidden rounded-full bg-leaf-100"
         >
           <div
-            className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-700 transition-all duration-500"
+            className="h-full rounded-full bg-linear-to-r from-leaf-400 to-leaf-600 transition-all duration-500"
             style={{ width: `${(current / total) * 100}%` }}
           />
         </div>

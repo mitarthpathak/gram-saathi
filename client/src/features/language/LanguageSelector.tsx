@@ -34,10 +34,10 @@ export function LanguageSelector({ variant = 'compact', className }: LanguageSel
               lang={option.code}
               onClick={() => setLanguage(option.code)}
               className={cn(
-                'min-h-12 rounded-2xl px-1 text-base font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
+                'min-h-12 rounded-2xl px-1 text-base font-bold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600',
                 selected
-                  ? 'bg-linear-to-br from-brand-500 to-brand-700 text-white shadow-soft'
-                  : 'bg-cream-100 text-slate-800 ring-1 ring-brand-950/10 hover:ring-brand-500',
+                  ? 'bg-linear-to-br from-leaf-500 to-leaf-600 text-white shadow-soft'
+                  : 'bg-cream-100 text-slate-800 ring-1 ring-ink/10 hover:ring-leaf-500',
               )}
             >
               {option.nativeName}

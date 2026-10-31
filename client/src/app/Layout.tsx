@@ -63,7 +63,7 @@ function AppHeader() {
   const showStatus = server.mocks || server.offline || lowBandwidth;
 
   return (
-    <header className="relative z-10 shrink-0 overflow-hidden bg-linear-to-br from-brand-800 via-brand-700 to-brand-600 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 text-white lg:pt-12">
+    <header className="relative z-10 shrink-0 overflow-hidden bg-linear-to-br from-leaf-600 via-leaf-600 to-leaf-600 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 text-white lg:pt-12">
       <div aria-hidden className="absolute inset-0 bg-kolam opacity-70" />
       <div
         aria-hidden
@@ -79,7 +79,7 @@ function AppHeader() {
             <span className="block text-lg leading-tight font-extrabold tracking-tight">
               {config.appName}
             </span>
-            <span className="block truncate text-xs font-semibold text-brand-100">{t.tagline}</span>
+            <span className="block truncate text-xs font-semibold text-leaf-100">{t.tagline}</span>
           </span>
         </Link>
         <LanguageSelector />
@@ -115,7 +115,7 @@ function BottomNav() {
   return (
     <nav
       aria-label={t.navLabel}
-      className="relative z-10 grid shrink-0 grid-cols-3 border-t border-brand-950/5 bg-white/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
+      className="relative z-10 grid shrink-0 grid-cols-3 border-t border-ink/5 bg-white/95 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur"
     >
       {TABS.map(({ to, label, Icon }) => (
         <NavLink
@@ -124,8 +124,8 @@ function BottomNav() {
           end
           className={({ isActive }) =>
             cn(
-              'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[13px] font-bold transition focus-visible:outline-3 focus-visible:outline-brand-600',
-              isActive ? 'text-brand-800' : 'text-slate-500 hover:text-brand-700',
+              'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[13px] font-bold transition focus-visible:outline-3 focus-visible:outline-leaf-600',
+              isActive ? 'text-leaf-600' : 'text-slate-500 hover:text-leaf-600',
             )
           }
         >
@@ -134,7 +134,7 @@ function BottomNav() {
               <span
                 className={cn(
                   'flex h-8 w-14 items-center justify-center rounded-full transition',
-                  isActive && 'bg-brand-100',
+                  isActive && 'bg-leaf-100',
                 )}
               >
                 <Icon aria-hidden className="size-6" strokeWidth={isActive ? 2.4 : 2} />
@@ -152,9 +152,9 @@ function BottomNav() {
 function StageBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,var(--color-brand-700),transparent_55%),radial-gradient(ellipse_at_bottom_right,var(--color-brand-800),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,var(--color-leaf-600),transparent_55%),radial-gradient(ellipse_at_bottom_right,var(--color-leaf-600),transparent_50%)]" />
       <div className="absolute inset-0 bg-kolam opacity-30" />
-      <div className="absolute top-1/4 -left-24 size-96 animate-float rounded-full bg-brand-500/25 blur-3xl" />
+      <div className="absolute top-1/4 -left-24 size-96 animate-float rounded-full bg-leaf-500/25 blur-3xl" />
       <div className="absolute right-[6%] -bottom-24 size-[28rem] rounded-full bg-marigold-500/15 blur-3xl" />
     </div>
   );

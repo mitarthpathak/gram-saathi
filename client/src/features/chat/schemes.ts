@@ -18,7 +18,7 @@ export const SCHEME_SHORTCUTS: SchemeShortcut[] = [
   {
     id: 'pm-kisan',
     Icon: Wheat,
-    tone: 'bg-brand-100 text-brand-700',
+    tone: 'bg-leaf-100 text-leaf-600',
     name: { en: 'PM-KISAN', hi: 'पीएम-किसान', mr: 'पीएम-किसान', ta: 'பிஎம்-கிசான்' },
     topic: { en: 'Farmers', hi: 'किसान', mr: 'शेतकरी', ta: 'விவசாயிகள்' },
     question: {

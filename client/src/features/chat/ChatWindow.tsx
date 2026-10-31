@@ -46,12 +46,12 @@ function TypingIndicator() {
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">
       <Logo className="size-8 rounded-[0.6rem]" />
-      <div className="flex items-center gap-3 rounded-3xl rounded-bl-md bg-white px-4 py-3 shadow-soft ring-1 ring-brand-950/5">
+      <div className="flex items-center gap-3 rounded-3xl rounded-bl-md bg-white px-4 py-3 shadow-soft ring-1 ring-ink/5">
         <span aria-hidden className="flex gap-1">
           {[0, 0.15, 0.3].map((delay) => (
             <span
               key={delay}
-              className="size-2 animate-dot rounded-full bg-brand-500"
+              className="size-2 animate-dot rounded-full bg-leaf-500"
               style={{ animationDelay: `${delay}s` }}
             />
           ))}
@@ -69,7 +69,7 @@ function EmptyState() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-6">
-      <section className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-brand-950/5">
+      <section className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink/5">
         <div
           aria-hidden
           className="absolute -top-10 -right-8 size-36 rounded-full bg-marigold-200/60 blur-2xl"
@@ -93,7 +93,7 @@ function EmptyState() {
               type="button"
               disabled={busy}
               onClick={() => void askText(question[language])}
-              className="group flex items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-soft ring-1 ring-brand-950/5 transition hover:-translate-y-0.5 hover:ring-brand-400 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 active:scale-[0.98] disabled:opacity-60"
+              className="group flex items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-soft ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:ring-leaf-400 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-[0.98] disabled:opacity-60"
             >
               <span
                 className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tone}`}
@@ -113,8 +113,8 @@ function EmptyState() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-brand-900 p-4 text-white">
-        <h2 className="text-xs font-extrabold tracking-[0.14em] text-brand-200 uppercase">
+      <section className="rounded-3xl bg-leaf-600 p-4 text-white">
+        <h2 className="text-xs font-extrabold tracking-[0.14em] text-leaf-200 uppercase">
           {t.howTitle}
         </h2>
         <ol className="mt-3 flex items-start justify-between gap-1">
@@ -128,10 +128,10 @@ function EmptyState() {
                 <span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
                   <Icon aria-hidden className="size-5 text-marigold-300" />
                 </span>
-                <span className="text-xs leading-snug font-semibold text-brand-50">{label}</span>
+                <span className="text-xs leading-snug font-semibold text-leaf-50">{label}</span>
               </span>
               {index < 2 && (
-                <ArrowRight aria-hidden className="mt-3.5 size-4 shrink-0 text-brand-300" />
+                <ArrowRight aria-hidden className="mt-3.5 size-4 shrink-0 text-leaf-300" />
               )}
             </li>
           ))}

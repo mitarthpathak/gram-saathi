@@ -20,12 +20,12 @@ export function ResultCard({ result, onAsk }: ResultCardProps) {
       className={cn(
         'relative flex gap-3 overflow-hidden rounded-3xl p-4',
         result.eligible
-          ? 'bg-white shadow-soft ring-2 ring-brand-400'
-          : 'bg-white/60 ring-1 ring-brand-950/10',
+          ? 'bg-white shadow-soft ring-2 ring-leaf-400'
+          : 'bg-white/60 ring-1 ring-ink/10',
       )}
     >
       {result.eligible ? (
-        <CircleCheck aria-hidden className="size-9 shrink-0 fill-brand-100 text-brand-600" />
+        <CircleCheck aria-hidden className="size-9 shrink-0 fill-leaf-100 text-leaf-600" />
       ) : (
         <CircleX aria-hidden className="size-9 shrink-0 text-slate-400" />
       )}
