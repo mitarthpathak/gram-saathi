@@ -57,3 +57,11 @@
 - Results: added 10 fixed scheme retrieval queries and 10 non-scheme messages, score summaries, and a midpoint recommendation when the groups separate (balanced-accuracy fallback when they overlap). Threshold math tests passed. English query text is paired with language metadata so no unconsented Marathi/Tamil samples are invented.
 - Open issues: the calibration command did not reach the script because the installed `tsx` startup failed with `uv_os_get_passwd returned ENOMEM` (Node v24.18.0). A Gemini key is configured (checked as a boolean only); no score recommendation was produced. Run the documented command on the owner's normal environment after verifying the vector store.
 - Commit note: the initial Phase 7 commit missed the package script and `.env.example` calibration comment because the staged patch did not apply. They are included in the immediate Phase 7 follow-up commit; the owner's other `.env.example` edits remain unstaged.
+
+## Phase 8 — evaluation harness
+
+- Files changed: `server/eval/testset.json`, `server/scripts/eval.ts`, `server/test/evalHarness.test.ts`, `server/vitest.eval.config.mts`, `server/package.json`.
+- Commands run: `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd run eval -w server`; `npm.cmd run build`.
+- Results: added 10 scheme question templates expanded across hi/mr/ta/en (40 cases) and 10 non-scheme cases. Offline fake-dependency mode passed 50/50 plumbing checks and prints the requested pass/fail table. Live mode checks intent, expected citations, script, Roman text outside preserved scheme names/URLs, and numbers/rupee amounts against cited snippets; live quality does not set the build exit status. Scheme ids match the repo's scheme filenames.
+- Open issues: live model evaluation was not run. Input questions are English with answer-language hints, because R6 prohibits inventing Marathi/Tamil sample sentences and there are no consented multilingual exemplars. The `tsx` runtime issue from Phase 7 still prevents the calibration CLI from running in this environment.
+- Commit note: the `eval` and `calibrate` npm scripts share `server/package.json`; that file is committed with this phase after the Phase 7 calibration command's first staging attempt failed.
