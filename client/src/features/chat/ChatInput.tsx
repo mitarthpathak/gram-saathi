@@ -37,13 +37,13 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         maxLength={1000}
         autoComplete="off"
         enterKeyHint="send"
-        className="min-h-11 min-w-0 flex-1 bg-transparent text-[17px] outline-none placeholder:text-slate-400"
+        className="min-h-11 min-w-0 flex-1 bg-transparent text-[17px] outline-none placeholder:text-ink-soft"
       />
       <button
         type="submit"
         aria-label={t.send}
         disabled={disabled || !question}
-        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-leaf-500 to-leaf-600 text-white shadow-soft transition hover:brightness-110 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-95 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:shadow-none"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-leaf-600 text-white shadow-leaf transition hover:bg-leaf-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-95 disabled:bg-paper-deep disabled:text-ink-mute disabled:shadow-none"
       >
         <Send aria-hidden className="size-5" />
       </button>

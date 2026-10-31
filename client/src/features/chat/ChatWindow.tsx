@@ -1,5 +1,6 @@
 import { ArrowRight, FileSearch, MessageSquareText, Mic } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { Mascot } from '@/components/art/Mascot';
 import { Logo } from '@/components/brand/Logo';
 import { LanguageSelector } from '@/features/language/LanguageSelector';
 import { useStrings } from '@/lib/i18n';
@@ -46,7 +47,7 @@ export function TypingIndicator() {
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">
       <Logo className="size-8 rounded-[0.6rem]" />
-      <div className="flex items-center gap-3 rounded-3xl rounded-bl-md bg-white px-4 py-3 shadow-soft ring-1 ring-ink/5">
+      <div className="flex items-center gap-3 rounded-card rounded-bl-md bg-white px-4 py-3 shadow-soft ring-1 ring-ink/5">
         <span aria-hidden className="flex gap-1">
           {[0, 0.15, 0.3].map((delay) => (
             <span
@@ -56,7 +57,7 @@ export function TypingIndicator() {
             />
           ))}
         </span>
-        <span className="text-base font-semibold text-slate-600">{t.thinking}</span>
+        <span className="text-base font-semibold text-ink-soft">{t.thinking}</span>
       </div>
     </div>
   );
@@ -69,21 +70,22 @@ function EmptyState() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-6">
-      <section className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink/5">
+      <section className="relative overflow-hidden rounded-card bg-white p-5 shadow-soft ring-1 ring-ink/5">
         <div
           aria-hidden
           className="absolute -top-10 -right-8 size-36 rounded-full bg-marigold-200/60 blur-2xl"
         />
-        <p className="relative text-sm font-extrabold text-accent-strong">{t.greeting} 🙏</p>
-        <h1 className="relative mt-1 text-[1.6rem] leading-tight font-extrabold tracking-tight text-balance text-slate-900">
+        <Mascot mood="wave" className="absolute top-3 right-3 w-16" />
+        <p className="relative text-sm font-extrabold text-accent-strong">{t.greeting}!</p>
+        <h1 className="relative mt-1 pr-14 font-display text-[1.65rem] leading-tight font-extrabold tracking-display text-balance text-ink indic:leading-snug">
           {t.emptyTitle}
         </h1>
-        <p className="relative mt-2 text-base text-slate-600">{t.emptyHint}</p>
+        <p className="relative mt-2 text-base text-ink-soft">{t.emptyHint}</p>
         <LanguageSelector variant="grid" className="relative mt-4" />
       </section>
 
       <section>
-        <h2 className="mb-2.5 px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+        <h2 className="mb-2.5 px-1 text-xs font-extrabold tracking-[0.14em] text-ink-soft uppercase indic:tracking-normal">
           {t.popularTitle}
         </h2>
         <div className="grid grid-cols-2 gap-2.5">
@@ -93,7 +95,7 @@ function EmptyState() {
               type="button"
               disabled={busy}
               onClick={() => void askText(question[language])}
-              className="group flex items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-soft ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:ring-leaf-400 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-[0.98] disabled:opacity-60"
+              className="group flex items-center gap-3 rounded-soft bg-white p-3 text-left shadow-soft ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:ring-leaf-400 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-leaf-600 active:scale-[0.98] disabled:opacity-60"
             >
               <span
                 className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tone}`}
@@ -101,20 +103,18 @@ function EmptyState() {
                 <Icon aria-hidden className="size-6" />
               </span>
               <span className="min-w-0">
-                <span className="block text-[15px] leading-snug font-bold text-slate-800">
+                <span className="block text-[15px] leading-snug font-bold text-ink">
                   {name[language]}
                 </span>
-                <span className="block text-xs font-semibold text-slate-500">
-                  {topic[language]}
-                </span>
+                <span className="block text-xs font-semibold text-ink-soft">{topic[language]}</span>
               </span>
             </button>
           ))}
         </div>
       </section>
 
-      <section className="rounded-3xl bg-leaf-600 p-4 text-white">
-        <h2 className="text-xs font-extrabold tracking-[0.14em] text-leaf-200 uppercase">
+      <section className="rounded-card bg-leaf-50 p-4 ring-1 ring-leaf-200">
+        <h2 className="text-xs font-extrabold tracking-[0.14em] text-leaf-700 uppercase indic:tracking-normal">
           {t.howTitle}
         </h2>
         <ol className="mt-3 flex items-start justify-between gap-1">
@@ -125,13 +125,13 @@ function EmptyState() {
           ].map(({ Icon, label }, index) => (
             <li key={label} className="flex flex-1 items-start gap-1">
               <span className="flex flex-1 flex-col items-center gap-2 text-center">
-                <span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
-                  <Icon aria-hidden className="size-5 text-marigold-300" />
+                <span className="flex size-11 items-center justify-center rounded-2xl bg-white shadow-soft ring-1 ring-ink/5">
+                  <Icon aria-hidden className="size-5 text-leaf-600" />
                 </span>
-                <span className="text-xs leading-snug font-semibold text-leaf-50">{label}</span>
+                <span className="text-xs leading-snug font-semibold text-ink">{label}</span>
               </span>
               {index < 2 && (
-                <ArrowRight aria-hidden className="mt-3.5 size-4 shrink-0 text-leaf-300" />
+                <ArrowRight aria-hidden className="mt-3.5 size-4 shrink-0 text-ink-mute" />
               )}
             </li>
           ))}

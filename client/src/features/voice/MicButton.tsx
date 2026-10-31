@@ -155,14 +155,12 @@ export function MicButton({
           onClick={handleClick}
           onContextMenu={(event) => event.preventDefault()}
           className={cn(
-            'relative flex size-[5.25rem] touch-none items-center justify-center rounded-full text-white transition duration-200 select-none focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-leaf-600',
-            busy && 'bg-slate-300 text-slate-600',
-            !busy &&
-              recording &&
-              'scale-105 bg-linear-to-br from-marigold-400 to-marigold-500 shadow-[0_18px_40px_-12px_rgb(221_102_2/0.7)]',
+            'relative flex size-[5.25rem] touch-none items-center justify-center rounded-full transition duration-200 select-none focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-leaf-600',
+            busy && 'bg-paper-deep text-ink-soft',
+            !busy && recording && 'scale-105 bg-marigold-400 text-ink shadow-marigold',
             !busy &&
               !recording &&
-              'animate-breathe bg-linear-to-br from-leaf-400 via-leaf-600 to-leaf-600 hover:scale-105 active:scale-95',
+              'animate-breathe bg-linear-to-br from-leaf-500 to-leaf-600 text-white hover:scale-105 active:scale-95',
           )}
         >
           {busy ? (
@@ -185,7 +183,7 @@ export function MicButton({
         )}
         <p
           aria-live="polite"
-          className={cn('text-sm font-bold text-slate-600', recording && 'sr-only')}
+          className={cn('text-sm font-bold text-ink-soft', recording && 'sr-only')}
         >
           {statusText}
         </p>

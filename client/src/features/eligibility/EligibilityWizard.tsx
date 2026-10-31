@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { Mascot } from '@/components/art/Mascot';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/useToast';
 import { carryAppState } from '@/features/app-shell/navigation';
@@ -111,7 +112,7 @@ export function EligibilityWizard() {
       <div key={question.id} className="flex animate-fade-up flex-col gap-5">
         <ProgressBar current={progress?.current ?? step} total={progress?.total} />
         <div className="rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink/5">
-          <h1 className="text-2xl leading-snug font-extrabold tracking-tight text-slate-900">
+          <h1 className="font-display text-2xl leading-snug font-extrabold text-ink indic:leading-[1.4]">
             {question.text}
           </h1>
           <div className="mt-3">
@@ -138,14 +139,16 @@ export function EligibilityWizard() {
           : format(t.summaryMany, { count: eligible });
     return (
       <div className="flex animate-fade-up flex-col gap-4">
-        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-leaf-600 p-5 text-white shadow-lift">
-          <div aria-hidden className="absolute inset-0 opacity-50" />
-          <PartyPopper aria-hidden className="relative size-9 text-marigold-300" />
-          <h1 className="relative mt-3 text-sm font-extrabold tracking-[0.12em] text-leaf-200 uppercase">
+        <section className="relative overflow-hidden rounded-card bg-leaf-50 p-5 pr-24 shadow-soft ring-1 ring-leaf-200">
+          <Mascot mood="happy" className="absolute top-3 right-3 w-[4.5rem]" />
+          <PartyPopper aria-hidden className="size-8 text-accent-strong" />
+          <h1 className="mt-3 text-sm font-extrabold tracking-[0.12em] text-leaf-700 uppercase indic:tracking-normal">
             {t.resultsTitle}
           </h1>
-          <p className="relative mt-1 text-2xl leading-tight font-extrabold">{summary}</p>
-          <p className="relative mt-2 text-base text-leaf-100">{t.resultsHint}</p>
+          <p className="mt-1 font-display text-2xl leading-tight font-extrabold indic:leading-snug">
+            {summary}
+          </p>
+          <p className="mt-2 text-base text-ink-soft">{t.resultsHint}</p>
         </section>
         <ul className="flex flex-col gap-3">
           {phase.results.map((result) => (
@@ -154,7 +157,7 @@ export function EligibilityWizard() {
             </li>
           ))}
         </ul>
-        <p className="flex gap-2 text-sm text-slate-600">
+        <p className="flex gap-2 text-sm text-ink-soft">
           <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
           {t.disclaimer}
         </p>
@@ -168,27 +171,27 @@ export function EligibilityWizard() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-5">
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-leaf-600 to-ink p-6 text-white shadow-lift">
-        <div aria-hidden className="absolute inset-0 opacity-50" />
+      <section className="relative overflow-hidden rounded-card bg-butter p-6 shadow-soft ring-1 ring-marigold-200">
         <div
           aria-hidden
-          className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-400/25 blur-2xl"
+          className="absolute -right-10 -bottom-12 size-44 rounded-full bg-marigold-300/40 blur-2xl"
         />
+        <Mascot mood="thinking" className="absolute top-4 right-4 w-20" />
         <div aria-hidden className="relative flex -space-x-2.5">
           {INTRO_ICONS.map(({ Icon, tone }) => (
             <span
               key={tone}
-              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-leaf-600"
+              className="flex size-12 items-center justify-center rounded-full bg-white shadow-soft ring-4 ring-butter"
             >
               <Icon className={`size-6 ${tone}`} />
             </span>
           ))}
         </div>
-        <h1 className="relative mt-5 text-[1.7rem] leading-tight font-extrabold tracking-tight text-balance">
+        <h1 className="relative mt-5 pr-16 font-display text-[1.8rem] leading-tight font-extrabold tracking-display text-balance indic:leading-snug">
           {t.title}
         </h1>
-        <p className="relative mt-2 text-lg text-leaf-100">{t.intro}</p>
-        <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-bold ring-1 ring-white/20">
+        <p className="relative mt-2 text-lg text-ink-soft">{t.intro}</p>
+        <p className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-sm font-bold text-accent-deep ring-1 ring-marigold-200">
           <Clock aria-hidden className="size-4" />
           {t.duration}
         </p>
@@ -197,7 +200,7 @@ export function EligibilityWizard() {
         {t.start}
         <ArrowRight aria-hidden className="size-6" />
       </Button>
-      <p className="flex gap-2 text-sm text-slate-600">
+      <p className="flex gap-2 text-sm text-ink-soft">
         <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
         {t.disclaimer}
       </p>
@@ -218,7 +221,7 @@ function ProgressBar({ current, total }: { current: number; total?: number }) {
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={current}
-          className="h-2.5 overflow-hidden rounded-full bg-leaf-100"
+          className="h-3 overflow-hidden rounded-full bg-leaf-100"
         >
           <div
             className="h-full rounded-full bg-linear-to-r from-leaf-400 to-leaf-600 transition-all duration-500"

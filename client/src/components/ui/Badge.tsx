@@ -2,14 +2,12 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
 const TONES = {
-  neutral: 'bg-slate-100 text-slate-700',
-  info: 'bg-sky-100 text-sky-900',
-  success: 'bg-leaf-100 text-ink',
+  neutral: 'bg-paper-alt text-ink-soft',
+  info: 'bg-sky text-sky-900',
+  success: 'bg-leaf-100 text-leaf-700',
   warning: 'bg-amber-100 text-amber-900',
   danger: 'bg-red-100 text-red-900',
   accent: 'bg-marigold-100 text-accent-deep',
-  /** For badges on the green header. */
-  glass: 'bg-white/15 text-white ring-1 ring-white/20 backdrop-blur',
 };
 
 export interface BadgeProps extends ComponentProps<'span'> {

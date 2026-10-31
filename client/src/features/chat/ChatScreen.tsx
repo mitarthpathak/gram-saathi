@@ -22,7 +22,7 @@ export function ChatScreen() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ChatWindow />
-      <div className="relative shrink-0 rounded-t-[1.75rem] bg-white/90 px-4 pt-2.5 pb-3 shadow-[0_-12px_30px_-18px_rgb(13_80_55/0.35)] ring-1 ring-ink/5 backdrop-blur">
+      <div className="relative shrink-0 rounded-t-blob bg-white/95 px-4 pt-2.5 pb-3 shadow-[0_-14px_30px_-18px_rgb(140_90_30/0.3)] ring-1 ring-ink/5">
         <MicButton
           buttonRef={micRef}
           attention={focusMic}

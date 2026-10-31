@@ -61,6 +61,7 @@
   /* Ink: headlines and body (never green). */
   --color-ink: #26231f; /* 15.6:1 */
   --color-ink-soft: #6b655c; /* 5.5:1, secondary text */
+  --color-ink-mute: #8c8478; /* non-text UI (switch tracks, input borders): 3.7:1 on white */
   --color-ink-faint: #a59d91; /* decorative only (borders, doodles), never text */
 
   /* Leaf: the primary. 500 for icons and large shapes, 600 for buttons and small text. */

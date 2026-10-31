@@ -25,14 +25,14 @@ export function SourceCard({ source, index }: SourceCardProps) {
         >
           {index}
         </span>
-        <span className="min-w-0 text-sm leading-tight font-bold text-slate-800">
+        <span className="min-w-0 text-sm leading-tight font-bold text-ink">
           {source.schemeName}
-          <span className="font-semibold text-slate-500"> · {source.section}</span>
+          <span className="font-semibold text-ink-soft"> · {source.section}</span>
         </span>
       </div>
       <blockquote
         className={cn(
-          'mt-1.5 border-l-2 border-leaf-300 pl-2.5 text-sm leading-snug text-slate-600',
+          'mt-1.5 border-l-2 border-leaf-300 pl-2.5 text-sm leading-snug text-ink-soft',
           !expanded && 'line-clamp-2',
         )}
       >

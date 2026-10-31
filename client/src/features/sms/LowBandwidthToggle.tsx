@@ -15,7 +15,7 @@ export function LowBandwidthToggle() {
       </span>
       <span className="flex-1">
         <span className="block text-base font-extrabold">{t.lowBandwidth}</span>
-        <span className="block text-sm leading-snug text-slate-600">{t.lowBandwidthHint}</span>
+        <span className="block text-sm leading-snug text-ink-soft">{t.lowBandwidthHint}</span>
       </span>
       <input
         type="checkbox"
@@ -26,7 +26,7 @@ export function LowBandwidthToggle() {
       />
       <span
         aria-hidden
-        className="relative h-8 w-14 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-leaf-600 peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-leaf-600 after:absolute after:top-1 after:left-1 after:size-6 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-6"
+        className="relative h-8 w-14 shrink-0 rounded-full bg-ink-mute transition peer-checked:bg-leaf-600 peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-leaf-600 after:absolute after:top-1 after:left-1 after:size-6 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-6"
       />
     </label>
   );

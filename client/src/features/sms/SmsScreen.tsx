@@ -2,6 +2,7 @@ import type { SmsCompressResponse } from '@gram-saathi/shared';
 import { MessageSquareText, Wand2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router';
+import { Mascot } from '@/components/art/Mascot';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/useToast';
 import { useChat } from '@/features/chat/useChat';
@@ -49,19 +50,22 @@ export function SmsScreen() {
 
   return (
     <div className="flex animate-fade-up flex-col gap-6 px-4 py-5">
-      <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-800 to-ink p-5 text-white shadow-lift">
+      <section className="relative overflow-hidden rounded-card bg-sky p-5 pr-24 shadow-soft ring-1 ring-sky-200">
+        <Mascot mood="listening" className="absolute top-3 right-3 w-[4.5rem]" />
         <div aria-hidden className="absolute inset-0 opacity-40" />
-        <span className="relative flex size-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
-          <MessageSquareText aria-hidden className="size-6 text-marigold-300" />
+        <span className="relative flex size-11 items-center justify-center rounded-2xl bg-white shadow-soft">
+          <MessageSquareText aria-hidden className="size-6 text-leaf-600" />
         </span>
-        <h1 className="relative mt-3 text-2xl font-extrabold tracking-tight">{t.title}</h1>
-        <p className="relative mt-1 text-base text-slate-300">{t.subtitle}</p>
+        <h1 className="relative mt-3 font-display text-2xl font-extrabold tracking-display">
+          {t.title}
+        </h1>
+        <p className="relative mt-1 text-base text-ink-soft">{t.subtitle}</p>
       </section>
 
       <LowBandwidthToggle />
 
       <section className="flex flex-col gap-3">
-        <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+        <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-ink-soft uppercase">
           {t.previewTitle}
         </h2>
         <FeaturePhoneMock sms={preview?.sms ?? null} segments={preview?.segments ?? 0} />
@@ -80,10 +84,10 @@ export function SmsScreen() {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={t.composePlaceholder}
-          className="rounded-2xl bg-paper p-3 text-base ring-1 ring-ink/10 placeholder:text-slate-400 focus:ring-2 focus:ring-leaf-500 focus:outline-none"
+          className="rounded-2xl bg-paper p-3 text-base ring-1 ring-ink/10 placeholder:text-ink-soft focus:ring-2 focus:ring-leaf-500 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-semibold text-slate-600">
+          <span className="text-sm font-semibold text-ink-soft">
             {draft.trim() && format(t.draftCount, { segments: countSmsSegments(draft.trim()) })}
           </span>
           <Button type="submit" size="md" disabled={compressing || !draft.trim()}>

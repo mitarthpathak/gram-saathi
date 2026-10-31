@@ -43,20 +43,20 @@ export function OfflineFaqList() {
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-slate-500 uppercase">
+      <h2 className="px-1 text-xs font-extrabold tracking-[0.14em] text-ink-soft uppercase">
         {t.faqTitle}
       </h2>
-      {items === null && !failed && <Spinner label={t.loading} className="text-slate-700" />}
-      {items === null && failed && <p className="text-base text-slate-700">{t.faqUnavailable}</p>}
+      {items === null && !failed && <Spinner label={t.loading} className="text-ink-soft" />}
+      {items === null && failed && <p className="text-base text-ink-soft">{t.faqUnavailable}</p>}
       {items?.map((item) => (
         <details
           key={item.id}
           className="rounded-2xl bg-white p-4 shadow-soft ring-1 ring-ink/5 open:ring-leaf-300"
         >
-          <summary className="min-h-8 cursor-pointer text-base font-bold text-slate-800 marker:text-leaf-600">
+          <summary className="min-h-8 cursor-pointer text-base font-bold text-ink marker:text-leaf-600">
             {item.question}
           </summary>
-          <p className="mt-2 text-base leading-relaxed text-slate-700">{item.answer}</p>
+          <p className="mt-2 text-base leading-relaxed text-ink-soft">{item.answer}</p>
           {item.sources.length > 0 && (
             <p className="mt-2 text-sm font-semibold text-leaf-600">
               {item.sources.map((source) => `${source.schemeName} · ${source.section}`).join(', ')}
