@@ -2,6 +2,8 @@ import { redirect, type RouteObject } from 'react-router';
 import {
   loadAppRoute,
   loadChatScreen,
+  loadContributorScreen,
+  loadDialectScreen,
   loadEligibilityScreen,
   loadSmsScreen,
 } from '@/features/app-shell/loaders';
@@ -35,6 +37,8 @@ export const routes: RouteObject[] = [
             lazy: async () => ({ Component: (await loadEligibilityScreen()).EligibilityScreen }),
           },
           { path: 'sms', lazy: async () => ({ Component: (await loadSmsScreen()).SmsScreen }) },
+          { path: 'dialects', lazy: async () => ({ Component: (await loadDialectScreen()).DialectScreen }) },
+          { path: 'contribute', lazy: async () => ({ Component: (await loadContributorScreen()).ContributorScreen }) },
           { path: '*', Component: NotFoundScreen },
         ],
       },
@@ -42,6 +46,8 @@ export const routes: RouteObject[] = [
       { path: 'chat', loader: () => redirect('/app') },
       { path: 'eligibility', loader: () => redirect('/app/eligibility') },
       { path: 'sms', loader: () => redirect('/app/sms') },
+      { path: 'dialects', loader: () => redirect('/app/dialects') },
+      { path: 'contribute', loader: () => redirect('/app/contribute') },
       { path: '*', Component: NotFoundScreen },
     ],
   },

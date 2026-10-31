@@ -9,13 +9,13 @@ export function LowBandwidthToggle() {
   const { lowBandwidth, setLowBandwidth } = useSettings();
 
   return (
-    <label className="flex cursor-pointer items-center gap-4 rounded-3xl bg-white p-4 shadow-soft ring-1 ring-ink/5">
+    <label className="flex cursor-pointer items-center gap-4 rounded-3xl bg-white p-4 shadow-soft ring-1 ring-brand-950/5">
       <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100">
         <WifiOff aria-hidden className="size-6 text-sky-700" />
       </span>
       <span className="flex-1">
         <span className="block text-base font-extrabold">{t.lowBandwidth}</span>
-        <span className="block text-sm leading-snug text-ink-soft">{t.lowBandwidthHint}</span>
+        <span className="block text-base leading-snug text-slate-700">{t.lowBandwidthHint}</span>
       </span>
       <input
         type="checkbox"
@@ -26,7 +26,7 @@ export function LowBandwidthToggle() {
       />
       <span
         aria-hidden
-        className="relative h-8 w-14 shrink-0 rounded-full bg-ink-mute transition peer-checked:bg-leaf-600 peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-leaf-600 after:absolute after:top-1 after:left-1 after:size-6 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-6"
+        className="relative h-8 w-14 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-brand-600 peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand-600 after:absolute after:top-1 after:left-1 after:size-6 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-6"
       />
     </label>
   );

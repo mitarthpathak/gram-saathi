@@ -1,0 +1,220 @@
+[
+  {
+    "id": "marwari",
+    "name": "Marwari",
+    "nativeName": "मारवाड़ी",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan"],
+    "suggestedDistricts": [
+      "Jodhpur",
+      "Jaisalmer",
+      "Barmer",
+      "Bikaner",
+      "Nagaur",
+      "Pali",
+      "Jalore",
+      "Sirohi"
+    ],
+    "confusableWith": ["dhundhari", "shekhawati", "mewari", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "dhundhari",
+    "name": "Dhundhari/Jaipuri",
+    "nativeName": "ढूंढाड़ी/जयपुरी",
+    "nativeNameVerify": true,
+    "parentLanguage": "hi",
+    "states": ["Rajasthan"],
+    "suggestedDistricts": ["Jaipur", "Dausa", "Tonk", "Sawai Madhopur"],
+    "confusableWith": ["marwari", "mewati", "harauti", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "shekhawati",
+    "name": "Shekhawati",
+    "nativeName": "शेखावाटी",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan"],
+    "suggestedDistricts": ["Sikar", "Jhunjhunu", "Churu"],
+    "confusableWith": ["marwari", "haryanvi", "bagri", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "bagri",
+    "name": "Bagri",
+    "nativeName": "बागड़ी",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan", "Haryana"],
+    "suggestedDistricts": ["Sri Ganganagar", "Hanumangarh"],
+    "confusableWith": ["haryanvi", "punjabi", "shekhawati", "marwari"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "mewari",
+    "name": "Mewari",
+    "nativeName": "मेवाड़ी",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan"],
+    "suggestedDistricts": ["Udaipur", "Rajsamand", "Chittorgarh", "Bhilwara"],
+    "confusableWith": ["marwari", "malvi", "harauti", "wagdi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "mewati",
+    "name": "Mewati",
+    "nativeName": "मेवाती",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan", "Haryana"],
+    "suggestedDistricts": ["Alwar", "Bharatpur", "Nuh"],
+    "confusableWith": ["braj", "haryanvi", "dhundhari"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "harauti",
+    "name": "Harauti",
+    "nativeName": "हाड़ौती",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan"],
+    "suggestedDistricts": ["Kota", "Bundi", "Baran", "Jhalawar"],
+    "confusableWith": ["malvi", "dhundhari", "mewari"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "malvi",
+    "name": "Malvi",
+    "nativeName": "मालवी",
+    "parentLanguage": "hi",
+    "states": ["Rajasthan", "Madhya Pradesh"],
+    "suggestedDistricts": [
+      "Jhalawar",
+      "Ujjain",
+      "Indore",
+      "Ratlam",
+      "Mandsaur",
+      "Dewas",
+      "Shajapur",
+      "Neemuch"
+    ],
+    "confusableWith": ["harauti", "mewari", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "wagdi",
+    "name": "Wagdi",
+    "nativeName": "वागड़ी",
+    "nativeNameVerify": true,
+    "parentLanguage": "hi",
+    "states": ["Rajasthan", "Gujarat"],
+    "suggestedDistricts": ["Dungarpur", "Banswara"],
+    "confusableWith": ["gujarati", "mewari", "malvi", "other_language"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "braj",
+    "name": "Braj",
+    "nativeName": "ब्रज",
+    "parentLanguage": "hi",
+    "states": ["Uttar Pradesh", "Rajasthan", "Madhya Pradesh"],
+    "suggestedDistricts": [
+      "Mathura",
+      "Agra",
+      "Aligarh",
+      "Hathras",
+      "Etah",
+      "Mainpuri",
+      "Badaun",
+      "Bharatpur",
+      "Dholpur",
+      "Gwalior"
+    ],
+    "confusableWith": ["hindi", "mewati", "bundeli", "awadhi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "haryanvi",
+    "name": "Haryanvi",
+    "nativeName": "हरियाणवी",
+    "parentLanguage": "hi",
+    "states": ["Haryana"],
+    "suggestedDistricts": [
+      "Rohtak",
+      "Jhajjar",
+      "Sonipat",
+      "Jind",
+      "Hisar",
+      "Bhiwani",
+      "Karnal",
+      "Panipat"
+    ],
+    "confusableWith": ["hindi", "bagri", "shekhawati", "punjabi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "bhojpuri",
+    "name": "Bhojpuri",
+    "nativeName": "भोजपुरी",
+    "parentLanguage": "hi",
+    "states": ["Uttar Pradesh", "Bihar"],
+    "suggestedDistricts": [
+      "Varanasi",
+      "Ghazipur",
+      "Ballia",
+      "Mau",
+      "Deoria",
+      "Gorakhpur",
+      "Azamgarh",
+      "Bhojpur",
+      "Buxar",
+      "Rohtas",
+      "Kaimur",
+      "Saran",
+      "Siwan"
+    ],
+    "confusableWith": ["awadhi", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "awadhi",
+    "name": "Awadhi",
+    "nativeName": "अवधी",
+    "parentLanguage": "hi",
+    "states": ["Uttar Pradesh"],
+    "suggestedDistricts": [
+      "Lucknow",
+      "Barabanki",
+      "Sitapur",
+      "Hardoi",
+      "Unnao",
+      "Rae Bareli",
+      "Ayodhya",
+      "Gonda",
+      "Bahraich",
+      "Pratapgarh"
+    ],
+    "confusableWith": ["bhojpuri", "bundeli", "hindi"],
+    "testStatus": "experimental"
+  },
+  {
+    "id": "bundeli",
+    "name": "Bundeli",
+    "nativeName": "बुंदेली",
+    "parentLanguage": "hi",
+    "states": ["Uttar Pradesh", "Madhya Pradesh"],
+    "suggestedDistricts": [
+      "Jhansi",
+      "Jalaun",
+      "Lalitpur",
+      "Hamirpur",
+      "Mahoba",
+      "Banda",
+      "Tikamgarh",
+      "Chhatarpur",
+      "Panna",
+      "Sagar",
+      "Damoh",
+      "Datia"
+    ],
+    "confusableWith": ["braj", "awadhi", "hindi"],
+    "testStatus": "experimental"
+  }
+]

@@ -26,6 +26,10 @@ code (for example an SSR frontend or a worker), give that caller a binding,
    - Real answers: `USE_MOCKS=false` and `GEMINI_API_KEY`, plus any of the optional variables
      in [ARCHITECTURE.md](ARCHITECTURE.md#configuration). Never give a secret a `VITE_` prefix,
      and leave `VITE_API_URL` unset.
+   - For the configured same-origin services, `CLIENT_ORIGIN` can remain at its default because
+     browser requests do not cross origins. If you host the client separately, set
+     `CLIENT_ORIGIN` to that exact public origin and set the client's `VITE_API_URL` to the API
+     origin.
 3. **Data files.** The function reads generated files from the repository, so build them on your
    machine and commit them:
 

@@ -11,11 +11,11 @@ export function SourceList({ sources }: { sources: Source[] }) {
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="flex items-center gap-1.5 text-xs font-extrabold tracking-[0.12em] text-leaf-600 uppercase">
+      <h3 className="flex items-center gap-1.5 text-base font-extrabold text-brand-800">
         <BadgeCheck aria-hidden className="size-4" />
         {t.title}
       </h3>
-      <ol className="flex flex-col gap-2">
+      <ol className="flex flex-wrap gap-2">
         {sources.map((source, index) => (
           <li key={`${source.schemeId}:${source.section}:${index}`}>
             <SourceCard source={source} index={index + 1} />

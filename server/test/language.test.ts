@@ -16,6 +16,13 @@ describe('detectTextLanguage', () => {
     expect(detectTextLanguage('PM-KISAN', 'mr')).toBe('mr');
     expect(detectTextLanguage('PM-KISAN')).toBe('en');
   });
+
+  it('falls back to the selected answer language or Hindi for unsupported scripts and markers', () => {
+    expect(detectTextLanguage('તમારું નામ શું છે?')).toBe('hi');
+    expect(detectTextLanguage('તમે કેમ છો?', 'mr')).toBe('mr');
+    expect(detectTextLanguage('ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?')).toBe('hi');
+    expect(detectTextLanguage('Tusi kive ho?')).toBe('hi');
+  });
 });
 
 describe('toSupportedLanguage', () => {

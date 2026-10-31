@@ -2,13 +2,16 @@ import type { LanguageCode } from '@gram-saathi/shared';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ChatProvider } from '@/features/chat/ChatProvider';
+import { DemoProvider } from '@/features/demo/DemoProvider';
 import { detectBrowserLanguage, getLanguage } from '@/features/language/languages';
-import { MotionProvider } from '@/lib/motion/MotionProvider';
 import { SettingsContext, type Settings } from '@/lib/settings';
 import { storage } from '@/lib/storage';
+import { readDialectHint, writeDialectHint } from '@/features/dialect/dialectLogic';
+import { MotionProvider } from '@/lib/motion/MotionProvider';
 
 const KEYS = {
   language: 'gs:language',
+  languageHint: 'gs:languageHint',
   lowBandwidth: 'gs:lowBandwidth',
   sessionId: 'gs:sessionId',
 };
@@ -30,6 +33,15 @@ function initialSessionId(): string {
 
 function SettingsProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState(initialLanguage);
+  const [languageHint, setLanguageHintState] = useState<LanguageCode | null>(() => {
+    const savedHint = storage.get(KEYS.languageHint);
+    if (savedHint === 'auto') return null;
+    if (savedHint) return getLanguage(savedHint)?.code ?? null;
+    return getLanguage(storage.get(KEYS.language) ?? '')?.code ?? null;
+  });
+  const [dialectHint, setDialectHintState] = useState<string | null>(
+    () => readDialectHint(storage),
+  );
   const [lowBandwidth, setLowBandwidthState] = useState(
     () => storage.get(KEYS.lowBandwidth) === 'true',
   );
@@ -45,7 +57,19 @@ function SettingsProvider({ children }: { children: ReactNode }) {
       language,
       setLanguage: (next) => {
         storage.set(KEYS.language, next);
+        storage.set(KEYS.languageHint, next);
         setLanguageState(next);
+        setLanguageHintState(next);
+      },
+      languageHint,
+      setLanguageHint: (next) => {
+        storage.set(KEYS.languageHint, next ?? 'auto');
+        setLanguageHintState(next);
+      },
+      dialectHint,
+      setDialectHint: (next) => {
+        writeDialectHint(storage, next);
+        setDialectHintState(next);
       },
       lowBandwidth,
       setLowBandwidth: (on) => {
@@ -54,7 +78,7 @@ function SettingsProvider({ children }: { children: ReactNode }) {
       },
       sessionId,
     }),
-    [language, lowBandwidth, sessionId],
+    [language, languageHint, dialectHint, lowBandwidth, sessionId],
   );
 
   return <SettingsContext value={settings}>{children}</SettingsContext>;
@@ -63,12 +87,14 @@ function SettingsProvider({ children }: { children: ReactNode }) {
 /** Every app-wide provider. Feature providers get registered here. */
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <SettingsProvider>
-      <MotionProvider>
-        <ToastProvider>
-          <ChatProvider>{children}</ChatProvider>
-        </ToastProvider>
-      </MotionProvider>
-    </SettingsProvider>
+    <DemoProvider>
+      <SettingsProvider>
+        <MotionProvider>
+          <ToastProvider>
+            <ChatProvider>{children}</ChatProvider>
+          </ToastProvider>
+        </MotionProvider>
+      </SettingsProvider>
+    </DemoProvider>
   );
 }
