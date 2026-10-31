@@ -4,7 +4,7 @@ import { embedTexts, generateJson } from '../../lib/geminiClient';
 import { HttpError } from '../../lib/httpError';
 import { logger } from '../../lib/logger';
 import { mockSearchSchemes } from '../../mocks';
-import { slugify } from './documents';
+import { isOfficialSourceUrl, slugify } from './documents';
 import { TRANSLATE_QUERY_PROMPT, translateQuerySchema } from './prompts';
 import { VectorStore, type ScoredChunk } from './vectorStore';
 
@@ -15,6 +15,8 @@ export interface SearchInput {
   language?: LanguageCode;
   /** Defaults to RAG_TOP_K. */
   topK?: number;
+  /** Query is already English; bypass the optional legacy query translation. */
+  skipTranslation?: boolean;
 }
 
 let knowledgeBase: VectorStore | undefined;
@@ -48,8 +50,20 @@ export async function searchSchemes(input: SearchInput): Promise<ScoredChunk[]> 
       'No knowledge base: run `npm run ingest -w server` (server/data/vectorstore.json).',
     );
   }
+  const unverified = store.meta.documents.filter(
+    (document) =>
+      document.sample || !document.verified || !isOfficialSourceUrl(document.officialUrl),
+  );
+  if (unverified.length > 0) {
+    throw new HttpError(
+      503,
+      'KNOWLEDGE_BASE_UNVERIFIED',
+      'The knowledge base includes documents that are not verified official sources. ' +
+        'Rebuild it with `npm run ingest -w server` after verifying the source files.',
+    );
+  }
   const query =
-    env.RAG_TRANSLATE_QUERY && input.language !== 'en'
+    !input.skipTranslation && env.RAG_TRANSLATE_QUERY && input.language !== 'en'
       ? await translateQueryToEnglish(input.query)
       : input.query;
   // Query vectors must come from the same model and size as the stored document vectors.

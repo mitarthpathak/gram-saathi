@@ -63,6 +63,8 @@ interface MockAnswer {
   sms: string;
 }
 
+type MockScript = 'native' | 'roman';
+
 const ANSWERS: Record<Topic | 'notFound', Record<LanguageCode, MockAnswer>> = {
   pmKisan: {
     en: {
@@ -161,14 +163,217 @@ const TOPIC_KEYWORDS: [Topic, RegExp][] = [
   ['pmKisan', /kisan|किसान|शेतकरी|கிசான்|விவசாய|farmer|किस्त|हप्ता|தவணை|instal/i],
 ];
 
-/** Script-based guess: Tamil script → ta, Devanagari → hi or mr (Marathi marker words), else the hint. */
-export function mockDetectLanguage(text: string, hint?: LanguageCode): LanguageCode {
+const GREETING_ANSWERS: Record<LanguageCode, MockAnswer> = {
+  en: {
+    answer: 'Hi! What would you like to know about a government scheme?',
+    sms: 'Hi! What would you like to know?',
+  },
+  hi: {
+    // TODO(review-native): have a native Hindi speaker review this greeting.
+    answer: 'नमस्ते! सरकारी योजना के बारे में क्या जानना चाहेंगे?',
+    sms: 'नमस्ते! सरकारी योजना के बारे में पूछें।',
+  },
+  mr: {
+    // TODO(review-native): have a native Marathi speaker review this greeting.
+    answer: 'नमस्कार! सरकारी योजनेबद्दल काय जाणून घ्यायचे आहे?',
+    sms: 'नमस्कार! सरकारी योजनेबद्दल विचारा.',
+  },
+  ta: {
+    // TODO(review-native): have a native Tamil speaker review this greeting.
+    answer: 'வணக்கம்! அரசுத் திட்டம் பற்றி என்ன தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
+    sms: 'வணக்கம்! அரசுத் திட்டம் பற்றி கேளுங்கள்.',
+  },
+};
+
+const GREETING_PHRASES = new Set([
+  'hi',
+  'hi there',
+  'hello',
+  'hello there',
+  'hey',
+  'hey there',
+  'good morning',
+  'good afternoon',
+  'good evening',
+  'namaste',
+  'namaskar',
+  'namaskaar',
+  'namaskara',
+  'pranam',
+  'vanakkam',
+  'vanakkangal',
+  'khamma ghani',
+  'johar',
+  'ram ram sa',
+  'radhe radhe',
+  'नमस्ते',
+  'नमस्कार',
+  'प्रणाम',
+  'राम राम',
+  'राधे राधे',
+  'खम्मा घणी',
+  'हेलो',
+  'हैलो',
+  'हाय',
+  'வணக்கம்',
+  'வணக்கங்கள்',
+  'ஹலோ',
+  'ஹாய்',
+]);
+
+const ROMAN_GREETINGS: Partial<Record<LanguageCode, MockAnswer>> = {
+  hi: {
+    answer: 'Namaste! Sarkari yojana ke baare mein kya jaanana chahenge?',
+    sms: 'Namaste! Sarkari yojana ke baare mein poochhein.',
+  },
+  mr: {
+    answer: 'Namaskar! Sarkari yojanebaddal kay janun ghyayche aahe?',
+    sms: 'Namaskar! Sarkari yojanebaddal vichara.',
+  },
+  ta: {
+    answer: 'Vanakkam! Arasu thittam patri enna therindhukolla virumbugireergal?',
+    sms: 'Vanakkam! Arasu thittam patri kelungal.',
+  },
+};
+
+export function mockGreeting(
+  text: string,
+  language: LanguageCode,
+  script: MockScript = 'native',
+): MockAnswer | undefined {
+  const normalized = text
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[\p{P}\p{S}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!GREETING_PHRASES.has(normalized)) return undefined;
+  return script === 'roman'
+    ? (ROMAN_GREETINGS[language] ?? GREETING_ANSWERS[language])
+    : GREETING_ANSWERS[language];
+}
+
+export function mockSmallTalk(
+  text: string,
+  language: LanguageCode,
+  script: MockScript,
+): MockAnswer | undefined {
+  const normalized = text
+    .normalize('NFC')
+    .toLowerCase()
+    .replace(/[?!.,।]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const asksWhereFrom =
+    /\bwhere are you from\b/.test(normalized) ||
+    /\b(?:kaha|kahaan|kahan)\s+se\s+(?:ho|hain|hai)\b/.test(normalized) ||
+    /\b(?:kaha|kahaan|kahan)\s+ke\s+ho\b/.test(normalized) ||
+    /कहाँ\s+से\s+(?:हो|हैं|है)/.test(normalized) ||
+    /आप\s+कहाँ\s+के\s+हो/.test(normalized);
+  if (!asksWhereFrom) return undefined;
+  const replies: Record<LanguageCode, string> = {
+    en: "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
+    hi: script === 'roman'
+      ? 'Main Gram Saathi hoon. Sarkari yojanaon ki jaankari mein madad karta hoon. Aap kis yojana ke baare mein poochhna chahenge?'
+      : 'मैं ग्राम साथी हूँ। सरकारी योजनाओं की जानकारी में मदद करता हूँ। आप किस योजना के बारे में पूछना चाहेंगे?',
+    mr: script === 'roman'
+      ? 'Mi Gram Saathi aahe. Sarkari yojananchi mahiti shodhayla mi madat karto. Tumhala kontya yojanebaddal vicharayche aahe?'
+      : 'मी ग्राम साथी आहे. सरकारी योजनांची माहिती शोधण्यात मी मदत करतो. तुम्हाला कोणत्या योजनेबद्दल जाणून घ्यायचे आहे?',
+    ta: script === 'roman'
+      ? 'Naan Gram Saathi. Arasu thittangal patriya thagavalukku udhavugiren. Endha thittathai patri therindhukolla virumbugireergal?'
+      : 'நான் கிராம் சாத்தி. அரசு திட்டங்கள் பற்றிய தகவலுக்கு உதவுகிறேன். எந்தத் திட்டத்தைப் பற்றி தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
+  };
+  return { answer: replies[language], sms: replies[language] };
+}
+
+/** Script and marker-word guess; a selected dialect hint overrides language detection. */
+export function mockDetectLanguage(
+  text: string,
+  hint?: LanguageCode,
+  dialectHint?: string,
+): LanguageCode {
+  const dialectLanguage: Partial<Record<string, LanguageCode>> = {
+    varhadi: 'mr',
+    marwari: 'hi',
+    dhundhari: 'hi',
+    shekhawati: 'hi',
+    bagri: 'hi',
+    mewari: 'hi',
+    mewati: 'hi',
+    harauti: 'hi',
+    malvi: 'hi',
+    wagdi: 'hi',
+    braj: 'hi',
+    haryanvi: 'hi',
+    bhojpuri: 'hi',
+    awadhi: 'hi',
+    bundeli: 'hi',
+  };
+  if (dialectHint && dialectLanguage[dialectHint]) return dialectLanguage[dialectHint]!;
   if (/[஀-௿]/.test(text)) return 'ta';
   if (/[ऀ-ॿ]/.test(text)) {
-    return /ळ|आहे|काय|मला|किती|कसे|नाही|आणि|योजनेत/.test(text) ? 'mr' : 'hi';
+    if (/ळ|आहे|काय|मला|किती|कसे|नाही|आणि|योजनेत/.test(text)) return 'mr';
+    return hint === 'mr' ? 'mr' : 'hi';
   }
-  // Latin script: English, or romanised Hindi/Marathi/Tamil typed by someone using that UI language.
-  return hint ?? 'en';
+  const tokens: string[] = text.toLowerCase().match(/[a-z]+/g) ?? [];
+  const joined = tokens.join(' ');
+  if (
+    [
+      'hi',
+      'hello',
+      'hey',
+      'hi there',
+      'hello there',
+      'hey there',
+      'good morning',
+      'good afternoon',
+      'good evening',
+    ].some((greeting) => greeting === joined)
+  ) {
+    return 'en';
+  }
+  if (
+    ['vanakkam', 'vanakkangal'].some((word) => word === joined) ||
+    ['enna', 'eppadi', 'thittam', 'panam', 'kidaikkum'].some((word) => tokens.includes(word))
+  ) {
+    return 'ta';
+  }
+  if (
+    ['namaste', 'pranam', 'ram ram', 'ram ram sa', 'radhe radhe', 'khamma ghani', 'johar'].some(
+      (word) => word === joined,
+    )
+  ) {
+    return 'hi';
+  }
+  if (['namaskar', 'namaskaar', 'namaskara'].some((word) => word === joined)) {
+    return hint === 'mr' ? 'mr' : 'hi';
+  }
+  const hindi = [
+    'hai', 'hain', 'kya', 'kaise', 'kitna', 'mujhe', 'nahi', 'yojana', 'batao',
+    'ki', 'kaha', 'kahaan', 'kahan', 'se', 'ho',
+  ];
+  const marathi = ['ahe', 'aahe', 'kay', 'mala', 'kiti', 'sathi', 'kuthe', 'ani'];
+  const english = ['the', 'is', 'are', 'what', 'how', 'who', 'can', 'apply', 'eligible', 'scheme'];
+  const scores = [
+    ['hi', hindi],
+    ['mr', marathi],
+    ['en', english],
+  ] as const;
+  const ranked = scores.map(([language, words]) => ({
+    language,
+    score: tokens.filter((token) => (words as readonly string[]).includes(token)).length,
+  }));
+  const best = Math.max(...ranked.map(({ score }) => score));
+  if (best === 0) return hint ?? 'en';
+  const leaders = ranked.filter(({ score }) => score === best).map(({ language }) => language);
+  if (hint && leaders.includes(hint as (typeof leaders)[number])) return hint;
+  return leaders[0];
+}
+
+export function mockDetectScript(text: string): MockScript {
+  const latin = text.match(/[A-Za-z]/g)?.length ?? 0;
+  const indic = text.match(/[ऀ-ॿ஀-௿઀-૿਀-਴]/g)?.length ?? 0;
+  return latin > indic ? 'roman' : 'native';
 }
 
 export function mockSearchSchemes(query: string, topK: number): RetrievedChunk[] {
@@ -176,9 +381,66 @@ export function mockSearchSchemes(query: string, topK: number): RetrievedChunk[]
   return topic ? CHUNKS[topic].slice(0, topK) : [];
 }
 
+const ROMAN_ANSWERS: Partial<
+  Record<Topic | 'notFound', Partial<Record<LanguageCode, MockAnswer>>>
+> = {
+  pmKisan: {
+    hi: {
+      answer:
+        'PM-KISAN mein patr kisan parivaron ko har saal ₹6,000 milte hain. Yeh ₹2,000 ki teen kishton mein seedhe bank khate mein aate hain. Zameen ke record mein naam aur Aadhaar eKYC zaroori hai. Registration pmkisan.gov.in ya najdeeki CSC par muft hai.',
+      sms: 'PM-KISAN: saal mein ₹6,000, ₹2,000 ki 3 kishton mein. Zameen record aur Aadhaar eKYC zaroori. Muft registration: pmkisan.gov.in ya CSC.',
+    },
+    mr: {
+      answer:
+        'PM-KISAN yojanet patr shetkari kutumbanna darvarshi ₹6,000 miltat. ₹2,000 che teen hapte thet bank khatyat jama hotat. Jaminichya nondit nav ani Aadhaar eKYC avashyak aahe. Nondani pmkisan.gov.in kiwa javalchya CSC var mofat aahe.',
+      sms: 'PM-KISAN: darvarshi ₹6,000, ₹2,000 che 3 hapte. Jamin nond ani Aadhaar eKYC avashyak. Mofat nondani: pmkisan.gov.in kiwa CSC.',
+    },
+    ta: {
+      answer:
+        'PM-KISAN thittathil thaguthiyulla vivasaya kudumbangalukku aandukku ₹6,000 kidaikkum. Idhu ₹2,000 veetham moondru thavanaiyaga vangi kanakkil seluthappadum. Nilap padhivil peyar irukka vendum; Aadhaar eKYC avasiyam. pmkisan.gov.in allathu arugilulla CSC-il ilavasamaaga padhivu seyyalaam.',
+      sms: 'PM-KISAN: aandukku ₹6,000, ₹2,000 veetham 3 thavanai. Nilap padhivu, Aadhaar eKYC avasiyam. Ilavasa padhivu: pmkisan.gov.in / CSC.',
+    },
+  },
+  pmJay: {
+    hi: {
+      answer:
+        'Ayushman Bharat PM-JAY mein har parivar ko saal mein ₹5 lakh tak ka hospital ilaaj milta hai. Ilaaj cashless hai aur suchibaddh sarkari aur niji aspatalon mein hota hai. Yogyata SECC 2011 data par aadharit hai. Apna naam beneficiary.nha.gov.in par dekhein ya 14555 par call karein.',
+      sms: 'PM-JAY: har parivar ko saal mein ₹5 lakh tak cashless ilaaj. Naam: beneficiary.nha.gov.in ya 14555. Ayushman card CSC par muft.',
+    },
+    mr: {
+      answer:
+        'Ayushman Bharat PM-JAY madhye pratyek kutumbala darvarshi ₹5 lakh paryant rugnalayatil upchar miltat. Upchar cashless aahe ani suchibaddha sarkari va khajgi rugnalayant hoto. Patrata SECC 2011 mahitivar tharte. beneficiary.nha.gov.in var nav paha kiwa 14555 var call kara.',
+      sms: 'PM-JAY: pratyek kutumbala darvarshi ₹5 lakh paryant cashless upchar. Nav: beneficiary.nha.gov.in kiwa 14555. Card CSC var mofat.',
+    },
+    ta: {
+      answer:
+        'Ayushman Bharat PM-JAY-il ovvoru kudumbathukkum aandukku ₹5 lakh varai maruththuvamanai sigichai kidaikkum. Arasu matrum pattiyalidappatta thaniyar maruththuvamanaigalil sigichai panamillamal kidaikkum. Thaguthi SECC 2011 thagavalai adippadaiyaga kondadhu. beneficiary.nha.gov.in-il peyarai paarungal allathu 14555-ai azhaikkavum.',
+      sms: 'PM-JAY: kudumbathukku aandukku ₹5 lakh varai panamillaa sigichai. Peyar: beneficiary.nha.gov.in / 14555. CSC-il card ilavasam.',
+    },
+  },
+  notFound: {
+    hi: {
+      answer:
+        'Maaf kijiye, yeh jaankari mere paas ke adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.',
+      sms: 'Adhikarik jaankari nahi mili. Najdeeki CSC ya gram panchayat mein poochhein.',
+    },
+    mr: {
+      answer:
+        'Maaf kara, hi mahiti majhyakadil adhikrut yojana kagadpatrant sapadli nahi, mhanun mi andaj lavnar nahi. Krupaya javalchya CSC kiwa gram panchayat karyalayat vichara.',
+      sms: 'Adhikruth mahiti sapadli nahi. Javalchya CSC kiwa gram panchayat karyalayat vichara.',
+    },
+    ta: {
+      answer:
+        'Mannikkavum, ennidam ulla adhikarappoorva thitta aavanangalil indha thagaval illai; naan oogikka maatten. Arugilulla CSC allathu gram panchayat aluvalagathil kelungal.',
+      sms: 'Adhikarappoorva thagaval illai. Arugilulla CSC allathu gram panchayat-il kelungal.',
+    },
+  },
+};
+
 export function mockGenerateAnswer(
   chunks: RetrievedChunk[],
   language: LanguageCode,
+  script: MockScript = 'native',
 ): { answer: string; smsText: string; notFound: boolean } {
   const schemeId = chunks[0]?.schemeId;
   const topic: Topic | 'notFound' =
@@ -187,7 +449,10 @@ export function mockGenerateAnswer(
       : schemeId === PM_JAY.schemeId
         ? 'pmJay'
         : 'notFound';
-  const { answer, sms } = ANSWERS[topic][language];
+  const { answer, sms } =
+    script === 'roman'
+      ? (ROMAN_ANSWERS[topic]?.[language] ?? ANSWERS[topic][language])
+      : ANSWERS[topic][language];
   return { answer, smsText: sms, notFound: topic === 'notFound' };
 }
 

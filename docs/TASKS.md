@@ -1,5 +1,28 @@
 # Workstreams
 
+## Current status — 2026-10-31 (branch `feat/dialect-voice`)
+
+Built on top of the conversation layer (PR #9, not yet merged) and up to date with `main`: dialect-worded replies with a
+deterministic facts lock and `answerStyle`, a facts guard on clarifications, server speech
+(`POST /api/tts`) with `dialectId` and honest `basis` labels, the Listen button using server speech
+with browser fallback and low-bandwidth respected, and the pipeline audit
+(`npm run audit -w server`). All of it is tested with fake models only; nothing has run against the
+real Gemini models, and the repo's own `npm install` / typecheck / lint / test / build were not run
+on this branch (the agent's sandbox could not install packages). These statuses supersede the
+historical step-2/step-3 checklist below where they conflict.
+
+| Who    | What                                                                                                      | Where                                              |
+| ------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Owner  | Repo checks, real-mode health check, ingest, first real audit, model pinning                              | [RUNBOOK.md](RUNBOOK.md) steps 1–3, 8              |
+| Owner  | Merge PR #9 and this branch into `main` (this branch already contains `main`; no conflicts on 2026-10-31) | [RUNBOOK.md](RUNBOOK.md#before-merging-into-main)  |
+| Team   | Record consented real-speaker clips (10 per language/dialect) and exemplars (20+ per dialect)             | `eval/audio/README.md`, `data/dialects/exemplars/` |
+| Native | Rate `eval/review/dialect-review.csv`, audition voices, review `TODO(review-native)` strings              | [RUNBOOK.md](RUNBOOK.md) steps 5–6                 |
+| Owner  | Set `"verified": true` per dialect only after that review                                                 | `server/src/config/dialect-render.json`            |
+| Owner  | Verify PMAY-G and eligibility rules; prewarm the FAQ; calibrate `RAG_MIN_SCORE`                           | carried over from the conversation-layer job       |
+
+Results and risks: [`FINAL_REPORT.md`](FINAL_REPORT.md). Open audit findings:
+[`AUDIT_FINDINGS.md`](AUDIT_FINDINGS.md).
+
 Four workstreams, each owning its own folders, so 3–4 people can work in parallel with few
 merge conflicts. Everything already runs on mock data, so nobody waits for anybody: build your
 part behind the mocks, then switch it on (`USE_MOCKS` takes a list of modules that stay mocked).
@@ -36,7 +59,7 @@ Step 2
       the mic is released after each question.
 - [x] Recording feedback: timer and live level meter. Still open: vibration on start/stop.
 - [x] Friendly messages for `NO_SPEECH_DETECTED`, `AI_*` and setup errors (`ChatProvider`).
-- [ ] Play `audioUrl` when the server sends one; setting to auto-read answers on or off.
+- [x] Listen tries server `audioUrl` first and falls back to browser speech; no auto-read setting.
 - [ ] Retry button on error bubbles; disable input while offline.
 - [ ] Native speakers check every `strings.ts` in hi / mr / ta.
 
@@ -64,13 +87,15 @@ Step 2
       then add PM Fasal Bima, Sukanya Samriddhi, PMJJBY and the NFSA ration card.
 - [ ] With the real documents ingested, calibrate `RAG_MIN_SCORE` using the scores that
       `npm run query` prints (unrelated questions must fall below it).
-- [ ] Optional: `tts` with Gemini or Cloud TTS for languages phones lack (Marathi).
+- [x] Optional Gemini TTS with browser fallback; server-side language voice support still depends
+      on configured model capability.
 
 Step 3
 
 - [ ] Vector DB for embeddings (replace the in-memory index).
 - [ ] Semantic cache in `lib/cache.ts` (hit on paraphrases).
-- [ ] Small eval set: 10 questions per language with expected scheme and section.
+- [x] Conversation eval harness: 10 scheme question templates across each answer language plus
+      10 non-scheme intent cases. Current language-specific input coverage needs native examples.
 
 ## 3. Eligibility + SMS
 

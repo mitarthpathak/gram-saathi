@@ -1,5 +1,6 @@
 import type { QueryResponse } from '@gram-saathi/shared';
-import { MessageSquareText, Mic, SearchX, TriangleAlert, Zap } from 'lucide-react';
+import { Info, MessageSquareText, Mic, SearchX, TriangleAlert, Zap } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { Logo } from '@/components/brand/Logo';
 import { Badge } from '@/components/ui/Badge';
@@ -7,8 +8,11 @@ import { SourceList } from '@/features/sources/SourceList';
 import { DialectPrompt } from '@/features/dialect/DialectPrompt';
 import type { SmsScreenState } from '@/features/sms/navigation';
 import { SpeakButton } from '@/features/voice/SpeakButton';
+import { voiceNoteFor, type VoiceNote } from '@/features/voice/speak';
+import { VoiceNoteLine } from '@/features/voice/VoiceNoteLine';
 import { useStrings } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
+import { useDialectInfo } from './dialects';
 import { FraudWarning } from './FraudWarning';
 import { chatStrings } from './strings';
 import type { ChatMessage } from './useChat';
@@ -24,7 +28,13 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
         />
       );
     case 'assistant':
-      return <AnswerBubble response={message.response} viaVoice={message.via === 'voice'} />;
+      return (
+        <AnswerBubble
+          response={message.response}
+          viaVoice={message.via === 'voice'}
+          autoVoiceNote={message.voiceNote}
+        />
+      );
     case 'error':
       return (
         <div
@@ -76,11 +86,27 @@ function QuestionBubble({
   );
 }
 
-function AnswerBubble({ response, viaVoice }: { response: QueryResponse; viaVoice: boolean }) {
+function AnswerBubble({
+  response,
+  viaVoice,
+  autoVoiceNote,
+}: {
+  response: QueryResponse;
+  viaVoice: boolean;
+  autoVoiceNote?: VoiceNote | null;
+}) {
   const t = useStrings(chatStrings);
   const { lowBandwidth } = useSettings();
   const smsState: SmsScreenState = { sms: response.smsText, segments: response.smsSegments };
   const scheme = response.sources[0]?.schemeName;
+  // Dialect wording is model-generated: label it unless the registry marks the dialect tested.
+  const dialectWorded = response.answerStyle?.rendered === 'dialect';
+  const dialectId = dialectWorded ? (response.answerStyle?.dialectId ?? null) : null;
+  const dialect = useDialectInfo(dialectId);
+  const dialectName =
+    dialect?.nativeName ?? (response.dialect?.id === dialectId ? response.dialect?.nativeName : '');
+  const [listenNote, setListenNote] = useState<VoiceNote | null>(null);
+  const voiceNote = listenNote ?? autoVoiceNote ?? null;
 
   return (
     <article lang={response.detectedLanguage} className="flex animate-fade-up items-start gap-2.5">
@@ -105,11 +131,19 @@ function AnswerBubble({ response, viaVoice }: { response: QueryResponse; viaVoic
         )}
         {viaVoice && <DialectPrompt response={response} />}
         <p className="text-lg leading-relaxed text-slate-800">{response.answer}</p>
+        {dialectWorded && dialect?.testStatus !== 'tested' && (
+          <p className="-mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-500">
+            <Info aria-hidden className="size-3.5 shrink-0" />
+            {dialectName ? `${dialectName} · ${t.dialectNote}` : t.dialectNote}
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
           <SpeakButton
             text={response.answer}
             language={response.detectedLanguage}
             audioUrl={lowBandwidth ? null : response.audioUrl}
+            dialectId={dialectId}
+            onSpoken={(result) => setListenNote(voiceNoteFor(result, dialectWorded))}
           />
           <Link
             to="/sms"
@@ -120,8 +154,11 @@ function AnswerBubble({ response, viaVoice }: { response: QueryResponse; viaVoic
             {t.viewSms} · {response.smsSegments}
           </Link>
         </div>
+        {voiceNote && <VoiceNoteLine note={voiceNote} language={response.detectedLanguage} />}
         <SourceList sources={response.sources} />
-        <FraudWarning text={response.fraudWarning} />
+        {(response.notFound || response.sources.length > 0) && (
+          <FraudWarning text={response.fraudWarning} />
+        )}
       </div>
     </article>
   );

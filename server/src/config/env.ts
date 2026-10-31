@@ -42,9 +42,14 @@ export const MOCKABLE_MODULES = [
 ] as const;
 export type MockableModule = (typeof MOCKABLE_MODULES)[number];
 
-/** USE_MOCKS is `true`, `false` or a comma-separated list such as `eligibility,sms`. */
-function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableModule> {
+/**
+ * USE_MOCKS is `auto` (the default), `true`, `false` or a comma-separated list such as
+ * `eligibility,sms`. `auto` is resolved after parsing: real pipeline when GEMINI_API_KEY is set,
+ * mock data for every module otherwise.
+ */
+function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableModule> | 'auto' {
   const value = raw.trim().toLowerCase();
+  if (value === 'auto') return 'auto';
   if (['true', '1', 'yes', 'all'].includes(value)) return new Set(MOCKABLE_MODULES);
   if (['false', '0', 'no', 'none'].includes(value)) return new Set();
 
@@ -63,14 +68,23 @@ function parseMockList(raw: string, ctx: z.RefinementCtx): ReadonlySet<MockableM
   return new Set(names as MockableModule[]);
 }
 
+/** `auto`: the real pipeline when a Gemini key is set, mock data for every module otherwise. */
+export function resolveMockSetting(
+  setting: ReadonlySet<MockableModule> | 'auto',
+  geminiApiKey: string | undefined,
+): ReadonlySet<MockableModule> {
+  if (setting !== 'auto') return setting;
+  return new Set(geminiApiKey?.trim() ? [] : MOCKABLE_MODULES);
+}
+
 /** Treats `KEY=` (empty value) like an unset variable so the default applies. */
 const fromEnv = <T extends z.ZodType>(schema: T) =>
   z.preprocess((value) => (value === '' ? undefined : value), schema);
 
-const envSchema = z.object({
+const envObject = z.object({
   NODE_ENV: fromEnv(z.enum(['development', 'test', 'production']).default('development')),
   PORT: fromEnv(z.coerce.number().int().min(1).max(65535).default(4000)),
-  USE_MOCKS: fromEnv(z.string().default('true').transform(parseMockList)),
+  USE_MOCKS: fromEnv(z.string().default('auto').transform(parseMockList)),
   CLIENT_ORIGIN: fromEnv(z.string().default('http://localhost:5173')),
   /** Read by lib/logger directly; validated here. Default: debug (dev), info (production). */
   LOG_LEVEL: fromEnv(z.enum(['debug', 'info', 'warn', 'error']).optional()),
@@ -78,8 +92,29 @@ const envSchema = z.object({
   // Gemini. Model ids: https://ai.google.dev/gemini-api/docs/models
   GEMINI_API_KEY: fromEnv(z.string().optional()),
   GEMINI_CHAT_MODEL: fromEnv(z.string().default('gemini-3.8-flash')),
+  /** Used for transient model overloads; set to `none` to disable model fallback. */
+  GEMINI_FALLBACK_MODEL: fromEnv(z.string().trim().default('gemini-3.6-flash')),
   /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
   GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
+  /** Server text-to-speech model; `none` disables server speech (the browser voice is used). */
+  GEMINI_TTS_MODEL: fromEnv(z.string().trim().default('gemini-3.8-flash-lite-tts')),
+  /** TTS model for dialect replies; `none` means GEMINI_TTS_MODEL is used for them too. */
+  GEMINI_TTS_DIALECT_MODEL: fromEnv(z.string().trim().default('gemini-3.8-flash-tts')),
+  /** Requested output rate; 16000 keeps data URLs small. Falls back to 24000 if rejected. */
+  GEMINI_TTS_SAMPLE_RATE: fromEnv(
+    z.coerce
+      .number()
+      .pipe(z.union([z.literal(24000), z.literal(16000), z.literal(8000)]))
+      .default(16000),
+  ),
+  /** Legacy name of TTS_TIMEOUT_MS, still honoured when TTS_TIMEOUT_MS is unset. */
+  GEMINI_TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).default(15_000)),
+  /** Per-call timeout for server speech (overrides GEMINI_TTS_TIMEOUT_MS). */
+  TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).optional()),
+  /** Longer texts are split at sentence boundaries into pieces of at most this many characters. */
+  TTS_MAX_CHARS: fromEnv(z.coerce.number().int().min(100).max(2000).default(600)),
+  /** One short, constant delivery style for every reply (empty = none). Never an accent. */
+  TTS_STYLE: fromEnv(z.string().trim().max(200).default('')),
   GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
   GEMINI_EMBED_DIMENSIONS: fromEnv(z.coerce.number().int().min(128).max(3072).default(768)),
   /** `default` sends no thinking level and lets the model decide. */
@@ -99,6 +134,17 @@ const envSchema = z.object({
   DIALECT_ACTIVE: fromEnv(z.string().trim().default('all')),
   DIALECT_EXEMPLARS_PER_LABEL: fromEnv(z.coerce.number().int().min(0).max(20).default(4)),
   DIALECT_EXEMPLAR_TOKEN_BUDGET: fromEnv(z.coerce.number().int().min(0).max(20_000).default(1800)),
+  /**
+   * Dialect wording of replies: `off` keeps the standard language; `mirror` (default) also rewords
+   * spoken answers to match the speaker's own words when the dialect is only partly identified;
+   * `best_effort` renders every confirmed or high-confidence dialect; `verified_only` renders only
+   * dialects a native speaker reviewed (`verified: true` in config/dialect-render.json).
+   */
+  DIALECT_REPLY: fromEnv(
+    z.enum(['off', 'mirror', 'best_effort', 'verified_only']).default('mirror'),
+  ),
+  /** Longest wait for the dialect rewording step before falling back to the standard answer. */
+  DIALECT_RENDER_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(500).max(60_000).default(8000)),
 
   // Retrieval
   RAG_TOP_K: fromEnv(z.coerce.number().int().min(1).max(10).default(4)),
@@ -119,6 +165,13 @@ const envSchema = z.object({
   /** Express `trust proxy`: hops of proxies in front of the server (1 on Vercel). */
   TRUST_PROXY: fromEnv(z.coerce.number().int().min(0).max(10).default(1)),
 });
+
+/** `auto` in USE_MOCKS is resolved here, once the Gemini key is known. */
+const envSchema = envObject.transform((values) => ({
+  ...values,
+  USE_MOCKS: resolveMockSetting(values.USE_MOCKS, values.GEMINI_API_KEY),
+  USE_MOCKS_AUTO: values.USE_MOCKS === 'auto',
+}));
 
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
@@ -141,6 +194,9 @@ export function isMocked(module: MockableModule): boolean {
 }
 
 export function describeMocks(): string {
+  if (env.USE_MOCKS_AUTO && env.USE_MOCKS.size === MOCKABLE_MODULES.length) {
+    return 'all modules (USE_MOCKS=auto and GEMINI_API_KEY is not set)';
+  }
   if (env.USE_MOCKS.size === MOCKABLE_MODULES.length) return 'all modules';
   return env.USE_MOCKS.size === 0 ? 'off' : [...env.USE_MOCKS].join(', ');
 }

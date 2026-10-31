@@ -469,6 +469,35 @@
   }
 }
 
+/* Keep phone layouts compact without changing browser zoom or desktop sizing. */
+@media (max-width: 480px) {
+  html {
+    font-size: 88%;
+  }
+}
+
+/* A warm, green scrollbar for the app's own scroll area. */
+.app-scroll {
+  overscroll-behavior-y: contain;
+  scrollbar-color: var(--color-leaf-500) var(--color-paper-deep);
+  scrollbar-width: thin;
+}
+.app-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.app-scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--color-paper-deep);
+}
+.app-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid var(--color-paper-deep);
+  border-radius: 999px;
+  background: var(--color-leaf-500);
+}
+.app-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-leaf-600);
+}
+
 /* Lenis smooth scroll (desktop, Full tier only). */
 html.lenis,
 html.lenis body {

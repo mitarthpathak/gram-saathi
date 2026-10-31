@@ -1,100 +1,122 @@
 # Architecture
 
-## Big picture
+## Current conversation flow (real mode)
+
+Real mode means `USE_MOCKS=false`, or the default `USE_MOCKS=auto` with `GEMINI_API_KEY` set. Mock
+mode keeps the older fixture pipeline unchanged (see [Mock mode](#mock-mode)); there the mic's
+audio is ignored and a canned question is answered. Every arrow labelled "Gemini" is one model call.
 
 ```mermaid
-flowchart LR
-  U((User)) -- speaks / types --> C[Client<br/>React PWA]
-  C -- "/api/voice/query<br/>/api/chat/query" --> S[Server<br/>Express]
-  subgraph S [Server: answer pipeline]
-    direction LR
-    V[voice<br/>verbatim transcription] --> CH[chat<br/>orchestrates]
-    V --> DL[dialect<br/>parallel ensemble]
-    CH -. "DIALECT_TEXT_DETECT" .-> DL
-    CH --> R[rag<br/>retrieve chunks]
-    R --> D[(data/schemes<br/>*.md)]
-    CH --> G[Gemini<br/>grounded answer]
-    CH --> SMS[sms<br/>SMS version]
-    CH --> F[fraud warning<br/>static text]
-    CH --> Q[QueryResponse]
-    DL --> Q
-  end
-  S -- QueryResponse --> C
-  C -- text + voice +<br/>sources + SMS --> U
+flowchart TB
+  U((User)) -->|types| CHAT[/POST /api/chat/query/]
+  U -->|speaks| VOICE[/POST /api/voice/query/]
+  VOICE --> STT[Gemini: verbatim transcript + language]
+  STT --> IDENT[Gemini: dialect identification, up to 3 votes]
+  IDENT --> POLICY
+  CHAT --> POLICY{dialect applies?<br/>confirmed dialectHint, or<br/>identification at high confidence}
+  POLICY --> UNDERSTAND[Gemini: intent, language, English search query]
+  UNDERSTAND --> ROUTE{intent}
+  ROUTE -->|smalltalk / clarify / out of scope| DIRECT[direct reply, standard language]
+  DIRECT --> GUARD{states facts the user<br/>was not told?}
+  GUARD -->|yes| ASK[fixed 'please ask again' text]
+  GUARD -->|no| STYLE
+  ASK --> STYLE
+  ROUTE -->|scheme question| SEARCH[Gemini embedding + vector search]
+  SEARCH -->|nothing at or above RAG_MIN_SCORE| NOTFOUND[fixed not-found text, never reworded]
+  SEARCH -->|passages| ANSWER[Gemini: standard-language answer from cited passages only]
+  ANSWER -->|numbers not in cited passages| NOTFOUND
+  ANSWER -->|checked answer| BOTH
+  BOTH[in parallel] --> SMS[Gemini: SMS version of the standard wording]
+  BOTH --> STYLE{reword? DIALECT_REPLY,<br/>dialect of the answer's language}
+  STYLE -->|yes| RENDER[Gemini: reword into the dialect]
+  RENDER --> LOCK{facts lock + native script}
+  LOCK -->|pass| DTEXT[dialect-worded answer]
+  LOCK -->|fail, timeout, error| STEXT[standard answer]
+  STYLE -->|no| STEXT
+  DTEXT --> RESP[QueryResponse + answerStyle]
+  STEXT --> RESP
+  NOTFOUND --> RESP
+  SMS --> RESP
+  RESP --> LISTEN{Listen pressed}
+  LISTEN -->|low-bandwidth mode| BROWSER[browser speech]
+  LISTEN --> TTS[/POST /api/tts text, language,<br/>dialectId only for dialect-worded text/]
+  TTS --> GTTS[Gemini TTS: dialect model when a dialect applies;<br/>split at sentences, joined WAV]
+  GTTS -->|audio| PLAY[play WAV + basis label]
+  GTTS -->|null: error, timeout, over 3 MB| BROWSER
 ```
 
-1. The user speaks (push-to-talk) or types, in Hindi, Marathi, Tamil, English or a dialect.
-2. **voice** transcribes the speaker verbatim in the script they use and detects the answer language.
-   It preserves dialect words and spellings; it never translates or normalizes the transcript.
-3. **dialect** runs up to three independent Gemini views (audio, transcript, and both) in parallel
-   with the RAG and answer work. A pure vote function chooses a result or abstains with candidates.
-   A dialectHint from the user skips classification. Typed text is classified only when
-   DIALECT_TEXT_DETECT=true. Classification cannot change the answer prompt: answers stay in the
-   dialect's parent language.
-4. **chat** runs the pipeline: **rag** finds the most relevant chunks of the official scheme
-   documents in `data/schemes/`, Gemini writes an answer **only from those chunks** in the
-   user's language, **sms** produces an SMS-length version and a static fraud warning is attached.
-5. The client shows the answer with source cards and the fraud warning, reads it aloud
-   (browser speech synthesis by default) and can preview the SMS on a feature-phone mockup.
-6. If the documents do not answer the question, the API returns notFound: true and tells the
-   user where to ask instead. It never guesses.
+**Identify.** Typed and spoken messages enter the same `handleTurn` module
+(`server/src/modules/chat/conversation.ts`). Voice first goes through
+`server/src/modules/voice/service.ts` (transcription), then the dialect classifier votes on the
+audio (`server/src/modules/dialect/`). A dialect applies only when the user confirmed it
+(`dialectHint`) or the classifier is at `high` confidence; typed text has no dialect unless a hint
+is sent (`DIALECT_TEXT_DETECT=false`). The understand call returns intent, language and an English
+search query; its own guess about the dialect is not used.
 
-Side flows: the **eligibility** wizard asks a few questions and evaluates deterministic rules
-from `data/eligibility/`, and **faq** serves pre-generated answers to the top questions that
-low-bandwidth clients keep for offline use.
+**Answer.** Smalltalk, clarification and out-of-scope messages get a direct reply and never search.
+Such a reply may not state numbers, rupee amounts, URLs or phone numbers that the session's earlier
+answers did not contain; otherwise a fixed "please ask again" text replaces it (the guard for the
+"ki keh raho he" report). A scheme question gets one English vector search; only passages at or
+above `RAG_MIN_SCORE` reach the answer model, which may cite only those passage ids. Every Western
+digit run in the answer must appear in a cited passage, or the fixed not-found text is returned.
+The answer is always written in the standard base language first.
 
-## The answer pipeline
+**Dialect render.** When a dialect applies and `DIALECT_REPLY` allows it (`mirror`, `best_effort`,
+or `verified_only` with `"verified": true` in `server/src/config/dialect-render.json`),
+`renderInDialect()` (`chat/dialectRender.ts`) rewords only the wording, zero-shot or with consented
+exemplars. With `mirror` (the default) a spoken question that is not confirmed or identified with
+high confidence is still reworded, towards the speaker's own transcript (quoted as a style sample,
+never as facts or instructions), with the classifier's candidates only as hints; the answer then
+has `answerStyle.dialectId: null` and is spoken with the base-language voice. `checkFactsLock()` (`server/src/lib/facts.ts`, no AI) compares numbers in Devanagari,
+Tamil and Western digits, rupee amounts, URLs and domains, phone numbers and scheme names; any
+difference, a timeout (`DIALECT_RENDER_TIMEOUT_MS`), an error, non-native script or new Roman words
+keep the standard answer. `answerStyle` reports `rendered: 'dialect' | 'standard'` and the reason.
+Fixed texts are never reworded, and the SMS always keeps the checked standard wording (it is
+computed in parallel, so rewording adds a call but no sequential step).
 
+**Speech.** The client's Listen button (`client/src/features/voice/speak.ts`) plays audio already
+attached to the answer, else calls `POST /api/tts` (`server/src/modules/tts/`), else uses browser
+speech; low-bandwidth mode goes straight to browser speech. The server sends the text unchanged
+(only Markdown and emoji removed) to Gemini TTS through `geminiClient.synthesizeAudio`, using
+`GEMINI_TTS_DIALECT_MODEL` when a dialect applies and the voice from
+`server/src/config/tts-voices.json`. `basis` tells the client what the audio is: `language`,
+`named-dialect` (the TTS model names the dialect: Bhojpuri, Awadhi), `base-language-approximation`
+(any other dialect: a Hindi voice) or `none`. The client turns `basis` into a visible note. Any
+failure returns `audioUrl: null` and the browser voice takes over.
+
+Session history keeps the latest six turns for up to 500 least-recently-used sessions per process
+(process-local, live mode only). Grounded answers map only their used passages to sources; direct
+answers have no sources or fraud banner.
+
+**Model calls per request** (measured with a fake backend by the audit, Stage J): typed scheme
+question 4 calls, 4 sequential; with a dialect 5 calls, 4 sequential; spoken scheme question 8
+calls, 6 sequential (over the audit's budget of 4; finding N2); Listen 1 call per piece of up to
+`TTS_MAX_CHARS`, pieces in parallel. Real latency is unmeasured.
+
+### Checking it: the pipeline audit
+
+`npm run audit -w server` (`server/scripts/audit.ts`) runs separate worker processes (the API as
+configured, a mock reference, and a fake-model worker for error codes and call counts) and writes
+`docs/PIPELINE_AUDIT.md` and `audit/results.json` with a status and evidence for every stage
+(A static checks … J latency) and a regional readiness matrix per language and dialect. Real-speaker
+clips are read from `eval/audio/` (git-ignored WAVs + `labels.json`); generated speech goes to
+`eval/out/tts/` for listening; `eval/review/dialect-review.csv` is the native-review sheet.
+
+Supporting flows remain separate: **eligibility** evaluates local deterministic rules from
+`data/eligibility/`; **faq** serves pre-generated answers from `server/data/faq.json`; dialect
+metadata and consented exemplars load from `data/dialects/`.
+
+### Build artifacts for deployment
+
+```text
+data/schemes + GEMINI_API_KEY --npm run ingest--> server/data/vectorstore.json
+data/faq/questions.json      --npm run prewarm--> server/data/faq.json
+data/eligibility/*.json      --bundled directly by Vercel
 ```
-  spoken question                                 typed question
-  POST /api/voice/query (audio)                   POST /api/chat/query (text)
-          |                                                |
-          v                                                |
-  [voice] Gemini: audio in, verbatim transcript
-          { transcript, detectedLanguage, script }
-                 |                            \
-                 |                             [dialect] audio / transcript / both
-                 |                                      independent Gemini views
-                 v                                      majority vote or abstention
-  [chat] answer language from recognized language          |
-          (dialectHint skips classification)                |
-                 |                                          |
-                 +----------------------+-------------------+
-                                        v
-          answer cache: LRU + TTL, key = language + normalized question
-                 | hit ------------------------------------> response (usedCache: true)
-                 v miss (identical questions in flight share one run)
-  [rag]   optional: translate the question to English (RAG_TRANSLATE_QUERY)
-          embed it with the knowledge base's model (Gemini embeddings)
-          cosine similarity against every chunk in memory -> top RAG_TOP_K
-                 |
-          any chunk with score >= RAG_MIN_SCORE? --no--> notFound: fixed, reviewed text
-                 | yes                                   "not in the documents, confirm at
-                 v                                        your nearest CSC / gram panchayat"
-  [chat]  Gemini: passages + question in, JSON { answer, usedChunkIds } out
-          (only the passages; user's language; simple spoken words; short
-          sentences; scheme name; never invent amounts, dates or eligibility)
-                 |
-          usedChunkIds empty? --yes--> notFound: fixed text (as above)
-                 | no
-                 v
-          sources      = the passages listed in usedChunkIds
-          fraudWarning = static text per language (never model output)
-                 |
-  [sms]   fits SMS_MAX_SEGMENTS? --yes--> as it is
-                 | no
-                 v
-          Gemini rewrite under a character budget --fails / too long--> keep whole sentences
-                 |
-                 v
-          QueryResponse --> client: text, source cards, read aloud, SMS preview
 
-  Before deploying (offline):
-    data/schemes/*.md|.txt|.pdf --npm run ingest--> sections -> ~600-token chunks (80 overlap)
-        --> Gemini embeddings (batched, retried) --> server/data/vectorstore.json
-    data/faq/questions.json --npm run prewarm--> server/data/faq.json
-        (GET /api/faq/top, and seeds the answer cache)
-```
+`vercel.json` includes `server/data/*.json` and `data/eligibility/*.json`. Build the vector store
+and FAQ cache locally and commit them before deploy. Current `server/data/vectorstore.json` exists;
+`server/data/faq.json` is absent until `npm run prewarm -w server` runs.
 
 ## Dialect registry and identification
 
@@ -241,7 +263,10 @@ Gemini asks for), and typed `GeminiError`s that become `429 AI_RATE_LIMITED`, `5
 
 ### Mock mode
 
-- `USE_MOCKS=true` (default): every module serves mock data, with no API key needed.
+- `USE_MOCKS=auto` (default): the real pipeline when `GEMINI_API_KEY` is set, otherwise every
+  module serves mock data.
+- `USE_MOCKS=true`: every module serves mock data, with no API key needed. The voice route ignores
+  the recording and answers a canned question.
 - `USE_MOCKS=false`: everything real. Needs `GEMINI_API_KEY`, the knowledge base
   (`npm run ingest -w server`) and, for `/api/faq/top`, the FAQ (`npm run prewarm -w server`).
   Without them the endpoints answer 503 with the command to run; the eligibility wizard works
@@ -305,8 +330,13 @@ client/src/
 - **Accessibility for low-literacy users:** big touch targets (48 px or more), icons with every
   label, language names in their own script, read-aloud buttons, WCAG AA contrast, visible focus,
   and system fonts for all body text.
-- **Low-bandwidth mode:** text first, no server audio, top answers cached on the device. The
-  service worker and offline shell come in step 3.
+- **Low-bandwidth mode:** text first, no server audio (Listen uses the phone's voice), top answers
+  cached on the device. The service worker and offline shell come in step 3.
+- **Listen and honest labels:** `features/voice/speak.ts` plays server speech when it can
+  (`serverTts.ts`: cache, 20 s deadline, `dialectId` only for dialect-worded text) and the browser
+  voice otherwise; under a dialect-worded answer the bubble says the wording is experimental, and
+  after speech it says when the voice is only a Hindi-voice approximation (`VoiceNoteLine.tsx`,
+  strings in four languages).
 
 ## Configuration
 
@@ -323,12 +353,19 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | ------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `NODE_ENV`                      | `development`                                 | `production` lowers the default log level to `info`; `test` skips `.env` files                            |
 | `PORT`                          | `4000`                                        | HTTP port of the API (and the target of the Vite dev proxy)                                               |
-| `USE_MOCKS`                     | `true`                                        | `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
+| `USE_MOCKS`                     | `auto`                                        | `auto` (real when `GEMINI_API_KEY` is set), `true`, `false`, or the modules that stay mocked: `voice, chat, dialect, rag, eligibility, sms, tts, faq` |
 | `CLIENT_ORIGIN`                 | `http://localhost:5173`                       | Origins allowed by CORS, comma-separated                                                                  |
 | `LOG_LEVEL`                     | `debug` (dev), `info` (prod), `error` (tests) | `debug`, `info`, `warn` or `error`; debug shows each Gemini call with timings and token counts            |
 | `GEMINI_API_KEY`                | none                                          | Google AI Studio key. Needed for every real AI call; server only                                          |
 | `GEMINI_CHAT_MODEL`             | `gemini-3.8-flash`                            | Answers, SMS rewrite, eligibility answer reading and translation, query translation                       |
+| `GEMINI_FALLBACK_MODEL`         | `gemini-3.6-flash`                            | Retry model for temporary primary-model errors; `none` disables fallback                                |
 | `GEMINI_AUDIO_MODEL`            | `GEMINI_CHAT_MODEL`                           | Speech-to-text and language identification                                                                |
+| `GEMINI_TTS_MODEL`              | `gemini-3.8-flash-lite-tts`                   | Server speech (`POST /api/tts`); `none` keeps browser speech only                                         |
+| `GEMINI_TTS_DIALECT_MODEL`      | `gemini-3.8-flash-tts`                        | Speech model for dialect-worded replies; `none` uses `GEMINI_TTS_MODEL` for them too                       |
+| `GEMINI_TTS_SAMPLE_RATE`        | `16000`                                       | `16000`, `24000` or `8000`; falls back to `24000` once if the API refuses the rate                        |
+| `TTS_TIMEOUT_MS`                | `GEMINI_TTS_TIMEOUT_MS`                       | Per-call speech deadline (1000–120000); the older name `GEMINI_TTS_TIMEOUT_MS` (default `15000`) still works |
+| `TTS_MAX_CHARS`                 | `600`                                         | Longer texts are split at sentence ends and the pieces joined into one WAV (100–2000)                      |
+| `TTS_STYLE`                     | empty                                         | One constant delivery style for every voice (e.g. "calm and clear"); never an accent                      |
 | `GEMINI_EMBED_MODEL`            | `gemini-embedding-2`                          | Embedding model used by `npm run ingest`; queries always use the model the knowledge base was built with  |
 | `GEMINI_EMBED_DIMENSIONS`       | `768`                                         | Embedding size for ingestion (128–3072)                                                                   |
 | `GEMINI_THINKING_LEVEL`         | `low`                                         | `minimal`, `low`, `medium`, `high`, or `default` (let the model decide). Higher = slower, more careful    |
@@ -342,6 +379,8 @@ Every variable (validated in `server/src/config/env.ts`; an empty value means "u
 | `DIALECT_ACTIVE`                | `all`                                         | `all` or comma-separated dialect ids; a smaller set means higher accuracy                                 |
 | `DIALECT_EXEMPLARS_PER_LABEL`   | `4`                                           | Maximum deterministic real examples injected per label                                                    |
 | `DIALECT_EXEMPLAR_TOKEN_BUDGET` | `1800`                                        | Shared conservative budget for prompt examples; whole examples are omitted when the budget is exhausted   |
+| `DIALECT_REPLY`                 | `mirror`                                      | Dialect wording of replies: `mirror` (also rewords spoken answers towards the speaker's own words), `best_effort` (confirmed or high-confidence dialect), `verified_only` (only `"verified": true` in `server/src/config/dialect-render.json`), `off` |
+| `DIALECT_RENDER_TIMEOUT_MS`     | `8000`                                        | Longest wait for the rewording step before the standard answer is used (500–60000)                        |
 | `RAG_TOP_K`                     | `4`                                           | Chunks retrieved per question (1–10)                                                                      |
 | `RAG_MIN_SCORE`                 | `0.5`                                         | Cosine similarity a chunk needs to be used; none left means `notFound`. Calibrate with `npm run query`    |
 | `RAG_TRANSLATE_QUERY`           | `false`                                       | Translate non-English questions to English before embedding (one extra Gemini call)                       |
@@ -361,13 +400,16 @@ switching models is a config change. Changing the embedding model or size needs 
 
 ## Roadmap and TODO markers
 
-| Step | Scope                                                                                                                                                                                                                    | Marker         |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
-| 1    | This skeleton: contract, mocks, UI, tooling                                                                                                                                                                              | (done)         |
-| 2    | Server (done): Gemini speech-to-text + language detection, retrieval over in-memory embeddings, grounded answers, SMS compression, eligibility rules from data, FAQ prewarm. Client: real mic recording, new error codes | `TODO(step-2)` |
-| 3    | Vector DB for embeddings, semantic answer cache, server TTS, PWA (service worker, offline shell), deployment hardening                                                                                                   | `TODO(step-3)` |
+| Step | Scope                                                                                                                                                                                                                                                                  | Status                                                                                       |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1    | Skeleton: contract, mocks, UI, tooling                                                                                                                                                                                                                                 | Done                                                                                         |
+| 2    | Gemini speech-to-text and language detection, retrieval over in-memory embeddings, grounded answers, SMS compression, eligibility rules from data, FAQ prewarm, real mic recording                                                                                      | Built; not yet run with a real key on this branch                                            |
+| 2b   | Conversation layer (intent routing), dialect identification, dialect-worded replies with facts lock, server speech with `basis` labels, pipeline audit (branches `feat/conversation-layer`, `feat/dialect-voice`)                                                      | Built and tested with fake models; real runs and native review pending ([RUNBOOK](RUNBOOK.md)) |
+| 3    | Vector DB, semantic answer cache, PWA (service worker, offline shell), deployment hardening; faster voice path (6 sequential model calls today)                                                                                                                        | `TODO(step-3)`                                                                               |
+| Next | More languages and schemes, a dialect selector in the UI (the API already takes `dialectHint`), WhatsApp channel, streamed speech for long answers                                                                                                                      | Not started                                                                                  |
 
-Find the work: `git grep -n "TODO(step-2)"` (or `step-3`).
+Find the work: `git grep -n "TODO(step-2)"` (or `step-3`, or `TODO(review-native)` for strings a
+native speaker must review).
 
 ## Design decisions
 

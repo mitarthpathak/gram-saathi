@@ -80,6 +80,35 @@ describe('fetchServerTts', () => {
     expect(mocks.api.tts).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps asking after a per-request null from a server that reports basis', async () => {
+    // A server with `basis` answers null for one request (e.g. audio over the size cap), not for all.
+    mocks.api.tts.mockResolvedValueOnce({ audioUrl: null, basis: 'none' });
+    mocks.api.tts.mockResolvedValue({ audioUrl: 'data:audio/wav;base64,ok', basis: 'language' });
+    const fetchServerTts = await loadFetcher();
+    await expect(fetchServerTts('a very long answer', 'hi')).resolves.toBeNull();
+    await expect(fetchServerTts('a short answer', 'hi')).resolves.toBe('data:audio/wav;base64,ok');
+    await expect(fetchServerTts('a very long answer', 'hi')).resolves.toBeNull();
+    expect(mocks.api.tts).toHaveBeenCalledTimes(2);
+  });
+
+  it('sends dialectId only when given, keys the cache by it and returns the basis', async () => {
+    mocks.api.tts.mockResolvedValue({
+      audioUrl: 'data:audio/wav;base64,d',
+      basis: 'named-dialect',
+    });
+    vi.resetModules();
+    const { fetchServerSpeech } = await import('./serverTts');
+    await expect(fetchServerSpeech('जवाब', 'hi', { dialectId: 'bhojpuri' })).resolves.toEqual({
+      audioUrl: 'data:audio/wav;base64,d',
+      basis: 'named-dialect',
+    });
+    await fetchServerSpeech('जवाब', 'hi');
+    expect(mocks.api.tts.mock.calls).toEqual([
+      [{ text: 'जवाब', language: 'hi', dialectId: 'bhojpuri' }],
+      [{ text: 'जवाब', language: 'hi' }],
+    ]);
+  });
+
   it('skips the API when browser mocks or low-bandwidth mode is enabled', async () => {
     const fetchServerTts = await loadFetcher();
     mocks.config.useMocks = true;
