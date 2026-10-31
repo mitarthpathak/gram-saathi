@@ -4,19 +4,23 @@ Date: 2026-10-31
 Branch: `feat/conversation-layer`
 Pull request: [#9](https://github.com/mitarthpathak/gram-saathi/pull/9)
 
-After `main` advanced, the three reported client-file conflicts were resolved in a forward-only
-branch commit. The conflict result was checked with `git merge-tree --write-tree` (exit 0); no
-rebase or merge was performed. Typecheck, lint and build pass on the resolution; the same three
-baseline eligibility tests remain failing because the rules are unverified. GitHub reports PR #9
-as mergeable against `main` at base commit `34dac54`.
+After `main` advanced, the three reported client-file conflicts were resolved and the latest
+`origin/main` was merged into `feat/conversation-layer` with a merge commit. The branch was pushed
+to origin. Typecheck, lint and build pass; the same three eligibility tests remain failing because
+the rules are unverified. PR #9 remains open for review.
 
 ## Latest main sync and mobile layout
 
-The feature branch is being synchronized with `origin/main` at `698b211` using a merge commit.
-Phone layouts up to 480px now use a 92% root rem scale to make spacing and type slightly more
-compact; browser zoom and desktop sizing are unchanged. After installing dependencies introduced
-by main, typecheck, lint and build passed; 132 server tests and 8 client tests passed. The same 3
-eligibility tests remain failing because the rules are unverified.
+The feature branch was synchronized with `origin/main` at `698b211` using a merge commit.
+Phone layouts up to 480px use a compact root rem scale (currently 88%); browser zoom and desktop
+sizing are unchanged. After installing dependencies introduced by main, typecheck, lint and build
+passed; 132 server tests and 8 client tests passed. The same 3 eligibility tests remain failing
+because the rules are unverified.
+
+The latest modal follow-up locks the page and body scroll while the app is open, preserves the
+underlying page position, confines scrolling to the app, and styles app scrollbars in the site's
+paper and leaf colors. The phone frame is slightly shorter; narrow-screen root scale is now 88%.
+Client typecheck, lint and build passed. Manual browser interaction was not tested for this follow-up.
 
 ## Work completed by phase
 
