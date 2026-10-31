@@ -7,7 +7,8 @@ Pull request: [#9](https://github.com/mitarthpathak/gram-saathi/pull/9)
 After `main` advanced, the three reported client-file conflicts were resolved in a forward-only
 branch commit. The conflict result was checked with `git merge-tree --write-tree` (exit 0); no
 rebase or merge was performed. Typecheck, lint and build pass on the resolution; the same three
-baseline eligibility tests remain failing because the rules are unverified.
+baseline eligibility tests remain failing because the rules are unverified. GitHub reports PR #9
+as mergeable against `main` at base commit `34dac54`.
 
 ## Work completed by phase
 

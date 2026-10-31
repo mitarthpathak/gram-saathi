@@ -120,4 +120,12 @@
 - Files changed: `client/src/features/voice/SpeakButton.tsx`, `client/src/features/voice/speak.ts`, `client/src/lib/api.ts`, `client/src/mocks/dialects.ts`, `client/src/mocks/index.ts`, `docs/AGENT_LOG.md`.
 - Commands run: `git fetch origin main`; inspected branch/base file changes; `git merge-tree --write-tree` (first identified the listed conflicts, then returned exit code 0 after a forward-only conflict-resolution commit candidate); `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`.
 - Results: preserved the current main API/dialect mock additions, the conversation-aware native-script mock replies, and optional server TTS followed by browser fallback. No rebase or merge was performed. Typecheck, lint, and build passed. Tests: 132 passed and the same 3 baseline eligibility tests failed because rules remain unverified.
-- Open issues: push the forward-only conflict-resolution commit and confirm PR #9 reports no conflicts; the review/verification items in `FINAL_REPORT.md` remain.
+- Results: pushed the forward-only conflict-resolution commit; GitHub API reports PR #9 `mergeable: true` against base commit `34dac54`.
+- Open issues: review/verification items in `FINAL_REPORT.md` remain.
+
+## Phase 17 — confirm remote PR status
+
+- Files changed: `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`.
+- Commands run: GitHub REST API GET for PR #9 using the configured credential helper; credential values were not printed.
+- Results: PR #9 is open and `mergeable: true` against `main` at `34dac54`.
+- Open issues: none for conflict resolution; outstanding product verification tasks remain documented in `FINAL_REPORT.md`.
