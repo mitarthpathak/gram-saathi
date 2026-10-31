@@ -117,7 +117,12 @@ export function PhoneScreen({ stage, typedWords, exchange, language, mic }: Phon
                 {stage === 'answer' && exchange && (
                   <li>
                     <MessageBubble
-                      message={{ id: 'a', role: 'assistant', response: exchange.response }}
+                      message={{
+                        id: 'a',
+                        role: 'assistant',
+                        response: exchange.response,
+                        via: 'voice',
+                      }}
                     />
                   </li>
                 )}

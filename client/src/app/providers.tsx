@@ -39,8 +39,8 @@ function SettingsProvider({ children }: { children: ReactNode }) {
     if (savedHint) return getLanguage(savedHint)?.code ?? null;
     return getLanguage(storage.get(KEYS.language) ?? '')?.code ?? null;
   });
-  const [dialectHint, setDialectHintState] = useState<string | null>(
-    () => readDialectHint(storage),
+  const [dialectHint, setDialectHintState] = useState<string | null>(() =>
+    readDialectHint(storage),
   );
   const [lowBandwidth, setLowBandwidthState] = useState(
     () => storage.get(KEYS.lowBandwidth) === 'true',

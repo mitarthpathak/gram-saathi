@@ -13,17 +13,25 @@ export function DialectRemembered() {
 
   useEffect(() => {
     let active = true;
-    void api.getDialects().then(({ items }) => {
-      if (active) setDialect(items.find(({ id }) => id === dialectHint) ?? null);
-    }).catch(() => undefined);
-    return () => { active = false; };
+    void api
+      .getDialects()
+      .then(({ items }) => {
+        if (active) setDialect(items.find(({ id }) => id === dialectHint) ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
   }, [dialectHint]);
 
   if (!dialectHint) return null;
   const name = dialect ? `${dialect.name} (${dialect.nativeName})` : dialectHint;
 
   return (
-    <div role="status" className="mb-2 flex min-h-12 flex-wrap items-center justify-center gap-x-2 rounded-2xl bg-brand-50 px-3 py-1 text-base font-bold text-brand-900 ring-1 ring-brand-200">
+    <div
+      role="status"
+      className="mb-2 flex min-h-12 flex-wrap items-center justify-center gap-x-2 rounded-2xl bg-brand-50 px-3 py-1 text-base font-bold text-brand-900 ring-1 ring-brand-200"
+    >
       <span aria-live="polite">{format(t.remembered, { name })}</span>
       <span aria-hidden>·</span>
       <Link

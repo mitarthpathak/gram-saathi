@@ -113,10 +113,17 @@ const httpApi: Api = {
   getDialects: () => request<DialectsResponse>('/api/dialects'),
   dialectTranscribe: ({ audio, language }) => {
     const form = new FormData();
-    const extension = audio.type.includes('mp4') ? 'mp4' : audio.type.includes('ogg') ? 'ogg' : 'webm';
+    const extension = audio.type.includes('mp4')
+      ? 'mp4'
+      : audio.type.includes('ogg')
+        ? 'ogg'
+        : 'webm';
     form.append('audio', audio, `contribution.${extension}`);
     if (language) form.append('language', language);
-    return request<DialectTranscribeResponse>('/api/dialect/transcribe', { method: 'POST', body: form });
+    return request<DialectTranscribeResponse>('/api/dialect/transcribe', {
+      method: 'POST',
+      body: form,
+    });
   },
   eligibilityStart: (body) => postJson<EligibilityStartResponse>('/api/eligibility/start', body),
   eligibilityAnswer: (body) => postJson<EligibilityAnswerResponse>('/api/eligibility/answer', body),

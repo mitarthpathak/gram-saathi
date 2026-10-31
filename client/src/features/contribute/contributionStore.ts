@@ -22,7 +22,8 @@ export async function listContributions(): Promise<LocalContribution[]> {
   const database = await openDatabase();
   return new Promise((resolve, reject) => {
     const request = database.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll();
-    request.onsuccess = () => resolve((request.result as LocalContribution[]).sort((a, b) => b.createdAt - a.createdAt));
+    request.onsuccess = () =>
+      resolve((request.result as LocalContribution[]).sort((a, b) => b.createdAt - a.createdAt));
     request.onerror = () => reject(request.error);
   });
 }

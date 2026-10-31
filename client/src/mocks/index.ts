@@ -73,7 +73,9 @@ function answer(
   return delayWithSignal(response, signal);
 }
 
-function dialectForQuery(dialectHint?: string): Pick<QueryResponse, 'dialect' | 'dialectCandidates'> {
+function dialectForQuery(
+  dialectHint?: string,
+): Pick<QueryResponse, 'dialect' | 'dialectCandidates'> {
   if (!config.useMocks || !import.meta.env.DEV) return mockDialectFields(dialectHint);
   const forced = new URLSearchParams(window.location.search).get('mockDialect');
   if (!forced) return mockDialectFields(dialectHint);
@@ -84,7 +86,10 @@ function dialectForQuery(dialectHint?: string): Pick<QueryResponse, 'dialect' | 
       .filter(({ id }) => id !== high?.id)
       .slice(0, 2)
       .map(({ id, name, nativeName }) => ({ id, name, nativeName }));
-    const options = [...(high ? [{ id: high.id, name: high.name, nativeName: high.nativeName }] : []), ...registryOptions];
+    const options = [
+      ...(high ? [{ id: high.id, name: high.name, nativeName: high.nativeName }] : []),
+      ...registryOptions,
+    ];
     return {
       dialect: high ? { ...high, confidence: 'medium' } : null,
       dialectCandidates: options,
@@ -93,11 +98,13 @@ function dialectForQuery(dialectHint?: string): Pick<QueryResponse, 'dialect' | 
   if (forced === 'abstain') {
     return {
       dialect: null,
-      dialectCandidates: mockDialectInfo().slice(0, 3).map(({ id, name, nativeName }) => ({
-        id,
-        name,
-        nativeName,
-      })),
+      dialectCandidates: mockDialectInfo()
+        .slice(0, 3)
+        .map(({ id, name, nativeName }) => ({
+          id,
+          name,
+          nativeName,
+        })),
     };
   }
   if (forced === 'none') return { dialect: null, dialectCandidates: [] };

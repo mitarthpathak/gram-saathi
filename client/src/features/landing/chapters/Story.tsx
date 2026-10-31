@@ -232,7 +232,12 @@ function StackedStory() {
               <div className="flex flex-col gap-5">
                 {notFound && (
                   <MessageBubble
-                    message={{ id: 'a', role: 'assistant', response: notFound.response }}
+                    message={{
+                      id: 'a',
+                      role: 'assistant',
+                      response: notFound.response,
+                      via: 'text',
+                    }}
                   />
                 )}
                 <CscVisual />

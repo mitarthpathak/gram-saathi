@@ -62,7 +62,11 @@ export function DialectPrompt({ response }: { response: QueryResponse }) {
             }}
             className="flex min-h-12 items-center justify-between gap-3 rounded-xl bg-white px-3 text-left font-bold text-slate-800 ring-1 ring-amber-200 hover:ring-brand-500 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
-            <span>{candidate.nativeName ? `${candidate.name} · ${candidate.nativeName}` : candidate.name}</span>
+            <span>
+              {candidate.nativeName
+                ? `${candidate.name} · ${candidate.nativeName}`
+                : candidate.name}
+            </span>
             <Badge tone={dialectHint === candidate.id ? 'success' : 'accent'}>
               {dialectHint === candidate.id ? t.selected : t.choose}
             </Badge>

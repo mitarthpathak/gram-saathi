@@ -154,10 +154,7 @@ export function MicButton({
   };
 
   const handlePointerUp = () => {
-    if (
-      !recordingStartedAt.current ||
-      Date.now() - pressedAt.current < TAP_MS
-    ) return;
+    if (!recordingStartedAt.current || Date.now() - pressedAt.current < TAP_MS) return;
     void send();
   };
 
@@ -170,18 +167,18 @@ export function MicButton({
   const statusText = disabled
     ? t.lowDataTextOnly
     : requesting
-    ? t.requestingPermission
-    : recording
-      ? t.listening
-      : uploading
-        ? thinking
-          ? t.thinking
-          : t.uploading
-        : busy
-          ? t.thinking
-          : speaking || externalSpeaking
-            ? t.speaking
-            : t.holdToSpeak;
+      ? t.requestingPermission
+      : recording
+        ? t.listening
+        : uploading
+          ? thinking
+            ? t.thinking
+            : t.uploading
+          : busy
+            ? t.thinking
+            : speaking || externalSpeaking
+              ? t.speaking
+              : t.holdToSpeak;
   const progress = remaining / MAX_RECORDING_MS;
 
   return (
@@ -189,8 +186,14 @@ export function MicButton({
       <div className="relative flex size-24 items-center justify-center">
         {recording && (
           <>
-            <span aria-hidden className="absolute inset-1 animate-ripple rounded-full bg-marigold-300/45" />
-            <span aria-hidden className="absolute inset-1 animate-ripple rounded-full bg-marigold-200/40 [animation-delay:700ms]" />
+            <span
+              aria-hidden
+              className="absolute inset-1 animate-ripple rounded-full bg-marigold-300/45"
+            />
+            <span
+              aria-hidden
+              className="absolute inset-1 animate-ripple rounded-full bg-marigold-200/40 [animation-delay:700ms]"
+            />
           </>
         )}
         <svg
@@ -198,7 +201,15 @@ export function MicButton({
           viewBox="0 0 100 100"
           className={cn('absolute size-[5.75rem] -rotate-90', !recording && 'opacity-0')}
         >
-          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" className="text-marigold-100" />
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="text-marigold-100"
+          />
           <circle
             cx="50"
             cy="50"
@@ -227,7 +238,12 @@ export function MicButton({
             (busy || uploading || thinking || requesting) && 'bg-slate-300 text-slate-600',
             disabled && 'cursor-not-allowed bg-slate-300 text-slate-600 shadow-none',
             recording && 'scale-105 bg-linear-to-br from-marigold-700 to-marigold-900 shadow-lift',
-            !disabled && !recording && !busy && !uploading && !requesting && 'animate-breathe bg-linear-to-br from-brand-400 via-brand-600 to-brand-800 hover:scale-105 active:scale-95',
+            !disabled &&
+              !recording &&
+              !busy &&
+              !uploading &&
+              !requesting &&
+              'animate-breathe bg-linear-to-br from-brand-400 via-brand-600 to-brand-800 hover:scale-105 active:scale-95',
           )}
         >
           {uploading || thinking || requesting || busy ? (

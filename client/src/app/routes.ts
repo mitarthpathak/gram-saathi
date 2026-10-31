@@ -37,8 +37,14 @@ export const routes: RouteObject[] = [
             lazy: async () => ({ Component: (await loadEligibilityScreen()).EligibilityScreen }),
           },
           { path: 'sms', lazy: async () => ({ Component: (await loadSmsScreen()).SmsScreen }) },
-          { path: 'dialects', lazy: async () => ({ Component: (await loadDialectScreen()).DialectScreen }) },
-          { path: 'contribute', lazy: async () => ({ Component: (await loadContributorScreen()).ContributorScreen }) },
+          {
+            path: 'dialects',
+            lazy: async () => ({ Component: (await loadDialectScreen()).DialectScreen }),
+          },
+          {
+            path: 'contribute',
+            lazy: async () => ({ Component: (await loadContributorScreen()).ContributorScreen }),
+          },
           { path: '*', Component: NotFoundScreen },
         ],
       },

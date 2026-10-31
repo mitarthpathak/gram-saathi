@@ -15,9 +15,23 @@ function preloadDisplayFont(): Plugin {
     transformIndexHtml: {
       order: 'post',
       handler(_html, context) {
-        const file = Object.keys(context.bundle ?? {}).find((name) => /bricolage-display.*\.woff2$/.test(name));
+        const file = Object.keys(context.bundle ?? {}).find((name) =>
+          /bricolage-display.*\.woff2$/.test(name),
+        );
         if (!file) return [];
-        return [{ tag: 'link', attrs: { rel: 'preload', href: `/${file}`, as: 'font', type: 'font/woff2', crossorigin: '' }, injectTo: 'head' }];
+        return [
+          {
+            tag: 'link',
+            attrs: {
+              rel: 'preload',
+              href: `/${file}`,
+              as: 'font',
+              type: 'font/woff2',
+              crossorigin: '',
+            },
+            injectTo: 'head',
+          },
+        ];
       },
     },
   };
@@ -33,8 +47,20 @@ function scriptsAfterFirstPaint(): Plugin {
         const preloads: string[] = [];
         let entry = '';
         const rest = html
-          .replace(/\s*<link rel="modulepreload" crossorigin href="([^"]+)">/g, (_, href: string) => { preloads.push(href); return ''; })
-          .replace(/\s*<script type="module" crossorigin src="([^"]+)"><\/script>/, (_, src: string) => { entry = src; return ''; });
+          .replace(
+            /\s*<link rel="modulepreload" crossorigin href="([^"]+)">/g,
+            (_, href: string) => {
+              preloads.push(href);
+              return '';
+            },
+          )
+          .replace(
+            /\s*<script type="module" crossorigin src="([^"]+)"><\/script>/,
+            (_, src: string) => {
+              entry = src;
+              return '';
+            },
+          );
         if (!entry) return html;
         const loader = `<script>(function(){function go(){${JSON.stringify(preloads)}.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l)});var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(entry)};document.head.appendChild(s)}if(document.visibilityState==='hidden')go();else requestAnimationFrame(function(){setTimeout(go)})})()</script>`;
         return rest.replace('</body>', `${loader}</body>`);
@@ -61,11 +87,13 @@ export default defineConfig(({ mode }) => {
           name: 'Gram Saathi',
           short_name: 'Gram Saathi',
           description: 'Ask about government schemes in your language.',
-        theme_color: '#fff9f0',
+          theme_color: '#fff9f0',
           background_color: '#fffdf8',
           display: 'standalone',
           start_url: '/',
-          icons: [{ src: '/pwa-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+          icons: [
+            { src: '/pwa-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          ],
         },
         workbox: {
           clientsClaim: true,

@@ -110,7 +110,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             return [
               ...withoutQuestion,
               { id: nextMessageId(), role: 'error', text: t.demoFallback },
-              { id: questionId, role: 'user', text: fallback.transcript, via: 'voice', pending: false },
+              {
+                id: questionId,
+                role: 'user',
+                text: fallback.transcript,
+                via: 'voice',
+                pending: false,
+              },
               { id: nextMessageId(), role: 'assistant', response: fallback.response, via: 'voice' },
             ];
           }
@@ -124,7 +130,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [language, languageHint, dialectHint, sessionId, lowBandwidth, errorMessage, demoMode, t.demoFallback],
+    [
+      language,
+      languageHint,
+      dialectHint,
+      sessionId,
+      lowBandwidth,
+      errorMessage,
+      demoMode,
+      t.demoFallback,
+    ],
   );
 
   const askDemo = useCallback((sampleId: string) => {
@@ -144,7 +159,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [messages]);
 
   const chat = useMemo<ChatState>(
-    () => ({ messages, busy, speaking, askText, askVoice, askDemo, cancelVoiceRequest, lastAnswer }),
+    () => ({
+      messages,
+      busy,
+      speaking,
+      askText,
+      askVoice,
+      askDemo,
+      cancelVoiceRequest,
+      lastAnswer,
+    }),
     [messages, busy, speaking, askText, askVoice, askDemo, cancelVoiceRequest, lastAnswer],
   );
 

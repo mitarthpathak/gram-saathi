@@ -34,7 +34,10 @@ export function SourceCard({ source, index }: SourceCardProps) {
           {source.schemeName}
           <span className="font-semibold text-slate-600"> · {source.section}</span>
         </span>
-        <ChevronDown aria-hidden className={cn('size-4 shrink-0 transition', expanded && 'rotate-180')} />
+        <ChevronDown
+          aria-hidden
+          className={cn('size-4 shrink-0 transition', expanded && 'rotate-180')}
+        />
         <span className="sr-only">{expanded ? t.showLess : t.showMore}</span>
       </button>
       {expanded && (
