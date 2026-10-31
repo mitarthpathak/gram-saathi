@@ -32,3 +32,17 @@ language. No dialect selector is present in the current client; the API accepts 
 
 See `data/dialects/exemplars/README.md` and `docs/ARCHITECTURE.md` for the consent and evaluation
 format. The live dialect classifier remains best-effort until native speakers review it.
+
+## RAG score calibration
+
+After setting `USE_MOCKS=false`, building a verified vector store and configuring `GEMINI_API_KEY`,
+run:
+
+```bash
+npm run calibrate -w server
+```
+
+The script prints top-chunk score distributions for 10 English standalone scheme queries and 10
+non-scheme messages, then recommends a threshold. Re-run it from the repository root. The current
+`RAG_MIN_SCORE` is uncalibrated; the live command could not be executed in this environment because
+the installed `tsx` launcher failed at startup with `uv_os_get_passwd returned ENOMEM`.

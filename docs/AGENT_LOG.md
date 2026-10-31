@@ -49,3 +49,10 @@
 - Commands run: reviewed current official Gemini speech-generation docs and Bhashini pipeline docs/model list on 2026-10-31; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test -w server -- --run test/tts.test.ts`; `npm.cmd run build`.
 - Results: optional Gemini TTS uses the documented Interactions API; the configured model is required, request timeout is enforced, audio is returned as a WAV data URL, and provider errors return the existing no-audio form. TTS now uses the shared AI rate limiter. The Listen button tries server audio, then browser speech synthesis, and shows one localized failure message only if both are unavailable. Tests cover success, timeout, provider error, malformed output and no provider.
 - Open issues: Bhashini/Dhruva was not implemented because the official docs require account-specific callback URL and inference auth header; the exact payload/response and selected TTS pipeline were not independently verified for this account. This is marked UNVERIFIED in decisions and the final report. No real TTS provider call has been run.
+
+## Phase 7 — RAG threshold calibration
+
+- Files changed: `server/scripts/calibrate-rag.ts`, `server/test/calibrateRag.test.ts`, `server/package.json`, `docs/DECISIONS.md`, `docs/RUNBOOK.md`.
+- Commands run: `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test -w server -- --run test/calibrateRag.test.ts`; `npm.cmd run build`; `npm.cmd run calibrate -w server`.
+- Results: added 10 fixed scheme retrieval queries and 10 non-scheme messages, score summaries, and a midpoint recommendation when the groups separate (balanced-accuracy fallback when they overlap). Threshold math tests passed. English query text is paired with language metadata so no unconsented Marathi/Tamil samples are invented.
+- Open issues: the calibration command did not reach the script because the installed `tsx` startup failed with `uv_os_get_passwd returned ENOMEM` (Node v24.18.0). A Gemini key is configured (checked as a boolean only); no score recommendation was produced. Run the documented command on the owner's normal environment after verifying the vector store.

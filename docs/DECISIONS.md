@@ -30,3 +30,9 @@
 - **Decision:** Do not modify scheme data unless an official government source is fetched and its details can be verified. Preserve any unverified or sample-marked text and list it for human review.
 - **Alternatives considered:** Fill gaps from prior knowledge; infer details from third-party summaries.
 - **Why:** Eligibility, amounts, dates and links affect citizens and must be traceable to official sources.
+
+## Calibration and multilingual eval inputs
+
+- **Decision:** Calibration and eval use English standalone retrieval queries with `hi`, `mr`, `ta`, or `en` as requested answer-language metadata. No new Marathi or Tamil sample sentences are fabricated because the repo has no consented exemplars for those labels.
+- **Alternatives considered:** Copy existing FAQ translations into the eval set; invent regional-language queries; omit the language-specific output-script checks.
+- **Why:** The task's data policy forbids generating regional-language sample sentences. English query text still lets the harness check answer language/script for each language hint, while native-speaker input examples remain a human data-collection task.
