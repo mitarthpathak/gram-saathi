@@ -1,12 +1,12 @@
 import type {
   ApiErrorBody,
   ChatQueryRequest,
-  DialectsResponse,
   EligibilityAnswerRequest,
   EligibilityAnswerResponse,
   EligibilityStartRequest,
   EligibilityStartResponse,
   FaqTopResponse,
+  DialectsResponse,
   DialectTranscribeResponse,
   HealthResponse,
   LanguageCode,

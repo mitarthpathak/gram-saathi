@@ -11,6 +11,7 @@ import { SpeakButton } from '@/features/voice/SpeakButton';
 import { voiceNoteFor, type VoiceNote } from '@/features/voice/speak';
 import { VoiceNoteLine } from '@/features/voice/VoiceNoteLine';
 import { useStrings } from '@/lib/i18n';
+import { useSettings } from '@/lib/settings';
 import { useDialectInfo } from './dialects';
 import { FraudWarning } from './FraudWarning';
 import { chatStrings } from './strings';
@@ -95,6 +96,7 @@ function AnswerBubble({
   autoVoiceNote?: VoiceNote | null;
 }) {
   const t = useStrings(chatStrings);
+  const { lowBandwidth } = useSettings();
   const smsState: SmsScreenState = { sms: response.smsText, segments: response.smsSegments };
   const scheme = response.sources[0]?.schemeName;
   // Dialect wording is model-generated: label it unless the registry marks the dialect tested.
@@ -139,7 +141,7 @@ function AnswerBubble({
           <SpeakButton
             text={response.answer}
             language={response.detectedLanguage}
-            audioUrl={response.audioUrl}
+            audioUrl={lowBandwidth ? null : response.audioUrl}
             dialectId={dialectId}
             onSpoken={(result) => setListenNote(voiceNoteFor(result, dialectWorded))}
           />
