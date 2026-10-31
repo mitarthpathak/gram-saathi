@@ -48,3 +48,48 @@
 - **Decision:** Health returns booleans for whether dialect classification and Gemini TTS have their required model/key configuration and are not mocked. The fields are optional in the shared type so older client fixtures and servers remain compatible.
 - **Alternatives considered:** Return only feature-presence flags or make the new fields required immediately.
 - **Why:** Capability status should tell an operator whether the server can use the real feature, while the optional additive contract preserves old fixtures.
+
+---
+
+# Dialect voice job (`feat/dialect-voice`, started 2026-10-31)
+
+## Resuming from the existing agent log
+
+- **Decision:** `docs/AGENT_LOG.md` already contained Phases 0–15 of the finished conversation-layer
+  job. Those phases are not phases of this job, so this job starts at its own Phase 0 and appends
+  a separate section to the same log instead of rewriting it.
+- **Alternatives considered:** Treat the log as this job's progress and skip to "Phase 16"; start
+  a new log file.
+- **Why:** Phase names and goals differ, nothing of this job had run, and one log keeps the full
+  history in one place.
+
+## Branch base
+
+- **Decision:** `feat/dialect-voice` is branched from `feat/conversation-layer` (not `main`).
+- **Why:** The brief says to branch from `feat/conversation-layer` when it exists and is not
+  merged. It is not merged (PR #9 open), and it contains the conversation router and TTS module
+  this job builds on. Consequence: this branch also lacks the 18 commits `main` has gained since
+  the merge base (UI redesign PRs); reconciling them is the owner's merge, not this job's.
+
+## Verification without installable dependencies
+
+- **Decision:** The npm registry (and PyPI) is blocked from this sandbox by the egress proxy
+  (403 on CONNECT, direct DNS fails). It was not retried or routed around. Verification uses a
+  sandbox kit kept outside the repo and linked as an ignored `node_modules`: real TypeScript 6.0.3,
+  `@types/node`, `yaml`, and zod v4 (from zod 3.25.76's `zod/v4` build), plus shims for `vitest`
+  (subset on `node:test`), `express`, `cors`, `multer`, `dotenv`, `unpdf` and `@google/genai`.
+- **Alternatives considered:** Skip all verification (dishonestly thin); fetch packages from a
+  mirror or GitHub (routing around the block); write the code untested.
+- **Why:** The kit gives real compiler checks and real executions of the repo's own tests for
+  everything that does not need Express or the Gemini SDK. Its baseline reproduces the previous
+  job's real `npm test` result (132 pass / 3 known eligibility failures) once the 7 Express-bound
+  tests are set aside, which is evidence the shim is faithful enough for differential checks. It
+  is still not the repo's toolchain: every result from it is labelled "sandbox shim", and
+  `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` and the client remain NOT-TESTED
+  here and are listed for the owner.
+
+## Recon notes file
+
+- **Decision:** `docs/AGENT_NOTES.md` is replaced with this job's recon; the previous job's notes
+  stay in git history.
+- **Why:** The old notes described the pre-conversation-layer code and would mislead.

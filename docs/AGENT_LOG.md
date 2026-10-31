@@ -114,3 +114,31 @@
 - Commands run: `git push -u origin feat/conversation-layer`; GitHub REST API request using the configured credential helper (credential values were not printed).
 - Results: pushed commit `fa776b8`; opened PR [#9](https://github.com/mitarthpathak/gram-saathi/pull/9) against `main` with a filled summary/checklist, including the exact verification results and open review items.
 - Open issues: the PR is open for review; the report's remaining verification items are listed under “Needs human verification.”
+
+---
+
+# Dialect voice job (branch `feat/dialect-voice`)
+
+Earlier sections above belong to the finished conversation-layer job. This job's phases follow.
+
+## Phase 0 — recon and baseline
+
+- Branch: created `feat/dialect-voice` from `feat/conversation-layer` (`1b5d297`), which is not
+  merged into `main` (PR #9 open).
+- Files changed: `docs/AGENT_NOTES.md` (rewritten for this job), `docs/DECISIONS.md`,
+  `docs/AGENT_LOG.md`.
+- Commands run: `npm install` (failed: `ENOTFOUND registry.npmjs.org`, then proxy `403` on
+  CONNECT — not retried further); `npm run typecheck`, `npm run lint`, `npm test -w server`,
+  `npm run build` (all fail for lack of dependencies); `prettier --check .` (29 pre-existing
+  differences); sandbox kit: `tsc --noEmit` for server and shared with TypeScript 6.0.3 (0 errors
+  each), `tsx --test server/test/*.test.ts` (135 tests: 125 pass, 7 fail only because Express is
+  not installable, 3 known eligibility failures); `tsx` probe of `mockSearchSchemes`,
+  `mockTranscribe`, `mockGenerateAnswer`; WebFetch of the deployed `/api/health` and
+  `/api/faq/top?lang=hi`.
+- Results: flows, dialect plumbing, TTS state, env vars, mocks and 9 contradictions recorded in
+  `docs/AGENT_NOTES.md`. Key findings: the dialect already reaches the answer prompt (including an
+  unverified model-guessed dialect for typed text); the intent router exists but only in real
+  mode; the deployed server reports `mocks:true` and serves mock FAQ ids; a typed
+  "ki keh raho he" cannot produce PM-KISAN in mock mode while any spoken query does.
+- Open issues: no dependency install, no Gemini key and no client toolchain in this sandbox. All
+  repo-tooling checks are NOT-TESTED here; sandbox-shim results are labelled as such.
