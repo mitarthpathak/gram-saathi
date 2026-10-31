@@ -6,6 +6,7 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type Ref,
 } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/useToast';
@@ -20,6 +21,10 @@ interface MicButtonProps {
   onRecorded: (audio: Blob) => void;
   /** True while the previous question is being answered. */
   busy?: boolean;
+  /** The <button> itself, e.g. to focus it when the app opens from "Hold to speak". */
+  buttonRef?: Ref<HTMLButtonElement>;
+  /** Draws the eye to the button (a soft marigold halo); it never starts recording. */
+  attention?: boolean;
 }
 
 /** Presses shorter than this count as a tap: recording continues until the next tap. */
@@ -37,7 +42,12 @@ const formatTime = (ms: number) => {
  * again to send (easier for some users, and needed while the browser asks for the mic).
  * Enter / Space toggle it from the keyboard.
  */
-export function MicButton({ onRecorded, busy = false }: MicButtonProps) {
+export function MicButton({
+  onRecorded,
+  busy = false,
+  buttonRef,
+  attention = false,
+}: MicButtonProps) {
   const t = useStrings(voiceStrings);
   const toast = useToast();
   const { status, start, stop, cancel, getLevel } = useRecorder();
@@ -127,7 +137,14 @@ export function MicButton({ onRecorded, busy = false }: MicButtonProps) {
             />
           </>
         )}
+        {attention && !recording && !busy && (
+          <span
+            aria-hidden
+            className="absolute inset-0 animate-ripple rounded-full bg-marigold-300/60"
+          />
+        )}
         <button
+          ref={buttonRef}
           type="button"
           aria-label={t.holdToSpeak}
           aria-pressed={recording}

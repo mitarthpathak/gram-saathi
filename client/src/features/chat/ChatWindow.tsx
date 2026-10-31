@@ -41,7 +41,7 @@ export function ChatWindow() {
 }
 
 /** "Finding the answer…" bubble with bouncing dots while a question is being answered. */
-function TypingIndicator() {
+export function TypingIndicator() {
   const t = useStrings(chatStrings);
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">

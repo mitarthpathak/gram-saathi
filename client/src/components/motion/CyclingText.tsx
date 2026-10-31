@@ -1,5 +1,5 @@
 import { AnimatePresence, m } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { duration, ease } from '@/lib/motion/easings';
 import { useMotionTier } from '@/lib/motion/tier';
@@ -17,6 +17,8 @@ interface CyclingTextProps {
   label: string;
   intervalMs?: number;
   paused?: boolean;
+  /** Optional underline (absolutely positioned): it shrinks or grows to the current word. */
+  underline?: ReactNode;
   className?: string;
 }
 
@@ -29,12 +31,15 @@ export function CyclingText({
   label,
   intervalMs = 2200,
   paused = false,
+  underline,
   className,
 }: CyclingTextProps) {
   const tier = useMotionTier();
   const [index, setIndex] = useState(0);
   const current = items[index % items.length];
   const shift = tier === 'reduced' ? '0%' : '55%';
+  const boxRef = useRef<HTMLSpanElement>(null);
+  const sizers = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     if (paused || items.length < 2) return;
@@ -42,11 +47,36 @@ export function CyclingText({
     return () => window.clearInterval(timer);
   }, [paused, items.length, intervalMs]);
 
+  // Underline width follows the visible word (a scaleX transform; the box itself never moves).
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box || !underline) return;
+    const update = () => {
+      const word = sizers.current[index % items.length];
+      if (word && box.offsetWidth) {
+        box.style.setProperty('--word-scale', String(word.offsetWidth / box.offsetWidth));
+      }
+    };
+    update();
+    void document.fonts?.ready.then(update);
+    const observer = new ResizeObserver(update);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [index, items.length, underline]);
+
   return (
-    <span className={cn('relative inline-grid align-baseline', className)}>
+    <span ref={boxRef} className={cn('relative inline-grid align-baseline', className)}>
       <span className="sr-only">{label}</span>
-      {items.map((item) => (
-        <span key={item.key} aria-hidden lang={item.lang} className="invisible [grid-area:1/1]">
+      {items.map((item, i) => (
+        <span
+          key={item.key}
+          ref={(element) => {
+            sizers.current[i] = element;
+          }}
+          aria-hidden
+          lang={item.lang}
+          className="invisible justify-self-start [grid-area:1/1]"
+        >
           {item.text}
         </span>
       ))}
@@ -64,6 +94,14 @@ export function CyclingText({
           {current.text}
         </m.span>
       </AnimatePresence>
+      {underline && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 origin-left scale-x-[var(--word-scale,1)] transition-transform duration-500 ease-out-soft"
+        >
+          {underline}
+        </span>
+      )}
     </span>
   );
 }

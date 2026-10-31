@@ -4,42 +4,52 @@ import { useMotionTier } from '@/lib/motion/tier';
 
 /** Lines stagger a little wider than chips (still inside the 60-90 ms range). */
 const LINE_STAGGER = 0.09;
+const LINE_DURATION = 0.7;
+
+/**
+ * - shown: plain text, no mask (first paint, so it counts for LCP).
+ * - hidden: below the masks (while something covers the hero).
+ * - play: rises into place, line by line.
+ */
+export type MaskedLinesState = 'shown' | 'hidden' | 'play';
 
 interface MaskedLinesProps {
   /** One entry per visual line. Never split Indic text further than words. */
   lines: { key: string; content: ReactNode; className?: string }[];
-  /** False holds the lines below their masks (e.g. while the intro covers the hero). */
-  play?: boolean;
+  state?: MaskedLinesState;
   /** Seconds before the first line rises. */
   delay?: number;
 }
 
 /**
- * Lines that rise out of padded masks, one after another (pure CSS, so it costs no JS frames).
- * The text is in the DOM and readable from the start; Reduced tier shows it without motion.
+ * Lines that rise out of padded masks (pure CSS, so it costs no JS frames). The masks are
+ * removed once the lines land, so nothing stays clipped. Reduced tier: plain text.
  */
-export function MaskedLines({ lines, play = true, delay = 0 }: MaskedLinesProps) {
+export function MaskedLines({ lines, state = 'play', delay = 0 }: MaskedLinesProps) {
   const tier = useMotionTier();
-  const animate = tier !== 'reduced';
-  const [done, setDone] = useState(false);
-  const total = delay + (lines.length - 1) * LINE_STAGGER + 0.7;
+  const [landed, setLanded] = useState(false);
+  const masked = tier !== 'reduced' && state !== 'shown' && !landed;
+  const total = delay + (lines.length - 1) * LINE_STAGGER + LINE_DURATION;
 
-  // Drop the masks once everything has landed: nothing stays clipped at rest.
   useEffect(() => {
-    if (!play || !animate) return;
-    const timer = window.setTimeout(() => setDone(true), total * 1000 + 100);
+    if (state !== 'play' || tier === 'reduced') return;
+    const timer = window.setTimeout(() => setLanded(true), total * 1000 + 80);
     return () => window.clearTimeout(timer);
-  }, [play, animate, total]);
+  }, [state, tier, total]);
 
   return lines.map(({ key, content, className }, index) => (
-    <span key={key} className={cn(animate && !done && 'reveal-mask', 'block')}>
+    <span key={key} className={cn('block', masked && 'reveal-mask')}>
       <span
         className={cn(
           'block',
-          animate && !done && (play ? 'animate-rise' : 'translate-y-[calc(100%+0.6em)]'),
+          masked && (state === 'play' ? 'animate-rise' : 'translate-y-[calc(100%+0.6em)]'),
           className,
         )}
-        style={animate && play ? { animationDelay: `${delay + index * LINE_STAGGER}s` } : undefined}
+        style={
+          masked && state === 'play'
+            ? { animationDelay: `${delay + index * LINE_STAGGER}s` }
+            : undefined
+        }
       >
         {content}
       </span>
