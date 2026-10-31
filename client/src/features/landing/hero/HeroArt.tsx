@@ -16,18 +16,12 @@ import { landingStrings } from '../strings';
 import { PhoneScreen } from './PhoneScreen';
 import { useDemoLoop } from './useDemoLoop';
 
-/** The art is composed in a 600 x 720 box (460 wide on phones), then scaled to fit its slot. */
-const DESIGN_W = { desktop: 600, phone: 460 };
-const DESIGN_H = 720;
-
 /** Resting tilt of the phone (degrees). The pointer adds a little on top in the Full tier. */
 const TILT = { x: 9, y: -16, z: 10 };
 
 interface HeroArtProps {
   /** Something covers the hero (the intro or the app): hold the demo loop. */
   paused: boolean;
-  /** Hold the entrance animations (the intro is still covering the hero). */
-  hold: boolean;
   /** Seconds before the art makes its entrance. */
   delay: number;
   className?: string;
@@ -37,14 +31,15 @@ interface HeroArtProps {
  * The right half of the hero: a slim phone tilted in 3D and gently floating, running a live
  * demo of the real app; Saathi waving from its corner; a sun, wheat and two floating chips.
  */
-export function HeroArt({ paused, hold, delay, className }: HeroArtProps) {
+export function HeroArt({ paused, delay, className }: HeroArtProps) {
   const t = useStrings(landingStrings);
   const tier = useMotionTier();
   const { language } = useSettings();
   const slotRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
-  useFitScale(slotRef, boxRef, isDesktop ? DESIGN_W.desktop : DESIGN_W.phone, DESIGN_H);
+  // The art is composed in a 600 x 720 box (460 wide on phones), then scaled to fit its slot.
+  useFitScale(slotRef, boxRef);
 
   // English visitors see the demo in Hindi: the point is that it speaks their language.
   const demoLanguage: LanguageCode = language === 'en' ? 'hi' : language;
@@ -86,8 +81,7 @@ export function HeroArt({ paused, hold, delay, className }: HeroArtProps) {
   }, [tier, pointerX, pointerY]);
 
   const enter = (extra: number) => ({
-    animationDelay: `${delay + extra}s`,
-    animationPlayState: hold ? 'paused' : 'running',
+    animationDelay: `calc(var(--intro-offset) + ${delay + extra}s)`,
   });
   const sms = exchange?.response.smsText;
 
@@ -96,6 +90,7 @@ export function HeroArt({ paused, hold, delay, className }: HeroArtProps) {
       <p className="sr-only">{t.demoAlt}</p>
       <div
         ref={boxRef}
+        data-fit
         className="absolute top-1/2 left-1/2 h-[720px] w-[460px] [transform:translate(-50%,-50%)_scale(var(--fit,0.8))] lg:w-[600px]"
       >
         {/* Back layer: sun, birds, wheat. */}

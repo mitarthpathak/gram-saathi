@@ -3,7 +3,7 @@ import { useRef, type MouseEvent } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Village, WavyUnderline } from '@/components/art/doodles';
 import { CyclingText, type CyclingItem } from '@/components/motion/CyclingText';
-import { MaskedLines, type MaskedLinesState } from '@/components/motion/MaskedLines';
+import { MaskedLines } from '@/components/motion/MaskedLines';
 import { preloadApp } from '@/features/app-shell/loaders';
 import type { AppLocationState } from '@/features/app-shell/navigation';
 import { rememberOpener } from '@/features/app-shell/opener';
@@ -11,7 +11,6 @@ import { LANGUAGES } from '@/features/language/languages';
 import { useStrings } from '@/lib/i18n';
 import { scrollToTarget } from '@/lib/motion/smoothScroll';
 import { useSettings } from '@/lib/settings';
-import { useAfterFirstPaint } from '@/lib/useAfterFirstPaint';
 import { HOW_IT_WORKS_ID } from '../sections';
 import { useSkyZone } from '../sky';
 import { landingStrings } from '../strings';
@@ -32,16 +31,12 @@ export function Hero({ introActive, paused }: HeroProps) {
   const t = useStrings(landingStrings);
   const { language } = useSettings();
   const location = useLocation();
-  const painted = useAfterFirstPaint();
   const sectionRef = useRef<HTMLElement>(null);
   useSkyZone(sectionRef, 'dawn');
 
-  // First paint shows the headline as-is (it is the LCP element); under the intro it then
-  // tucks below its masks, and rises when the curtain lifts.
-  const lineState: MaskedLinesState = introActive ? (painted ? 'hidden' : 'shown') : 'play';
+  // Entrances are CSS, timed after the intro curtain (--intro-offset is 0 when there is none).
   const enter = (extra: number) => ({
-    animationDelay: `${AFTER_HEADLINE + extra}s`,
-    animationPlayState: introActive ? 'paused' : 'running',
+    animationDelay: `calc(var(--intro-offset) + ${AFTER_HEADLINE + extra}s)`,
   });
 
   // The punctuation travels with each word, so it never floats away from a short one.
@@ -67,10 +62,9 @@ export function Hero({ introActive, paused }: HeroProps) {
       <div className="relative z-10">
         <h1
           id="hero-title"
-          className="font-display text-[clamp(2.6rem,4.9vw,5.5rem)] leading-display font-extrabold tracking-display text-ink ta:text-[clamp(2rem,3.6vw,4rem)]"
+          className="font-display text-[clamp(2.6rem,4.9vw,4.75rem)] leading-display font-extrabold tracking-display text-ink ta:text-[clamp(2rem,3.6vw,3.5rem)]"
         >
           <MaskedLines
-            state={lineState}
             lines={[
               { key: '1', content: t.heroLine1 },
               { key: '2', content: t.heroLine2 },
@@ -87,7 +81,7 @@ export function Hero({ introActive, paused }: HeroProps) {
                       paused={introActive || paused}
                       intervalMs={2400}
                       underline={
-                        <WavyUnderline className="absolute -bottom-[0.16em] -left-[0.04em] h-[0.3em] w-[calc(100%+0.1em)] animate-draw-x [animation-delay:0.75s]" />
+                        <WavyUnderline className="absolute -bottom-[0.16em] -left-[0.04em] h-[0.3em] w-[calc(100%+0.1em)] animate-draw-x [animation-delay:calc(var(--intro-offset)+0.75s)]" />
                       }
                     />
                   </>
@@ -140,7 +134,6 @@ export function Hero({ introActive, paused }: HeroProps) {
 
       <HeroArt
         paused={paused || introActive}
-        hold={introActive}
         delay={AFTER_HEADLINE}
         className="h-[clamp(28rem,150vw,40rem)] lg:h-[min(46rem,calc(100svh-7rem))]"
       />

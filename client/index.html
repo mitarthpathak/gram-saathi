@@ -2,14 +2,70 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#fff9f0" />
+    <title>Gram Saathi: government schemes, explained in your own language</title>
     <meta
       name="description"
-      content="Ask about government schemes by voice in Hindi, Marathi, Tamil or English."
+      content="Ask about government schemes by voice in Hindi, Marathi, Tamil or English. Short answers from official documents, with the source, an SMS copy and a fraud warning."
     />
-    <title>Gram Saathi</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gram Saathi" />
+    <meta
+      property="og:title"
+      content="Gram Saathi: government schemes, explained in your own language"
+    />
+    <meta
+      property="og:description"
+      content="Ask by voice in Hindi, Marathi, Tamil or English. Answers only from official documents, read aloud, with an SMS copy and a fraud warning."
+    />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Gram Saathi: a phone answering a question about PM-KISAN, with Saathi the seed mascot waving."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Runs before the first paint. Mirrors app/providers.tsx: is the prerendered "/" HTML in
+      // #root right for this visit (English, normal data, the home page)? Has the greeting
+      // intro already played this session?
+      (function () {
+        var root = document.documentElement;
+        var codes = ['hi', 'mr', 'ta', 'en'];
+        var home = location.pathname === '/';
+        var seen = !home;
+        var lang = '';
+        var lowData = false;
+        try {
+          seen = seen || sessionStorage.getItem('gs:introSeen') === '1';
+          lang = localStorage.getItem('gs:language') || '';
+          lowData = localStorage.getItem('gs:lowBandwidth') === 'true';
+        } catch (e) {
+          seen = true;
+        }
+        if (codes.indexOf(lang) < 0) {
+          lang = 'hi';
+          var tags = navigator.languages || [navigator.language];
+          for (var i = 0; i < tags.length; i++) {
+            var code = String(tags[i]).slice(0, 2).toLowerCase();
+            if (codes.indexOf(code) >= 0) {
+              lang = code;
+              break;
+            }
+          }
+        }
+        if (seen) root.classList.add('intro-seen');
+        if (!home || lang !== 'en' || lowData) root.classList.add('prerender-stale');
+      })();
+    </script>
+    <style>
+      .prerender-stale #root:not([data-live]) {
+        visibility: hidden;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

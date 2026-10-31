@@ -252,9 +252,10 @@
       clip-path: inset(0 -20% 0 -20%);
     }
   }
+  /* Starts part-way up, so the headline is painted (and counts for LCP) in the very first frame. */
   @keyframes rise {
     from {
-      transform: translateY(calc(100% + 0.6em));
+      transform: translateY(62%);
     }
     to {
       transform: none;
@@ -328,10 +329,72 @@
   }
 }
 
-/* Masked line reveal. The mask is padded so matras and Tamil ascenders never get clipped. */
-@utility reveal-mask {
-  display: block;
+/*
+ * Intro and hero entrance are pure CSS, so they play from the first (prerendered) paint.
+ * --intro-offset: how long the intro covers the hero. A head script in index.html adds
+ * .intro-seen to <html> when it already played this session (or the page is not "/").
+ */
+:root {
+  --intro-offset: 0.85s;
+}
+:root.intro-seen {
+  --intro-offset: 0s;
+}
+.intro-overlay {
+  animation: curtain-up 0.4s var(--ease-in-out-soft) var(--intro-offset) both;
+}
+.intro-overlay[data-skip] {
+  animation-delay: 0s;
+}
+.intro-seen .intro-overlay {
+  display: none;
+}
+.intro-greeting {
+  opacity: 0;
+  animation: greet 0.21s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i) * 0.2s);
+}
+.intro-greeting:last-child {
+  animation-name: greet-last;
+  animation-duration: 0.3s;
+}
+@keyframes greet {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  20%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+@keyframes greet-last {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Masked line reveal for the hero headline. Under the intro the headline is simply there (it is
+ * the LCP element, so it paints at once); otherwise each line rises out of a padded mask (padded
+ * so matras and Tamil ascenders never get clipped). MaskedLines drops the masks once done.
+ */
+.intro-seen .line-mask {
   clip-path: inset(-0.35em -0.15em -0.45em -0.15em);
+}
+.intro-seen .line-rise {
+  animation: rise 0.7s var(--ease-out-soft) both;
+  animation-delay: calc(var(--i) * 0.09s);
 }
 
 /* Subtle paper grain (an SVG noise tile, 0.6 KB, nothing to download). */

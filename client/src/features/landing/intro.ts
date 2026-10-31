@@ -1,12 +1,11 @@
 const KEY = 'gs:introSeen';
 
-/** The greeting intro plays once per browser session. */
-export function introSeen(): boolean {
-  try {
-    return sessionStorage.getItem(KEY) === '1';
-  } catch {
-    return true; // storage blocked: skip the intro rather than replay it on every visit
-  }
+/**
+ * The greeting intro plays once per browser session. index.html's head script reads the same
+ * key and adds .intro-seen to <html> before the first paint.
+ */
+export function introAlreadyPlayed(): boolean {
+  return document.documentElement.classList.contains('intro-seen');
 }
 
 export function markIntroSeen(): void {

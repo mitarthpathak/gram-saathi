@@ -1,11 +1,10 @@
-import type { RefObject } from 'react';
 import { gsap, useGSAP } from '@/lib/motion/gsap';
 
 /**
  * Scroll-scrubbed parts of the story chapter (Full motion tier only, loaded lazily with GSAP).
  * useGSAP reverts everything on unmount, so StrictMode's double mount is safe.
  */
-export default function StoryScrubber({ scope }: { scope: RefObject<HTMLElement | null> }) {
+export default function StoryScrubber({ scope }: { scope: HTMLElement }) {
   useGSAP(
     () => {
       const select = gsap.utils.selector(scope);
@@ -60,7 +59,7 @@ export default function StoryScrubber({ scope }: { scope: RefObject<HTMLElement 
         )
         .to(select('[data-sms-bubble]'), { opacity: 0, ease: 'none', duration: 0.25 });
     },
-    { scope },
+    { scope, dependencies: [scope] },
   );
   return null;
 }

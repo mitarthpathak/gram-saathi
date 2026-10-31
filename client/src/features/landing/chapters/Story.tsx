@@ -92,10 +92,12 @@ function StepText({ index, active }: { index: number; active: boolean }) {
 function PinnedStory() {
   const { demoLanguage, answered, notFound } = useStoryContent();
   const [step, setStep] = useState(0);
-  const scopeRef = useRef<HTMLDivElement>(null);
+  const scopeRef = useRef<HTMLDivElement | null>(null);
+  // The scrubber needs the element itself: a lazy child can mount before a parent's ref is set.
+  const [scope, setScope] = useState<HTMLDivElement | null>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const phoneRef = useRef<HTMLDivElement>(null);
-  useFitScale(slotRef, phoneRef, 380, 780);
+  useFitScale(slotRef, phoneRef);
 
   // The step whose text crosses the middle of the screen is the active one.
   useEffect(() => {
@@ -123,7 +125,10 @@ function PinnedStory() {
 
   return (
     <div
-      ref={scopeRef}
+      ref={(element) => {
+        scopeRef.current = element;
+        setScope(element);
+      }}
       className="mx-auto grid max-w-[92rem] grid-cols-[minmax(0,0.8fr)_minmax(0,1.45fr)] gap-8 px-[6vw]"
     >
       <ol>
@@ -182,9 +187,11 @@ function PinnedStory() {
         </div>
       </div>
 
-      <Suspense>
-        <StoryScrubber scope={scopeRef} />
-      </Suspense>
+      {scope && (
+        <Suspense>
+          <StoryScrubber scope={scope} />
+        </Suspense>
+      )}
     </div>
   );
 }

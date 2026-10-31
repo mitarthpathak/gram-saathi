@@ -51,7 +51,7 @@ export default defineConfig([
 
   // The server and config files run in Node.
   {
-    files: ['server/**/*.ts', '*.{js,mjs,cjs}', 'client/vite.config.ts'],
+    files: ['server/**/*.ts', '*.{js,mjs,cjs}', 'client/vite.config.ts', 'client/scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 
