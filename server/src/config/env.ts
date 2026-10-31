@@ -91,6 +91,15 @@ const envSchema = z.object({
   /** Shared cap for Gemini generation and embedding calls; one slot stays available to answers. */
   GEMINI_MAX_CONCURRENT_CALLS: fromEnv(z.coerce.number().int().min(2).max(64).default(8)),
 
+  // Sarvam voice providers. Defaults preserve the existing Gemini STT and browser TTS behavior.
+  STT_PROVIDER: fromEnv(z.enum(['gemini', 'sarvam']).default('gemini')),
+  TTS_PROVIDER: fromEnv(z.enum(['none', 'sarvam']).default('none')),
+  SARVAM_API_KEY: fromEnv(z.string().optional()),
+  SARVAM_STT_MODEL: fromEnv(z.string().default('saaras:v3')),
+  SARVAM_TTS_MODEL: fromEnv(z.string().default('bulbul:v3')),
+  SARVAM_TTS_SPEAKER: fromEnv(z.string().default('shubh')),
+  SARVAM_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(300_000).default(30_000)),
+
   // Dialect classification. A smaller dialect active set means higher accuracy.
   DIALECT_ENSEMBLE_SIZE: fromEnv(z.coerce.number().int().min(1).max(3).default(3)),
   DIALECT_MIN_VOTES: fromEnv(z.coerce.number().int().min(1).max(3).default(2)),
