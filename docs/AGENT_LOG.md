@@ -107,3 +107,10 @@
 - Commands run: inspected staged and unstaged diffs; `npm.cmd run ingest -w server`; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd test --workspaces --if-present`; `npm.cmd run build`; `git diff --check`.
 - Results: explicit owner instruction authorized including the starting-tree staged work. Six scheme summaries now record official source URLs and access date 2026-10-31; PMAY-Gramin remains unverified. Ingest regenerated the vector-store fingerprint. Roman-script client mock replies were removed in favor of the existing native-script fixtures. Typecheck/lint/build passed; 132 tests passed and the same three baseline eligibility tests failed due to unverified rules. Whitespace checks passed.
 - Open issues: calibration startup, real Gemini text/TTS, phone testing, and PMAY-Gramin/eligibility verification remain unverified. PR creation depends on GitHub credentials/API availability; report the exact outcome.
+
+## Phase 15 — publish PR and close follow-up
+
+- Files changed: `docs/FINAL_REPORT.md`, `docs/AGENT_LOG.md`.
+- Commands run: `git push -u origin feat/conversation-layer`; GitHub REST API request using the configured credential helper (credential values were not printed).
+- Results: pushed commit `fa776b8`; opened PR [#9](https://github.com/mitarthpathak/gram-saathi/pull/9) against `main` with a filled summary/checklist, including the exact verification results and open review items.
+- Open issues: the PR is open for review; the report's remaining verification items are listed under “Needs human verification.”
