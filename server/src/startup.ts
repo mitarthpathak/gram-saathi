@@ -4,7 +4,12 @@ import { isGeminiConfigured } from './lib/geminiClient';
 import { logger } from './lib/logger';
 import { loadRules } from './modules/eligibility/service';
 import { loadFaq } from './modules/faq/service';
-import { fingerprintDocuments, loadSchemeDocuments } from './modules/rag/documents';
+import {
+  fingerprintDocuments,
+  isOfficialSourceUrl,
+  loadSchemeDocuments,
+  verifiedOfficialDocuments,
+} from './modules/rag/documents';
 import { loadKnowledgeBase } from './modules/rag/service';
 import { getDialectSettings } from './modules/dialect/calibration';
 import { logDialectExemplarCoverage } from './modules/dialect/exemplars';
@@ -51,11 +56,15 @@ async function checkKnowledgeBase(checkSources: boolean): Promise<string | undef
     `Knowledge base: ${store.size} chunks from ${meta.documents.length} documents ` +
       `(${meta.embedModel}, ${meta.dimensions} dims, built ${meta.createdAt})`,
   );
-  const samples = meta.documents.filter((document) => document.sample);
-  if (samples.length > 0) {
+  const unverified = meta.documents.filter(
+    (document) =>
+      document.sample || !document.verified || !isOfficialSourceUrl(document.officialUrl),
+  );
+  if (unverified.length > 0) {
     logger.warn(
-      `${samples.length} SAMPLE scheme document(s) in the knowledge base ` +
-        `(${samples.map((document) => document.schemeId).join(', ')}): replace them with official text.`,
+      `${unverified.length} unverified scheme document(s) in the knowledge base ` +
+        `(${unverified.map((document) => document.schemeId).join(', ')}): ` +
+        'requests are blocked until the index is rebuilt from verified official sources.',
     );
   }
   if (
@@ -69,7 +78,9 @@ async function checkKnowledgeBase(checkSources: boolean): Promise<string | undef
   }
   if (!checkSources) return meta.sourceFingerprint;
   try {
-    const current = fingerprintDocuments(await loadSchemeDocuments(PATHS.schemes));
+    const current = fingerprintDocuments(
+      verifiedOfficialDocuments(await loadSchemeDocuments(PATHS.schemes)),
+    );
     if (current !== meta.sourceFingerprint) {
       logger.warn('data/schemes changed since the last ingest: run `npm run ingest -w server`.');
     }

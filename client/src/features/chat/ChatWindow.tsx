@@ -1,6 +1,7 @@
 import { ArrowRight, FileSearch, Languages, MessageSquareText, Mic } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
+
 import { Logo } from '@/components/brand/Logo';
 import { dialectStrings } from '@/features/dialect/strings';
 import { useStrings } from '@/lib/i18n';
@@ -35,7 +36,7 @@ export function ChatWindow() {
   }, [messages, busy]);
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+    <div className="app-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4">
       {messages.length === 0 ? (
         <EmptyState />
       ) : (
@@ -84,6 +85,12 @@ function DemoSamplePicker() {
 /** "Finding the answer…" bubble with bouncing dots while a question is being answered. */
 export function TypingIndicator() {
   const t = useStrings(chatStrings);
+  // Dialect wording and speech add steps on the server; say so when an answer takes a while.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, []);
   return (
     <div role="status" className="mt-4 flex animate-fade-up items-end gap-2.5">
       <Logo className="size-8 rounded-[0.6rem]" />
@@ -97,7 +104,9 @@ export function TypingIndicator() {
             />
           ))}
         </span>
-        <span className="mt-2 block text-base font-semibold text-slate-700">{t.thinking}</span>
+        <span className="mt-2 block text-base font-semibold text-slate-700">
+          {slow ? t.stillThinking : t.thinking}
+        </span>
         <div aria-hidden className="mt-3 grid gap-2">
           <span className="h-4 w-11/12 animate-pulse rounded-full bg-brand-100" />
           <span className="h-4 w-9/12 animate-pulse rounded-full bg-brand-100" />

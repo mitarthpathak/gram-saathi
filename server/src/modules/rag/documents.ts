@@ -54,6 +54,29 @@ export async function loadSchemeDocuments(dir: string): Promise<SchemeDocument[]
   return documents;
 }
 
+/** Returns only material explicitly verified against a secure official government source. */
+export function verifiedOfficialDocuments(documents: SchemeDocument[]): SchemeDocument[] {
+  return documents.filter(
+    (document) =>
+      document.verified && !document.sample && isOfficialSourceUrl(document.officialUrl),
+  );
+}
+
+/** Accept government domains and PFRDA, the statutory pension regulator's official domain. */
+export function isOfficialSourceUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    return (
+      url.protocol === 'https:' &&
+      (host.endsWith('.gov.in') || host.endsWith('.nic.in') || host === 'pfrda.org.in')
+    );
+  } catch {
+    return false;
+  }
+}
+
 /** Parses one file's text. Front matter fields win; otherwise the id comes from the file name. */
 export function parseSchemeDocument(sourceFile: string, raw: string): SchemeDocument {
   const { data, body } = splitFrontMatter(raw);
@@ -96,7 +119,10 @@ export function fingerprintDocuments(documents: SchemeDocument[]): string {
   const hash = createHash('sha256');
   const sorted = [...documents].sort((a, b) => a.sourceFile.localeCompare(b.sourceFile));
   for (const document of sorted) {
-    hash.update(`${document.sourceFile}\0${document.schemeId}\0${document.schemeName}\0`);
+    hash.update(
+      `${document.sourceFile}\0${document.schemeId}\0${document.schemeName}\0` +
+        `${document.officialUrl ?? ''}\0${document.sample}\0${document.verified}\0`,
+    );
     hash.update(`${document.body}\0`);
   }
   return hash.digest('hex').slice(0, 16);

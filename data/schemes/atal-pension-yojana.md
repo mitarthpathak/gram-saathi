@@ -2,46 +2,44 @@
 schemeId: atal-pension-yojana
 schemeName: Atal Pension Yojana (APY)
 ministry: Ministry of Finance (administered by PFRDA)
-officialUrl: https://www.pfrda.org.in
+officialUrl: https://pfrda.org.in/documents/33652/676426/APY%2BFAQs.pdf
+sourceUrl: https://pfrda.org.in/documents/33652/676426/APY%2BFAQs.pdf
+accessDate: 2026-10-31
 tags: [pension, old-age, unorganised-sector]
 languages: [en]
-sample: true
-verified: false
+sample: false
+verified: true
+lastVerified: 2026-10-31
 ---
-
-<!-- SAMPLE: written for the hackathon from public summaries. Replace with the official scheme text, then set sample: false and verified: true. -->
 
 # Atal Pension Yojana (APY)
 
 ## Overview
 
-Atal Pension Yojana is a government pension scheme for workers in the unorganised sector. You
-pay a small amount every month while you work and get a fixed monthly pension after age 60.
+Atal Pension Yojana is a voluntary pension scheme. The official FAQ describes it as a scheme for
+Indian citizens, especially workers in the unorganised sector.
 
 ## Benefits
 
-After age 60 the subscriber gets a guaranteed pension of ₹1,000, ₹2,000, ₹3,000, ₹4,000 or
-₹5,000 per month, depending on the pension chosen and the contribution paid. After the
-subscriber's death the spouse gets the same pension, and after both, the nominee receives the
-accumulated amount.
+After turning 60, a subscriber receives the chosen guaranteed minimum pension of ₹1,000,
+₹2,000, ₹3,000, ₹4,000 or ₹5,000 per month, according to contributions. After the subscriber's
+death, the spouse can receive the same pension. After both the subscriber and spouse have died,
+the nominee can receive the accumulated pension wealth described in the FAQ.
 
 ## Eligibility
 
-Any Indian citizen aged 18 to 40 years with a savings bank account or post office savings
-account can join. From 1 October 2022, people who are or have been income-tax payers cannot join.
+A new subscriber must be an Indian citizen aged 18 to 40 and have a savings bank account or
+post-office savings bank account. Since 1 October 2022, a person who is or has been an
+income-tax payer on the application date cannot open a new APY account. This restriction does
+not close APY accounts opened by 30 September 2022.
 
-## Contribution
+## Contributions
 
-The monthly contribution depends on the age at joining and the pension chosen: the younger you
-join, the less you pay. Contributions are auto-debited from the bank account monthly, quarterly
-or half-yearly until age 60.
+The contribution depends on the subscriber's age at joining and the pension amount chosen.
+Contributions are collected by automatic debit from the savings bank or post-office savings bank
+account. The subscriber can choose monthly, quarterly or half-yearly contributions.
 
 ## How to apply
 
-Visit the bank branch or post office where you have a savings account, fill in the APY
-registration form and give your Aadhaar and mobile number. Many banks also allow joining through
-net banking.
-
-## Documents needed
-
-Savings bank account, Aadhaar card and mobile number.
+Approach the bank branch or post office where the savings account is held. A person without such
+an account must first open one. Only one APY account is permitted per person.

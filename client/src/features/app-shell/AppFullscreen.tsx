@@ -27,7 +27,7 @@ export function AppFullscreen({ overLanding, children }: AppFullscreenProps) {
       aria-modal={overLanding || undefined}
       aria-label={overLanding ? t.appLabel : undefined}
       tabIndex={-1}
-      className="fixed inset-0 z-50 bg-paper shadow-[0_-24px_48px_-24px_rgb(38_35_31/0.3)] outline-none"
+      className="fixed inset-0 z-[1000] isolate overscroll-none bg-paper shadow-[0_-24px_48px_-24px_rgb(38_35_31/0.3)] outline-none"
       initial={overLanding ? hidden : false}
       animate={{ y: 0, opacity: 1 }}
       exit={hidden}

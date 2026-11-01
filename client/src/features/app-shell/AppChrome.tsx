@@ -41,7 +41,7 @@ export function AppChrome({ onClose, framed = false }: AppChromeProps) {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-paper">
       <AppHeader onClose={onClose} framed={framed} />
-      <main ref={mainRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <main ref={mainRef} className="app-scroll flex min-h-0 flex-1 flex-col overflow-y-auto">
         <Outlet />
       </main>
       <AppTabs />
