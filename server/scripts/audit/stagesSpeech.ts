@@ -2,7 +2,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { LanguageCode, QueryResponse, TtsResponse } from '@gram-saathi/shared';
-import { env, isMocked } from '../../src/config/env';
 import { getMessage } from '../../src/modules/chat/messages';
 import { getDialectRegistry } from '../../src/modules/dialect/registry';
 import { isServerSpeechConfigured } from '../../src/modules/tts/service';
@@ -18,7 +17,6 @@ import {
   silentWav,
 } from './checks';
 import {
-  asMode,
   mockedModulesText,
   NO_KEY_REASON,
   runStage,
@@ -422,28 +420,25 @@ export function stageG(ctx: WorkerContext): Promise<StageResult> {
 export function stageH(ctx: WorkerContext): Promise<StageResult> {
   return runStage('H', 'Browser end-to-end mic test (optional)', 'none', async () => {
     const clientUrl = process.env.AUDIT_CLIENT_URL;
-    let playwrightAvailable = false;
     try {
       require.resolve('playwright');
-      playwrightAvailable = true;
     } catch {
-      playwrightAvailable = false;
-    }
-    if (!playwrightAvailable || !clientUrl) {
       return {
         checks: [],
         status: 'NOT-TESTED',
         reason:
-          [
-            playwrightAvailable
-              ? undefined
-              : 'Playwright is not installed (optional: `npm i -D playwright -w server` and `npx playwright install chromium`)',
-            clientUrl
-              ? undefined
-              : 'AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API)',
-          ]
-            .filter(Boolean)
-            .join('; ') + '.',
+          'Playwright is not installed (optional: `npm i -D playwright -w server` and `npx playwright install chromium`)' +
+          (clientUrl
+            ? '.'
+            : '; AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API).'),
+      };
+    }
+    if (!clientUrl) {
+      return {
+        checks: [],
+        status: 'NOT-TESTED',
+        reason:
+          'AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API).',
       };
     }
     const { runBrowserMicTest } = await import('./e2e.js');

@@ -63,7 +63,6 @@ interface MockAnswer {
   sms: string;
 }
 
-
 const ANSWERS: Record<Topic | 'notFound', Record<LanguageCode, MockAnswer>> = {
   pmKisan: {
     en: {
@@ -231,10 +230,7 @@ export function mockGreeting(text: string, language: LanguageCode): MockAnswer |
   return GREETING_ANSWERS[language];
 }
 
-export function mockSmallTalk(
-  text: string,
-  language: LanguageCode,
-): MockAnswer | undefined {
+export function mockSmallTalk(text: string, language: LanguageCode): MockAnswer | undefined {
   const normalized = text
     .normalize('NFC')
     .toLowerCase()
@@ -320,8 +316,21 @@ export function mockDetectLanguage(
     return hint === 'mr' ? 'mr' : 'hi';
   }
   const hindi = [
-    'hai', 'hain', 'kya', 'kaise', 'kitna', 'mujhe', 'nahi', 'yojana', 'batao',
-    'ki', 'kaha', 'kahaan', 'kahan', 'se', 'ho',
+    'hai',
+    'hain',
+    'kya',
+    'kaise',
+    'kitna',
+    'mujhe',
+    'nahi',
+    'yojana',
+    'batao',
+    'ki',
+    'kaha',
+    'kahaan',
+    'kahan',
+    'se',
+    'ho',
   ];
   const marathi = ['ahe', 'aahe', 'kay', 'mala', 'kiti', 'sathi', 'kuthe', 'ani'];
   const english = ['the', 'is', 'are', 'what', 'how', 'who', 'can', 'apply', 'eligible', 'scheme'];

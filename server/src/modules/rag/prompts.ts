@@ -33,11 +33,7 @@ export function buildAnswerInput(
   const baseLanguage = describeLanguage(language).replace(/ \([^)]* script\)$/, '');
   const replyScript =
     script ??
-    (language === 'hi' || language === 'mr'
-      ? 'Devanagari'
-      : language === 'ta'
-        ? 'Tamil'
-        : 'Latin');
+    (language === 'hi' || language === 'mr' ? 'Devanagari' : language === 'ta' ? 'Tamil' : 'Latin');
   const replyLanguage = dialect
     ? `${baseLanguage} (${replyScript} script), using the ${dialect.nativeName} (${dialect.name}) variety`
     : `${baseLanguage} (${replyScript} script)`;

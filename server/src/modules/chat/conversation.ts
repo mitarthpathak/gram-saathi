@@ -36,9 +36,27 @@ export interface Deps {
 }
 
 export type TurnResult =
-  | { kind: 'direct'; intent: 'smalltalk' | 'clarify' | 'out_of_scope'; answer: string; language: Lang; dialect: string | null }
-  | { kind: 'grounded'; intent: 'scheme_question'; answer: string; language: Lang; dialect: string | null; usedChunkIds: string[] }
-  | { kind: 'notFound'; intent: 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope'; language: Lang; dialect: string | null };
+  | {
+      kind: 'direct';
+      intent: 'smalltalk' | 'clarify' | 'out_of_scope';
+      answer: string;
+      language: Lang;
+      dialect: string | null;
+    }
+  | {
+      kind: 'grounded';
+      intent: 'scheme_question';
+      answer: string;
+      language: Lang;
+      dialect: string | null;
+      usedChunkIds: string[];
+    }
+  | {
+      kind: 'notFound';
+      intent: 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope';
+      language: Lang;
+      dialect: string | null;
+    };
 
 const LANG_NAME: Record<Lang, string> = {
   hi: 'Hindi (Devanagari script)',
@@ -86,7 +104,9 @@ export async function handleTurn(
   deps: Deps,
   input: { text: string; history: Turn[]; dialectHint?: string; languageHint?: Lang },
 ): Promise<TurnResult> {
-  const convo = input.history.map((t) => `${t.role === 'user' ? 'User' : 'Assistant'}: ${t.text}`).join('\n');
+  const convo = input.history
+    .map((t) => `${t.role === 'user' ? 'User' : 'Assistant'}: ${t.text}`)
+    .join('\n');
   const u = await deps.generateJson({
     system: understandSystem(input.dialectHint, input.languageHint),
     prompt: `Recent conversation:\n${convo || '(none)'}\n\nLatest user message:\n${input.text}`,
@@ -98,7 +118,13 @@ export async function handleTurn(
 
   if (u.intent !== 'scheme_question') {
     if (u.reply.trim()) {
-      return { kind: 'direct', intent: u.intent, answer: u.reply.trim(), language: u.language, dialect };
+      return {
+        kind: 'direct',
+        intent: u.intent,
+        answer: u.reply.trim(),
+        language: u.language,
+        dialect,
+      };
     }
     return { kind: 'notFound', intent: u.intent, language: u.language, dialect };
   }
@@ -109,7 +135,9 @@ export async function handleTurn(
     return { kind: 'notFound', intent: 'scheme_question', language: u.language, dialect };
   }
 
-  const sourceText = passages.map((p) => `[${p.id}] ${p.schemeName} / ${p.section}\n${p.text}`).join('\n\n');
+  const sourceText = passages
+    .map((p) => `[${p.id}] ${p.schemeName} / ${p.section}\n${p.text}`)
+    .join('\n\n');
   const a = await deps.generateJson({
     system: answerSystem(u.language),
     prompt: `Passages:\n${sourceText}\n\nQuestion (English form): ${u.searchQueryEn}\nUser's own words: ${input.text}`,
@@ -121,7 +149,14 @@ export async function handleTurn(
   if (!a.answersQuestion || !a.answer.trim() || used.length === 0) {
     return { kind: 'notFound', intent: 'scheme_question', language: u.language, dialect };
   }
-  return { kind: 'grounded', intent: 'scheme_question', answer: a.answer.trim(), language: u.language, dialect, usedChunkIds: used };
+  return {
+    kind: 'grounded',
+    intent: 'scheme_question',
+    answer: a.answer.trim(),
+    language: u.language,
+    dialect,
+    usedChunkIds: used,
+  };
 }
 
 const MAX_TURNS = 6;
@@ -137,7 +172,11 @@ export function getHistory(sessionId: string): Turn[] {
 }
 
 export function recordTurn(sessionId: string, userText: string, assistantText: string): void {
-  const next = [...getHistory(sessionId), { role: 'user' as const, text: userText }, { role: 'assistant' as const, text: assistantText }].slice(-MAX_TURNS);
+  const next = [
+    ...getHistory(sessionId),
+    { role: 'user' as const, text: userText },
+    { role: 'assistant' as const, text: assistantText },
+  ].slice(-MAX_TURNS);
   store.delete(sessionId);
   store.set(sessionId, next);
   if (store.size > MAX_SESSIONS) {

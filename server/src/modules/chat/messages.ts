@@ -99,9 +99,7 @@ const ROMAN_MESSAGES: Partial<Record<LanguageCode, Messages>> = {
 };
 
 function messagesFor(language: LanguageCode, script?: ReplyScript): Messages {
-  return script === 'Latin'
-    ? (ROMAN_MESSAGES[language] ?? MESSAGES[language])
-    : MESSAGES[language];
+  return script === 'Latin' ? (ROMAN_MESSAGES[language] ?? MESSAGES[language]) : MESSAGES[language];
 }
 
 const GREETING_PHRASES = new Set([
@@ -159,20 +157,28 @@ export function getGreetingReply(
 
 const WHERE_FROM_REPLIES: Record<LanguageCode, { native: string; roman: string }> = {
   en: {
-    native: "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
-    roman: "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
+    native:
+      "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
+    roman:
+      "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
   },
   hi: {
-    native: 'मैं ग्राम साथी हूँ। सरकारी योजनाओं की जानकारी में मदद करता हूँ। आप किस योजना के बारे में पूछना चाहेंगे?',
-    roman: 'Main Gram Saathi hoon. Sarkari yojanaon ki jaankari mein madad karta hoon. Aap kis yojana ke baare mein poochhna chahenge?',
+    native:
+      'मैं ग्राम साथी हूँ। सरकारी योजनाओं की जानकारी में मदद करता हूँ। आप किस योजना के बारे में पूछना चाहेंगे?',
+    roman:
+      'Main Gram Saathi hoon. Sarkari yojanaon ki jaankari mein madad karta hoon. Aap kis yojana ke baare mein poochhna chahenge?',
   },
   mr: {
-    native: 'मी ग्राम साथी आहे. सरकारी योजनांची माहिती शोधण्यात मी मदत करतो. तुम्हाला कोणत्या योजनेबद्दल जाणून घ्यायचे आहे?',
-    roman: 'Mi Gram Saathi aahe. Sarkari yojananchi mahiti shodhayla mi madat karto. Tumhala kontya yojanebaddal vicharayche aahe?',
+    native:
+      'मी ग्राम साथी आहे. सरकारी योजनांची माहिती शोधण्यात मी मदत करतो. तुम्हाला कोणत्या योजनेबद्दल जाणून घ्यायचे आहे?',
+    roman:
+      'Mi Gram Saathi aahe. Sarkari yojananchi mahiti shodhayla mi madat karto. Tumhala kontya yojanebaddal vicharayche aahe?',
   },
   ta: {
-    native: 'நான் கிராம் சாத்தி. அரசு திட்டங்கள் பற்றிய தகவலுக்கு உதவுகிறேன். எந்தத் திட்டத்தைப் பற்றி தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
-    roman: 'Naan Gram Saathi. Arasu thittangal patriya thagavalukku udhavugiren. Endha thittathai patri therindhukolla virumbugireergal?',
+    native:
+      'நான் கிராம் சாத்தி. அரசு திட்டங்கள் பற்றிய தகவலுக்கு உதவுகிறேன். எந்தத் திட்டத்தைப் பற்றி தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
+    roman:
+      'Naan Gram Saathi. Arasu thittangal patriya thagavalukku udhavugiren. Endha thittathai patri therindhukolla virumbugireergal?',
   },
 };
 
