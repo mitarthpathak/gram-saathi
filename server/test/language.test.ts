@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { toSupportedLanguage } from '../src/lib/languages';
 import { detectTextLanguage, detectTextScript } from '../src/modules/chat/language';
-import { answerLanguageFromTranscription, dialectHintOutcome } from '../src/modules/dialect/language';
+import {
+  answerLanguageFromTranscription,
+  dialectHintOutcome,
+} from '../src/modules/dialect/language';
 import { normalizeAudioMimeType } from '../src/modules/voice/service';
 
 describe('detectTextLanguage', () => {

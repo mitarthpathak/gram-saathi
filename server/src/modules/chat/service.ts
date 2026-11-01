@@ -24,7 +24,13 @@ import {
   detectTextScript,
   type ReplyScript,
 } from './language';
-import { getFraudWarning, getGreetingReply, getMessage, getSmallTalkReply, ASK_AGAIN } from './messages';
+import {
+  getFraudWarning,
+  getGreetingReply,
+  getMessage,
+  getSmallTalkReply,
+  ASK_AGAIN,
+} from './messages';
 import { getHistory, handleTurn, recordTurn, type Passage, type Turn } from './conversation';
 import {
   decideReplyDialect,
@@ -146,7 +152,11 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
 
   const cached = answerCache.get(key);
   if (cached) {
-    return { ...toResponse(cached, input, true), ...dialect, answerStyle: { ...mockStyle, language: cached.detectedLanguage } };
+    return {
+      ...toResponse(cached, input, true),
+      ...dialect,
+      answerStyle: { ...mockStyle, language: cached.detectedLanguage },
+    };
   }
 
   let pending = inFlight.get(key);
@@ -160,7 +170,11 @@ export async function answerQuestion(input: AnswerInput): Promise<QueryResponse>
     inFlight.set(key, pending);
   }
   const answer = await pending;
-  return { ...toResponse(answer, input, false), ...dialect, answerStyle: { ...mockStyle, language: answer.detectedLanguage } };
+  return {
+    ...toResponse(answer, input, false),
+    ...dialect,
+    answerStyle: { ...mockStyle, language: answer.detectedLanguage },
+  };
 }
 
 /** Fixed reviewed texts (not found) are never reworded. */
@@ -209,7 +223,14 @@ async function styleReply(
     },
     {
       generateJson: ({ system, prompt, schema, timeoutMs }) =>
-        generateJson({ label: 'reply-dialect', system, input: prompt, schema, timeoutMs, maxRetries: 0 }),
+        generateJson({
+          label: 'reply-dialect',
+          system,
+          input: prompt,
+          schema,
+          timeoutMs,
+          maxRetries: 0,
+        }),
     },
   );
   logger.debug(
@@ -310,7 +331,11 @@ async function answerConversation(
     };
   } else {
     const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
-    if (!result.answer || usedChunks.length === 0 || !preservesContextNumbers(result.answer, usedChunks)) {
+    if (
+      !result.answer ||
+      usedChunks.length === 0 ||
+      !preservesContextNumbers(result.answer, usedChunks)
+    ) {
       response = {
         sessionId: input.sessionId ?? '',
         transcript: input.transcript,

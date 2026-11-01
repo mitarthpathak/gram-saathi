@@ -10,6 +10,7 @@ import { env, isMocked } from '../../config/env';
 import { LruCache } from '../../lib/cache';
 import { classifyGeminiError, synthesizeAudio, type SpeechResult } from '../../lib/geminiClient';
 import { logger } from '../../lib/logger';
+import { synthesizeWithSarvam } from '../../lib/sarvamClient';
 import { concatPcm, encodeWav, isWav, parseWav, type PcmAudio } from '../../lib/wav';
 import { getDialectEntry } from '../dialect/registry';
 import { dialectRenderEntry } from '../dialect/renderConfig';
@@ -97,6 +98,39 @@ export function planSpeech(
 }
 
 const NO_AUDIO: TtsResponse = { audioUrl: null, basis: 'none' };
+const sarvamAudioCache = new Map<string, string>();
+
+async function synthesizeWithSarvamProvider(request: TtsRequest): Promise<TtsResponse> {
+  if (isMocked('tts') || request.text.length > 2500) return { audioUrl: null };
+  const languageCode =
+    request.language === 'mr'
+      ? 'mr-IN'
+      : request.language === 'ta'
+        ? 'ta-IN'
+        : request.language === 'en'
+          ? 'en-IN'
+          : 'hi-IN';
+  const key = JSON.stringify([languageCode, env.SARVAM_TTS_SPEAKER, request.text]);
+  const cached = sarvamAudioCache.get(key);
+  if (cached) {
+    sarvamAudioCache.delete(key);
+    sarvamAudioCache.set(key, cached);
+    return { audioUrl: cached };
+  }
+  try {
+    const audio = await synthesizeWithSarvam({
+      text: request.text,
+      languageCode,
+      speaker: env.SARVAM_TTS_SPEAKER,
+    });
+    const audioUrl = `data:audio/wav;base64,${audio}`;
+    sarvamAudioCache.set(key, audioUrl);
+    if (sarvamAudioCache.size > 100) sarvamAudioCache.delete(sarvamAudioCache.keys().next().value!);
+    return { audioUrl };
+  } catch {
+    return { audioUrl: null };
+  }
+}
 
 // Per process: finished audio by hash(text, voice, model, rate, style), and sample rates the API
 // turned down (so later calls go straight to the fallback rate).
@@ -176,6 +210,8 @@ export async function synthesizeSpeech(
   request: TtsRequest,
   overrides: Partial<TtsSettings> = {},
 ): Promise<TtsResponse> {
+  if (env.TTS_PROVIDER === 'sarvam') return synthesizeWithSarvamProvider(request);
+  if (env.TTS_PROVIDER === 'none') return NO_AUDIO;
   const settings = { ...ttsSettingsFromEnv(), ...overrides };
   if (!isServerSpeechConfigured(settings)) return NO_AUDIO;
 

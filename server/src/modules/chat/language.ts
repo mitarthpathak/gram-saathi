@@ -214,7 +214,9 @@ export function detectTextScript(text: string): ReplyScript | undefined {
     ['Gujarati', /[઀-૿]/g],
     ['Gurmukhi', /[਀-਴]/g],
   ];
-  const counts = scripts.map(([script, pattern]) => [script, text.match(pattern)?.length ?? 0] as const);
+  const counts = scripts.map(
+    ([script, pattern]) => [script, text.match(pattern)?.length ?? 0] as const,
+  );
   const strongest = counts.sort((a, b) => b[1] - a[1])[0];
   const latinCount = text.match(/[A-Za-z]/g)?.length ?? 0;
   if (strongest[1] > latinCount) return strongest[0];
