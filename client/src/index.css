@@ -469,6 +469,38 @@
   }
 }
 
+/*
+ * Themed scrollbar — "Leaf & Marigold" palette.
+ * Thin track in paper-alt, thumb in leaf-700 with rounded caps.
+ * Firefox uses the two-value shorthand; WebKit gets pseudo-elements.
+ * `contain: strict` on scrollable containers + `will-change` are set
+ * per-element so the compositor can promote them to their own layer,
+ * keeping scrolling on the GPU thread (higher FPS).
+ */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-paper-alt);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-leaf-600);
+    border-radius: 9999px;
+    border: 1px solid var(--color-paper-alt);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-leaf-700);
+  }
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-leaf-600) var(--color-paper-alt);
+  }
+}
+
 /* Lenis smooth scroll (desktop, Full tier only). */
 html.lenis,
 html.lenis body {
