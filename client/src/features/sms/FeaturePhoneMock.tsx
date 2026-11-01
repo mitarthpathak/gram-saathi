@@ -44,7 +44,7 @@ export function FeaturePhoneMock({ sms, segments, sender = 'VM-GSATHI' }: Featur
             <BatteryMedium aria-hidden className="size-4" />
           </span>
         </div>
-        <p className="h-32 overflow-y-auto px-2 py-1.5 text-base leading-snug break-words whitespace-pre-wrap">
+        <p className="h-32 overflow-y-auto px-2 py-1.5 text-base leading-snug break-words whitespace-pre-wrap [will-change:scroll-position] [contain:strict]">
           {sms ?? t.noAnswerYet}
         </p>
         {sms && (
