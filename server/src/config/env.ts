@@ -99,7 +99,7 @@ const envSchema = z.object({
 
   // Sarvam voice providers. Defaults preserve the existing Gemini STT and browser TTS behavior.
   STT_PROVIDER: fromEnv(z.enum(['gemini', 'sarvam']).default('gemini')),
-  TTS_PROVIDER: fromEnv(z.enum(['none', 'sarvam']).default('none')),
+  TTS_PROVIDER: fromEnv(z.enum(['none', 'sarvam', 'gemini']).default('gemini')),
   SARVAM_API_KEY: fromEnv(z.string().optional()),
   SARVAM_STT_MODEL: fromEnv(z.string().default('saaras:v3')),
   SARVAM_TTS_MODEL: fromEnv(z.string().default('bulbul:v3')),
