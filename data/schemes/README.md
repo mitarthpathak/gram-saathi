@@ -1,90 +1,58 @@
 # Scheme documents
 
-The knowledge base. Every answer must be grounded in these files, and every source card in the
-UI points to a section of one of them (`schemeId` + `section`).
+This directory contains the source library for chat retrieval. Production ingestion accepts a
+document only when its front matter says `sample: false`, `verified: true`, and links to an HTTPS
+government source (or PFRDA). The server blocks answers from old or unverified vector stores.
 
-> **All seven files here are SAMPLES** (`sample: true` in their front matter and a banner
-> comment): hackathon summaries written from public information. Replace each one with the
-> official scheme text, set `sample: false` and `verified: true`, then re-run
-> `npm run ingest -w server`. The server warns at startup while the knowledge base contains
-> sample documents.
+Six documents currently contain facts checked against the linked official pages. The PMAY-G file
+is still a sample and is skipped; PMAY-G questions will correctly return “not in the documents”
+until a current official source has been reviewed.
 
-## Add a scheme
+## Add or update a source
 
-1. Create `data/schemes/<scheme-id>.md`. The file name (without `.md`) is the `schemeId` used by
-   the API: lowercase words joined by dashes, e.g. `pm-ujjwala.md` → `pm-ujjwala`.
-2. Start with front matter, then one `##` section per topic:
+Create `data/schemes/<scheme-id>.md` using this front matter:
 
-   ```markdown
-   ---
-   schemeId: pm-ujjwala
-   schemeName: <official scheme name>
-   ministry: <ministry or department>
-   officialUrl: <official .gov.in page>
-   helpline: '<official helpline number>'
-   tags: [<topic>, <who it is for>]
-   languages: [en]
-   sample: false # true for placeholder text that must be replaced
-   verified: true # true only after checking every fact on officialUrl
-   lastVerified: <YYYY-MM-DD>
-   ---
+```markdown
+---
+schemeId: pm-ujjwala
+schemeName: <official scheme name>
+ministry: <ministry or department>
+officialUrl: <secure official source URL>
+sourceUrl: <official source page checked for the facts>
+accessDate: <YYYY-MM-DD>
+tags: [<topic>, <who it is for>]
+languages: [en]
+sample: false
+verified: true
+lastVerified: <YYYY-MM-DD>
+---
+```
 
-   # <official scheme name>
-
-   ## Overview
-
-   ## Benefits
-
-   ## Eligibility
-
-   ## How to apply
-
-   ## Documents needed
-
-   ## Helpline
-   ```
-
-3. Keep each section focused. Each section becomes one or more retrievable chunks (long
-   sections are split at about 600 tokens), and its heading is the `section` shown on the source
-   card, so use the standard headings above.
-4. Use plain, factual language: amounts with units ("₹6,000 per year"), who qualifies, where to
-   apply. No opinions, no advice.
-
-## Rules
-
-- **Official sources only:** the scheme's `.gov.in` site, guidelines, gazette notifications, PIB
-  releases. Put the link in `officialUrl`, and set `verified: true` and `lastVerified` only after
-  checking every fact there.
-- If something is unclear, leave it out. The assistant then answers "not found" instead of
-  guessing.
-- English is fine: answers are generated in the user's language. Text in other languages is
-  welcome as extra files or sections.
-- No personal data.
+Use one `##` section per topic. Keep sections focused and use plain factual language. Include
+only facts checked against `officialUrl`; omit anything unclear. Never include personal data.
 
 ## Ingestion
 
 ```bash
-npm run ingest -w server              # needs GEMINI_API_KEY
-npm run ingest -w server -- --dry-run # chunk only: check the split without any API call
+npm run ingest -w server              # verified official documents only; needs GEMINI_API_KEY
+npm run ingest -w server -- --dry-run # check chunking without an API call
 ```
 
-The script reads every `.md`, `.markdown`, `.txt` and `.pdf` file here (except this README),
-splits it by `##` / `###` section and then into chunks of about 600 tokens with a small overlap,
-embeds the chunks with Gemini and writes `server/data/vectorstore.json`. Re-run it after every
-change here; the server warns when the documents changed since the last run. PDFs have no
-headings, so a PDF becomes one "Overview" section: prefer Markdown with the headings above.
-`schemeId` defaults to the file name and `schemeName` to the first `#` heading.
+The script skips sample, unverified or non-official files. It splits approved sources into
+retrievable chunks, embeds them with Gemini and writes `server/data/vectorstore.json`. Re-run it
+after each source edit. Restart the server after ingesting.
 
-Eligibility rules are not in these files: they live in `data/eligibility/` (see its README).
+The client and server mocks are synthetic demo data. They are labelled as demo data in the app
+and must not be used to verify scheme eligibility or benefits.
 
 ## Files
 
-| File                         | Scheme                                       | Status                             |
-| ---------------------------- | -------------------------------------------- | ---------------------------------- |
-| `pm-kisan.md`                | PM-KISAN income support for farmers          | SAMPLE: replace with official text |
-| `ayushman-bharat-pmjay.md`   | Ayushman Bharat PM-JAY health cover          | SAMPLE: replace with official text |
-| `atal-pension-yojana.md`     | Atal Pension Yojana                          | SAMPLE: replace with official text |
-| `pm-suraksha-bima-yojana.md` | PM Suraksha Bima Yojana (accident insurance) | SAMPLE: replace with official text |
-| `pm-ujjwala-yojana.md`       | PM Ujjwala Yojana (LPG connections)          | SAMPLE: replace with official text |
-| `mgnrega.md`                 | MGNREGA (100 days of rural wage work)        | SAMPLE: replace with official text |
-| `pmay-gramin.md`             | PM Awas Yojana Gramin (rural housing)        | SAMPLE: replace with official text |
+| File                         | Scheme                                 | Source status                                |
+| ---------------------------- | -------------------------------------- | -------------------------------------------- |
+| `pm-kisan.md`                | PM-KISAN income support for farmers    | Verified against PM-KISAN portal             |
+| `ayushman-bharat-pmjay.md`   | PM-JAY senior-citizen benefit, age 70+ | Verified against NHA FAQ                     |
+| `atal-pension-yojana.md`     | Atal Pension Yojana                    | Verified against PFRDA FAQ                   |
+| `pm-suraksha-bima-yojana.md` | PMSBY accident insurance               | Verified against Jan Suraksha FAQ            |
+| `pm-ujjwala-yojana.md`       | PM Ujjwala Yojana (LPG connections)    | Verified against PMUY FAQ                    |
+| `mgnrega.md`                 | MGNREGS employment guarantee           | Verified against official scheme portal      |
+| `pmay-gramin.md`             | PM Awas Yojana Gramin (rural housing)  | Sample; excluded until current source review |

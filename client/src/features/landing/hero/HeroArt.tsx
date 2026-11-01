@@ -1,7 +1,14 @@
 import type { LanguageCode } from '@gram-saathi/shared';
 import { BadgeCheck, MessageSquareText } from 'lucide-react';
-import { m, useInView, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import {
+  m,
+  useInView,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from 'motion/react';
+import { memo, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Birds, Sparkle, Sun, Wheat } from '@/components/art/doodles';
 import { PhoneFrame } from '@/components/art/PhoneFrame';
 import { cn } from '@/lib/cn';
@@ -13,7 +20,7 @@ import { useFitScale } from '@/lib/useFitScale';
 import type { DemoExchange } from '../demoContent';
 import { MascotButton } from '../MascotButton';
 import { landingStrings } from '../strings';
-import { PhoneScreen } from './PhoneScreen';
+import { PhoneScreen, type DemoStage } from './PhoneScreen';
 import { useDemoLoop } from './useDemoLoop';
 
 /** Resting tilt of the phone (degrees). The pointer adds a little on top in the Full tier. */
@@ -46,17 +53,29 @@ export function HeroArt({ paused, delay, className }: HeroArtProps) {
   const [exchange, setExchange] = useState<DemoExchange | null>(null);
   useEffect(() => {
     let cancelled = false;
-    void import('../demoContent').then((module) => {
-      if (!cancelled) setExchange(module.pmKisanExchange(demoLanguage, true));
-    });
+    let attempts = 0;
+    let retryTimer: number | undefined;
+    const loadDemo = () => {
+      void import('../demoContent')
+        .then((module) => {
+          if (!cancelled) setExchange(module.pmKisanExchange(demoLanguage, true));
+        })
+        .catch(() => {
+          if (cancelled || attempts >= 2) return;
+          attempts++;
+          retryTimer = window.setTimeout(loadDemo, attempts * 500);
+        });
+    };
+    loadDemo();
     return () => {
       cancelled = true;
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
     };
   }, [demoLanguage]);
 
-  const inView = useInView(slotRef, { amount: 0.25 });
-  const playing = !paused && inView && tier !== 'reduced' && exchange !== null;
-  const { stage, typedWords } = useDemoLoop(playing, exchange?.question.split(' ').length ?? 0);
+  // Start the demo as soon as a small part of the phone enters the viewport. On short screens
+  // the phone sits below the copy, so a higher threshold can leave its screen frozen at welcome.
+  const inView = useInView(slotRef, { amount: 0.05 });
 
   // Pointer parallax (Full tier): the phone tilts, chips drift forward, doodles drift back.
   const pointerX = useMotionValue(0);
@@ -122,35 +141,16 @@ export function HeroArt({ paused, delay, className }: HeroArtProps) {
         />
 
         {/* The phone. */}
-        <div
-          aria-hidden
-          className="absolute top-[360px] left-[226px] animate-fade-up lg:left-[320px]"
+        <DemoPhone
+          paused={paused}
+          inView={inView}
+          exchange={exchange}
+          language={demoLanguage}
+          isDesktop={isDesktop}
+          rotateX={rotateX}
+          rotateY={rotateY}
           style={enter(0.15)}
-        >
-          <div className="lively:animate-float">
-            <m.div
-              inert
-              style={{
-                rotateX: tier === 'reduced' ? TILT.x : rotateX,
-                rotateY: tier === 'reduced' ? TILT.y : rotateY,
-                rotateZ: TILT.z,
-                scale: isDesktop ? 0.79 : 0.74,
-                transformPerspective: 1900,
-                x: '-50%',
-                y: '-50%',
-              }}
-            >
-              <PhoneFrame depth className="shadow-[40px_60px_80px_-40px_rgb(120_80_30/0.45)]">
-                <PhoneScreen
-                  stage={stage}
-                  typedWords={typedWords}
-                  exchange={exchange}
-                  language={demoLanguage}
-                />
-              </PhoneFrame>
-            </m.div>
-          </div>
-        </div>
+        />
 
         {/* Saathi, sitting on the phone's top corner. */}
         <div
@@ -205,3 +205,64 @@ export function HeroArt({ paused, delay, className }: HeroArtProps) {
     </div>
   );
 }
+
+interface DemoPhoneProps {
+  paused: boolean;
+  inView: boolean;
+  exchange: DemoExchange | null;
+  language: LanguageCode;
+  isDesktop: boolean;
+  rotateX: MotionValue<number>;
+  rotateY: MotionValue<number>;
+  style: CSSProperties;
+}
+
+/** Keep the per-word demo updates inside the phone instead of rerendering all of HeroArt. */
+const DemoPhone = memo(function DemoPhone({
+  paused,
+  inView,
+  exchange,
+  language,
+  isDesktop,
+  rotateX,
+  rotateY,
+  style,
+}: DemoPhoneProps) {
+  const tier = useMotionTier();
+  const playing = !paused && inView && tier !== 'reduced' && exchange !== null;
+  const { stage, typedWords } = useDemoLoop(playing, exchange?.question.split(' ').length ?? 0);
+  // Reduced-motion users still get the complete phone preview, held on its final screen.
+  const visibleStage: DemoStage = tier === 'reduced' && exchange ? 'answer' : stage;
+
+  return (
+    <div
+      aria-hidden
+      className="absolute top-[360px] left-[226px] animate-fade-up lg:left-[320px]"
+      style={style}
+    >
+      <div className="lively:animate-float">
+        <m.div
+          inert
+          style={{
+            rotateX: tier === 'reduced' ? TILT.x : rotateX,
+            rotateY: tier === 'reduced' ? TILT.y : rotateY,
+            rotateZ: TILT.z,
+            scale: isDesktop ? 0.79 : 0.74,
+            transformPerspective: 1900,
+            x: '-50%',
+            y: '-50%',
+          }}
+        >
+          <PhoneFrame depth className="shadow-[40px_60px_80px_-40px_rgb(120_80_30/0.45)]">
+            <PhoneScreen
+              stage={visibleStage}
+              typedWords={typedWords}
+              exchange={exchange}
+              language={language}
+            />
+          </PhoneFrame>
+        </m.div>
+      </div>
+    </div>
+  );
+});

@@ -12,8 +12,15 @@ Rules:
 - Plain text on one line: no emojis, no markdown, no line breaks.
 - For English: write "Rs" instead of "₹" and use only plain ASCII punctuation.`;
 
-export function buildSmsInput(text: string, language: LanguageCode, maxChars: number): string {
-  return `LANGUAGE: ${describeLanguage(language)}\nCHARACTER LIMIT: ${maxChars}\n\nTEXT:\n${text}`;
+export function buildSmsInput(
+  text: string,
+  language: LanguageCode,
+  maxChars: number,
+  script?: string,
+): string {
+  const baseLanguage = describeLanguage(language).replace(/ \([^)]* script\)$/, '');
+  const replyLanguage = script ? `${baseLanguage} (${script} script)` : describeLanguage(language);
+  return `LANGUAGE: ${replyLanguage}\nCHARACTER LIMIT: ${maxChars}\n\nTEXT:\n${text}`;
 }
 
 export const smsSchema = z.object({

@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-10-30T21:02:08.016Z",
+  "model": "gemini-3.8-flash",
+  "promptVersion": "dialect-v3-real-exemplars-pairwise:2f0dfbd68e78ae81104cc1906d35fd3c40d682a3df1f6a38553a8895bf2238f2",
+  "ensembleSize": 3,
+  "minimumVotes": 2,
+  "activeLabels": [
+    "marwari",
+    "dhundhari",
+    "shekhawati",
+    "bagri",
+    "mewari",
+    "mewati",
+    "harauti",
+    "malvi",
+    "wagdi",
+    "braj",
+    "haryanvi",
+    "bhojpuri",
+    "awadhi",
+    "bundeli",
+    "hindi",
+    "marathi",
+    "tamil",
+    "english",
+    "gujarati",
+    "punjabi",
+    "other_language",
+    "mixed_or_uncertain"
+  ],
+  "rows": 0,
+  "cacheHits": 0,
+  "metrics": {
+    "rows": 0,
+    "perClass": {},
+    "macroF1": 0,
+    "confusionMatrix": {},
+    "abstentionRate": 0,
+    "answeredPrecision": null,
+    "coverage": 0,
+    "wrongWithHighConfidence": [],
+    "breakdowns": {
+      "script": {},
+      "shortText": {},
+      "codeSwitch": {},
+      "audioDuration": {}
+    },
+    "confusablePairs": {}
+  },
+  "predictions": []
+}

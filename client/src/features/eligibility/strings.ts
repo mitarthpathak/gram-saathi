@@ -16,6 +16,8 @@ const en = {
   restart: 'Start again',
   disclaimer: 'This is guidance only. Confirm at your CSC or Gram Panchayat before applying.',
   error: 'Could not load the question. Please try again.',
+  errorUnverified:
+    'These eligibility rules have not been verified against official documents, so I cannot estimate a result yet.',
   duration: 'Takes about a minute',
   summaryOne: 'You may qualify for 1 scheme',
   summaryMany: 'You may qualify for {count} schemes',
@@ -45,6 +47,9 @@ export const eligibilityStrings: Strings<typeof en> = {
     restart: 'फिर से शुरू करें',
     disclaimer: 'यह केवल मार्गदर्शन है। आवेदन से पहले CSC या ग्राम पंचायत पर पुष्टि करें।',
     error: 'सवाल लोड नहीं हो सका। कृपया फिर से कोशिश करें।',
+    // TODO(review-native): review this safety message with a native Hindi speaker.
+    errorUnverified:
+      'पात्रता के ये नियम अभी आधिकारिक दस्तावेज़ों से जाँचे नहीं गए हैं, इसलिए मैं नतीजे का अनुमान नहीं दे सकता।',
     duration: 'लगभग एक मिनट लगता है',
     summaryOne: 'आप 1 योजना के लिए पात्र हो सकते हैं',
     summaryMany: 'आप {count} योजनाओं के लिए पात्र हो सकते हैं',
@@ -71,6 +76,9 @@ export const eligibilityStrings: Strings<typeof en> = {
     restart: 'पुन्हा सुरू करा',
     disclaimer: 'हे फक्त मार्गदर्शन आहे. अर्ज करण्यापूर्वी CSC किंवा ग्रामपंचायतीत खात्री करा.',
     error: 'प्रश्न लोड होऊ शकला नाही. कृपया पुन्हा प्रयत्न करा.',
+    // TODO(review-native): review this safety message with a native Marathi speaker.
+    errorUnverified:
+      'पात्रतेचे हे नियम अधिकृत कागदपत्रांशी अजून तपासलेले नाहीत, त्यामुळे मी निकालाचा अंदाज देऊ शकत नाही.',
     duration: 'सुमारे एक मिनिट लागतो',
     summaryOne: 'तुम्ही 1 योजनेसाठी पात्र असू शकता',
     summaryMany: 'तुम्ही {count} योजनांसाठी पात्र असू शकता',
@@ -98,6 +106,9 @@ export const eligibilityStrings: Strings<typeof en> = {
     disclaimer:
       'இது வழிகாட்டுதல் மட்டுமே. விண்ணப்பிக்கும் முன் CSC அல்லது கிராம பஞ்சாயத்தில் உறுதிப்படுத்துங்கள்.',
     error: 'கேள்வியை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+    // TODO(review-native): review this safety message with a native Tamil speaker.
+    errorUnverified:
+      'இந்தத் தகுதி விதிகள் அதிகாரப்பூர்வ ஆவணங்களுடன் இன்னும் சரிபார்க்கப்படவில்லை; எனவே முடிவை என்னால் கணிக்க முடியாது.',
     duration: 'சுமார் ஒரு நிமிடம் ஆகும்',
     summaryOne: 'நீங்கள் 1 திட்டத்திற்குத் தகுதி பெறலாம்',
     summaryMany: 'நீங்கள் {count} திட்டங்களுக்குத் தகுதி பெறலாம்',

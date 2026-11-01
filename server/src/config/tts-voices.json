@@ -1,0 +1,10 @@
+{
+  "$comment": "Server speech voices. Each entry is { voice } (a prebuilt voice name) or { voiceId } (an id from the Gemini Extended Voice Library, or a voice the owner created with consent; see docs/RUNBOOK.md). A dialect entry overrides its parent language. The defaults are placeholders from the prebuilt list (Kore is the voice in the official examples) and must be auditioned by a person: run `npm run tts:voices -w server`, listen to candidates and to `npm run tts:samples -w server`, then edit this file and set status to \"auditioned\". Never put a cloned or replicated voice here without the speaker's recorded consent.",
+  "languages": {
+    "hi": { "voice": "Kore", "status": "to-be-auditioned" },
+    "mr": { "voice": "Kore", "status": "to-be-auditioned" },
+    "ta": { "voice": "Kore", "status": "to-be-auditioned" },
+    "en": { "voice": "Kore", "status": "to-be-auditioned" }
+  },
+  "dialects": {}
+}

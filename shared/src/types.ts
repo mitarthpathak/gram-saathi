@@ -76,6 +76,10 @@ export interface HealthResponse {
   status: 'ok';
   /** true when the server runs with USE_MOCKS=true. */
   mocks: boolean;
+  /** Whether non-mocked dialect classification can call the configured model. */
+  dialectConfigured?: boolean;
+  /** Whether server-side Gemini speech generation has a key and model configured. */
+  ttsConfigured?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +103,34 @@ export interface VoiceQueryFields {
   sessionId: string;
 }
 
+/** Optional conversation route chosen by the server's intent-understanding step. */
+export type ConversationIntent = 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope';
+
+/** Why an answer stayed in the standard language instead of a dialect's spoken form. */
+export type AnswerStyleReason =
+  | 'no_dialect'
+  | 'low_confidence'
+  | 'render_off'
+  | 'facts_check_failed'
+  | 'timeout'
+  | 'error'
+  | 'not_verified';
+
+/**
+ * How the answer text was written. `rendered: 'dialect'` means the grounded standard-language
+ * answer was reworded into the dialect's spoken form and passed the deterministic facts check;
+ * dialect wording is model-generated and unverified unless a native speaker reviewed it.
+ */
+export interface AnswerStyle {
+  /** Same as `detectedLanguage`. */
+  language: LanguageCode;
+  /** The dialect the answer was (or would have been) rendered in; null when none applies. */
+  dialectId: string | null;
+  rendered: 'dialect' | 'standard';
+  /** Set when `rendered` is 'standard'. */
+  reason?: AnswerStyleReason;
+}
+
 export interface QueryResponse {
   sessionId: string;
   /** What the user said. Present for voice queries only. */
@@ -114,9 +146,13 @@ export interface QueryResponse {
   dialectCandidates?: DialectOption[];
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;
+  /** Route for rendering or follow-up behavior; absent on older servers and mock fixtures. */
+  intent?: ConversationIntent;
+  /** Whether the answer is in a dialect's spoken form or the standard language, and why. */
+  answerStyle?: AnswerStyle;
   /** The passages the answer uses. Empty when `notFound`. */
   sources: Source[];
-  /** Anti-fraud reminder shown with every answer, in the user's language. */
+  /** Anti-fraud reminder; empty for direct conversational replies. */
   fraudWarning: string;
   /** SMS-length version of the answer. */
   smsText: string;
@@ -230,10 +266,28 @@ export interface FaqTopResponse {
 export interface TtsRequest {
   text: string;
   language: LanguageCode;
+  /**
+   * Registry dialect id. Send it only when `text` is dialect-worded (answerStyle.rendered is
+   * 'dialect'); it selects the dialect TTS model and voice. Unknown ids are rejected (400).
+   */
+  dialectId?: string;
 }
 
+/**
+ * What the audio is based on:
+ * - language: the text's language, spoken by a voice for that language.
+ * - named-dialect: the TTS model's language table names this dialect itself (e.g. Bhojpuri,
+ *   Awadhi). Whether the model actually speaks it that way is unreviewed.
+ * - base-language-approximation: the dialect is not named by the TTS model, so the dialect text
+ *   is spoken by a voice for its parent language (e.g. Hindi for Braj, Marwari, Wagdi).
+ * - none: no server audio; use browser speech.
+ */
+export type TtsBasis = 'language' | 'named-dialect' | 'base-language-approximation' | 'none';
+
 export interface TtsResponse {
+  /** A data: URL (WAV) or null, meaning "use browser speech synthesis". */
   audioUrl: string | null;
+  basis?: TtsBasis;
 }
 
 // ---------------------------------------------------------------------------

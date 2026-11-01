@@ -1,0 +1,1725 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-31T05:21:13.835Z",
+  "git": {
+    "branch": "feat/dialect-voice",
+    "commit": "4c62fcb",
+    "dirty": true
+  },
+  "label": "baseline",
+  "workers": [
+    {
+      "worker": "configured",
+      "useMocks": [
+        "voice",
+        "chat",
+        "dialect",
+        "rag",
+        "eligibility",
+        "sms",
+        "tts",
+        "faq"
+      ],
+      "keyConfigured": false,
+      "transport": "in-process",
+      "transportNote": "Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+      "models": {
+        "chat": "gemini-3.8-flash",
+        "fallback": "gemini-3.6-flash",
+        "embed": "gemini-embedding-2"
+      }
+    },
+    {
+      "worker": "fake",
+      "useMocks": [],
+      "keyConfigured": false,
+      "transport": "in-process",
+      "transportNote": "Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+      "models": {
+        "chat": "gemini-3.8-flash"
+      }
+    }
+  ],
+  "stages": [
+    {
+      "stage": "A",
+      "name": "Static checks",
+      "status": "NOT-TESTED",
+      "mode": "static",
+      "reason": "Dependencies are not installed (node_modules/.bin lacks tsc, vitest, eslint, vite, tsx). Run `npm install` first; no static result can be claimed without the repo's own toolchain.",
+      "checks": [],
+      "durationMs": 0
+    },
+    {
+      "stage": "B",
+      "name": "Real-mode preflight",
+      "mode": "static",
+      "status": "PARTIAL",
+      "checks": [
+        {
+          "id": "B-env",
+          "title": "Environment variables validate",
+          "status": "PASS",
+          "detail": "server/src/config/env.ts parsed the environment (it exits the process on invalid values, so reaching this line is the evidence).",
+          "evidence": [
+            "server/src/config/env.ts"
+          ],
+          "data": {
+            "useMocks": [
+              "voice",
+              "chat",
+              "dialect",
+              "rag",
+              "eligibility",
+              "sms",
+              "tts",
+              "faq"
+            ],
+            "keyConfigured": false
+          }
+        },
+        {
+          "id": "B-model-chat",
+          "title": "Chat model id resolves",
+          "status": "NOT-TESTED",
+          "detail": "Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id \"gemini-3.8-flash\" was not resolved.",
+          "evidence": []
+        },
+        {
+          "id": "B-model-fallback",
+          "title": "Fallback model id resolves",
+          "status": "NOT-TESTED",
+          "detail": "Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id \"gemini-3.6-flash\" was not resolved.",
+          "evidence": []
+        },
+        {
+          "id": "B-model-audio",
+          "title": "Speech-to-text model id resolves (text-only ping)",
+          "status": "NOT-TESTED",
+          "detail": "Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id \"gemini-3.8-flash\" was not resolved.",
+          "evidence": []
+        },
+        {
+          "id": "B-model-embed",
+          "title": "Embedding model id resolves",
+          "status": "NOT-TESTED",
+          "detail": "Real mode needs GEMINI_API_KEY; it is not set in this environment (no real model call was made). Model id \"gemini-embedding-2\" was not resolved.",
+          "evidence": []
+        },
+        {
+          "id": "B-model-tts",
+          "title": "Text-to-speech model id resolves",
+          "status": "NOT-TESTED",
+          "detail": "tts is mocked (USE_MOCKS), so no TTS call was made.",
+          "evidence": []
+        },
+        {
+          "id": "B-kb",
+          "title": "Knowledge base file exists and matches the embedding settings",
+          "status": "PASS",
+          "detail": "26 chunks from 6 documents (atal-pension-yojana, ayushman-bharat-pmjay, mgnrega, pm-kisan, pm-suraksha-bima-yojana, pm-ujjwala-yojana); model gemini-embedding-2, 768 dimensions.",
+          "evidence": [
+            "server/data/vectorstore.json"
+          ],
+          "data": {
+            "chunks": 26,
+            "documents": 6
+          }
+        },
+        {
+          "id": "B-kb-fresh",
+          "title": "Index was built from the current verified scheme documents",
+          "status": "PARTIAL",
+          "detail": "Content matches, line endings do not: this checkout fingerprints as b5a3948317424543, the index was built from CRLF (Windows) text (94964a0a8624ab95). The server's startup check (server/src/startup.ts) compares raw fingerprints, so it logs a false \"data/schemes changed since the last ingest\" warning on this platform. Re-ingest on the deploy platform or normalize line endings in fingerprintDocuments.",
+          "evidence": [
+            "data/schemes/*.md",
+            "server/data/vectorstore.json",
+            "server/src/modules/rag/documents.ts fingerprintDocuments"
+          ]
+        },
+        {
+          "id": "B-docs",
+          "title": "Scheme documents marked verified (front matter)",
+          "status": "PARTIAL",
+          "detail": "7 documents; 1 sample/unverified: pmay-gramin (sample: true, verified: false). Unverified documents are excluded from the index.",
+          "evidence": [
+            "data/schemes/*.md front matter"
+          ],
+          "data": {
+            "documents": 7,
+            "notReady": [
+              "pmay-gramin"
+            ]
+          }
+        }
+      ],
+      "durationMs": 27
+    },
+    {
+      "stage": "C",
+      "name": "Retrieval",
+      "mode": "mock",
+      "status": "MOCK-ONLY",
+      "checks": [
+        {
+          "id": "C-recall-hi",
+          "title": "Recall@4 for hi questions (raw native-script text)",
+          "status": "MOCK-ONLY",
+          "detail": "5/11 questions had their scheme in the top 4; missed: apy-pension, apy-who, pmsby-cover, ujjwala-who, mgnrega-days, mgnrega-job-card. Thresholds: PASS ≥ 0.9, PARTIAL ≥ 0.6. USE_MOCKS covers rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "data/faq/questions.json",
+            "server/eval/audit-goldset.json"
+          ],
+          "data": {
+            "recall": 0.45454545454545453,
+            "found": 5,
+            "total": 11
+          }
+        },
+        {
+          "id": "C-recall-mr",
+          "title": "Recall@4 for mr questions (raw native-script text)",
+          "status": "MOCK-ONLY",
+          "detail": "5/11 questions had their scheme in the top 4; missed: apy-pension, apy-who, pmsby-cover, ujjwala-who, mgnrega-days, mgnrega-job-card. Thresholds: PASS ≥ 0.9, PARTIAL ≥ 0.6. USE_MOCKS covers rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "data/faq/questions.json",
+            "server/eval/audit-goldset.json"
+          ],
+          "data": {
+            "recall": 0.45454545454545453,
+            "found": 5,
+            "total": 11
+          }
+        },
+        {
+          "id": "C-recall-ta",
+          "title": "Recall@4 for ta questions (raw native-script text)",
+          "status": "MOCK-ONLY",
+          "detail": "4/11 questions had their scheme in the top 4; missed: pm-kisan-register, apy-pension, apy-who, pmsby-cover, ujjwala-who, mgnrega-days, mgnrega-job-card. Thresholds: PASS ≥ 0.9, PARTIAL ≥ 0.6. USE_MOCKS covers rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "data/faq/questions.json",
+            "server/eval/audit-goldset.json"
+          ],
+          "data": {
+            "recall": 0.36363636363636365,
+            "found": 4,
+            "total": 11
+          }
+        },
+        {
+          "id": "C-recall-en",
+          "title": "Recall@4 for en questions (raw English text)",
+          "status": "MOCK-ONLY",
+          "detail": "5/11 questions had their scheme in the top 4; missed: apy-pension, apy-who, pmsby-cover, ujjwala-who, mgnrega-days, mgnrega-job-card. Thresholds: PASS ≥ 0.9, PARTIAL ≥ 0.6. USE_MOCKS covers rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "data/faq/questions.json",
+            "server/eval/audit-goldset.json"
+          ],
+          "data": {
+            "recall": 0.45454545454545453,
+            "found": 5,
+            "total": 11
+          }
+        },
+        {
+          "id": "C-separation",
+          "title": "Scheme and non-scheme scores separate",
+          "status": "MOCK-ONLY",
+          "detail": "Overlap: lowest English scheme score 0.000 ≤ highest non-scheme score 0.000; no single threshold separates them, so some non-scheme messages pass retrieval (the intent router must catch them) or some scheme questions are dropped.",
+          "evidence": [
+            "results.json stages.C.data"
+          ]
+        },
+        {
+          "id": "C-threshold",
+          "title": "Current RAG_MIN_SCORE (0.5) on this gold set",
+          "status": "MOCK-ONLY",
+          "detail": "25/44 answerable questions score below the threshold (ta:pm-kisan-register 0.000, hi:apy-pension 0.000, mr:apy-pension 0.000, ta:apy-pension 0.000, en:apy-pension 0.000, hi:apy-who 0.000, mr:apy-who 0.000, ta:apy-who 0.000, …); 0/10 non-scheme messages pass it. Recommendation from English questions vs non-scheme: 0.900 (best balanced accuracy; groups overlap); from all languages: 0.900. The live router searches with an English query, so the English-based value is the relevant one; do not change RAG_MIN_SCORE from mock results.",
+          "evidence": [
+            "results.json stages.C.data",
+            "server/scripts/calibrate-rag.ts recommendThreshold"
+          ]
+        }
+      ],
+      "data": {
+        "topK": 4,
+        "minScore": 0.5,
+        "englishScheme": {
+          "count": 11,
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 0.92,
+          "max": 0.92
+        },
+        "nativeScheme": {
+          "count": 33,
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 0.9,
+          "max": 0.92
+        },
+        "nonScheme": {
+          "count": 10,
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 0,
+          "max": 0
+        },
+        "outsideKnowledgeBase": {
+          "count": 4,
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 0,
+          "max": 0
+        },
+        "recommendation": {
+          "threshold": 0.9,
+          "separated": false,
+          "schemeMin": 0,
+          "nonSchemeMax": 0
+        },
+        "recommendationAllLanguages": {
+          "threshold": 0.9,
+          "separated": false,
+          "schemeMin": 0,
+          "nonSchemeMax": 0
+        },
+        "summary": {
+          "englishScheme": "n=11 min 0.000 · p25 0.000 · median 0.000 · p75 0.920 · max 0.920",
+          "nativeScheme": "n=33 min 0.000 · p25 0.000 · median 0.000 · p75 0.900 · max 0.920",
+          "nonScheme": "n=10 min 0.000 · p25 0.000 · median 0.000 · p75 0.000 · max 0.000",
+          "outsideKnowledgeBase": "n=4 min 0.000 · p25 0.000 · median 0.000 · p75 0.000 · max 0.000"
+        }
+      },
+      "durationMs": 1
+    },
+    {
+      "stage": "D",
+      "name": "Text answers (POST /api/chat/query)",
+      "mode": "mock",
+      "status": "MOCK-ONLY",
+      "checks": [
+        {
+          "id": "D-hi-pm-kisan-amount",
+          "title": "hi: पीएम किसान योजना में साल में कितना पैसा मिलता है?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: pm-kisan/Benefits, pm-kisan/Eligibility, pm-kisan/How to apply; facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. intent (none); 3 source(s); facts numbers 2000, 6000; rupees ₹2000, ₹6000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ]
+        },
+        {
+          "id": "D-hi-pmjay-cover",
+          "title": "hi: आयुष्मान कार्ड से कितने रुपये तक का मुफ़्त इलाज मिलता है?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: ayushman-bharat-pmjay/Benefits, ayushman-bharat-pmjay/Eligibility, ayushman-bharat-pmjay/How to apply; facts not in the cited passages: numbers 14555, 2011. intent (none); 3 source(s); facts numbers 14555, 2011, 5, 70; rupees ₹5; urls beneficiary.nha.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “आयुष्मान भारत पीएम-जय में हर परिवार को हर साल ₹5 लाख तक का मुफ़्त इलाज सरकारी और सूचीबद्ध निजी अस्पतालों में मिलता है। इलाज कैशलेस है, अस्पताल में कोई पैसा नहीं देना होता। पात्रता…” (notFound false, intent -, sources ayushman-bharat-pmjay|ayushman-bharat-pmjay|ayushman-bharat-pmjay)"
+          ]
+        },
+        {
+          "id": "D-hi-mgnrega-days",
+          "title": "hi: मनरेगा में कितने दिन का काम मिलता है?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: notFound for an answerable question; no sources. intent (none); 0 source(s); facts none. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “माफ़ कीजिए, यह जानकारी मेरे पास मौजूद आधिकारिक योजना दस्तावेज़ों में नहीं मिली, इसलिए अंदाज़े से जवाब देना ठीक नहीं होगा। कृपया नज़दीकी CSC केंद्र या ग्राम पंचायत कार्यालय में पुष…” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-mr-pm-kisan-amount",
+          "title": "mr: पीएम किसान योजनेत वर्षाला किती पैसे मिळतात?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: pm-kisan/Benefits, pm-kisan/Eligibility, pm-kisan/How to apply; facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. intent (none); 3 source(s); facts numbers 2000, 6000; rupees ₹2000, ₹6000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजनेत पात्र शेतकरी कुटुंबांना दरवर्षी ₹6,000 मिळतात, जे ₹2,000 च्या तीन हप्त्यांमध्ये थेट बँक खात्यात जमा होतात. जमिनीच्या नोंदीत तुमचे नाव असणे आवश्यक आहे आणि आधार eK…” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ]
+        },
+        {
+          "id": "D-mr-pmjay-cover",
+          "title": "mr: आयुष्मान कार्डवर किती रुपयांपर्यंत मोफत उपचार मिळतात?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: ayushman-bharat-pmjay/Benefits, ayushman-bharat-pmjay/Eligibility, ayushman-bharat-pmjay/How to apply; facts not in the cited passages: numbers 14555, 2011. intent (none); 3 source(s); facts numbers 14555, 2011, 5, 70; rupees ₹5; urls beneficiary.nha.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “आयुष्मान भारत पीएम-जय अंतर्गत प्रत्येक कुटुंबाला दरवर्षी ₹5 लाखांपर्यंत मोफत उपचार सरकारी आणि सूचीबद्ध खासगी रुग्णालयांमध्ये मिळतात. उपचार कॅशलेस आहेत, रुग्णालयात पैसे भरावे लागत …” (notFound false, intent -, sources ayushman-bharat-pmjay|ayushman-bharat-pmjay|ayushman-bharat-pmjay)"
+          ]
+        },
+        {
+          "id": "D-mr-mgnrega-days",
+          "title": "mr: मनरेगामध्ये किती दिवसांचे काम मिळते?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: notFound for an answerable question; no sources. intent (none); 0 source(s); facts none. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “माफ करा, ही माहिती माझ्याकडील अधिकृत योजना कागदपत्रांमध्ये सापडली नाही, म्हणून मी अंदाज लावणार नाही. कृपया जवळच्या CSC केंद्रात किंवा ग्रामपंचायत कार्यालयात खात्री करा.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-ta-pm-kisan-amount",
+          "title": "ta: பிஎம் கிசான் திட்டத்தில் ஆண்டுக்கு எவ்வளவு பணம் கிடைக்கும்?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: pm-kisan/Benefits, pm-kisan/Eligibility, pm-kisan/How to apply; facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. intent (none); 3 source(s); facts numbers 2000, 6000; rupees ₹2000, ₹6000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “பிஎம்-கிசான் திட்டத்தில் தகுதியுள்ள விவசாயக் குடும்பங்களுக்கு ஆண்டுக்கு ₹6,000 கிடைக்கும். இது ₹2,000 வீதம் மூன்று தவணைகளாக நேரடியாக வங்கிக் கணக்கில் செலுத்தப்படும். நில ஆவணங்களில…” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ]
+        },
+        {
+          "id": "D-ta-pmjay-cover",
+          "title": "ta: ஆயுஷ்மான் அட்டையில் எவ்வளவு ரூபாய் வரை இலவச சிகிச்சை கிடைக்கும்?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: ayushman-bharat-pmjay/Benefits, ayushman-bharat-pmjay/Eligibility, ayushman-bharat-pmjay/How to apply; facts not in the cited passages: numbers 14555, 2011. intent (none); 3 source(s); facts numbers 14555, 2011, 5, 70; rupees ₹5; urls beneficiary.nha.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “ஆயுஷ்மான் பாரத் பிஎம்-ஜெய் திட்டத்தில் ஒவ்வொரு குடும்பத்துக்கும் ஆண்டுக்கு ₹5 லட்சம் வரை இலவச மருத்துவமனை சிகிச்சை, அரசு மற்றும் பட்டியலிடப்பட்ட தனியார் மருத்துவமனைகளில் கிடைக்கும…” (notFound false, intent -, sources ayushman-bharat-pmjay|ayushman-bharat-pmjay|ayushman-bharat-pmjay)"
+          ]
+        },
+        {
+          "id": "D-ta-mgnrega-days",
+          "title": "ta: நூறு நாள் வேலைத் திட்டத்தில் (MGNREGA) எத்தனை நாள் வேலை கிடைக்கும்?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: notFound for an answerable question; no sources. intent (none); 0 source(s); facts none. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “மன்னிக்கவும், என்னிடம் உள்ள அதிகாரப்பூர்வ திட்ட ஆவணங்களில் இந்தத் தகவல் இல்லை; அதனால் நான் ஊகித்துச் சொல்ல மாட்டேன். அருகிலுள்ள பொது சேவை மையம் (CSC) அல்லது கிராம பஞ்சாயத்து அலுவல…” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-en-pm-kisan-amount",
+          "title": "en: How much money does PM-KISAN give in a year?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: pm-kisan/Benefits, pm-kisan/Eligibility, pm-kisan/How to apply; facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. intent (none); 3 source(s); facts numbers 2000, 6000; rupees ₹2000, ₹6000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Under PM-KISAN, eligible farmer families get ₹6,000 a year, paid as three instalments of ₹2,000 straight into their bank account. Your name must be in the land records and Aadhaar…” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ]
+        },
+        {
+          "id": "D-en-pmjay-cover",
+          "title": "en: How much free treatment does the Ayushman card give?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: sources not found in the index: ayushman-bharat-pmjay/Benefits, ayushman-bharat-pmjay/Eligibility, ayushman-bharat-pmjay/How to apply; facts not in the cited passages: numbers 14555, 2011. intent (none); 3 source(s); facts numbers 14555, 2011, 5, 70; rupees ₹5; urls beneficiary.nha.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Ayushman Bharat PM-JAY gives free hospital treatment of up to ₹5 lakh per family per year at government and empanelled private hospitals. It is cashless: you pay nothing at the ho…” (notFound false, intent -, sources ayushman-bharat-pmjay|ayushman-bharat-pmjay|ayushman-bharat-pmjay)"
+          ]
+        },
+        {
+          "id": "D-en-mgnrega-days",
+          "title": "en: How many days of work does MGNREGA give?",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: notFound for an answerable question; no sources. intent (none); 0 source(s); facts none. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-outside-kb",
+          "title": "Scheme not in the index (pmay-gramin) is not answered from memory",
+          "status": "MOCK-ONLY",
+          "detail": "notFound with no sources, as required. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “माफ़ कीजिए, यह जानकारी मेरे पास मौजूद आधिकारिक योजना दस्तावेज़ों में नहीं मिली, इसलिए अंदाज़े से जवाब देना ठीक नहीं होगा। कृपया नज़दीकी CSC केंद्र या ग्राम पंचायत कार्यालय में पुष…” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-hello",
+          "title": "Non-scheme message “hello” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent smalltalk; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Hi! What would you like to know about a government scheme?” (notFound false, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-thanks",
+          "title": "Non-scheme message “thank you” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent smalltalk; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-who-are-you",
+          "title": "Non-scheme message “kaun ho tum” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent smalltalk; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-weather",
+          "title": "Non-scheme message “What is the weather today?” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent out_of_scope; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-sports",
+          "title": "Non-scheme message “Who won the cricket match?” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent out_of_scope; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-recipe",
+          "title": "Non-scheme message “How do I cook rice?” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent out_of_scope; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-directions",
+          "title": "Non-scheme message “How do I reach the railway station?” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent out_of_scope; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-nonscheme-capital",
+          "title": "Non-scheme message “What is the capital of France?” gets no scheme answer",
+          "status": "MOCK-ONLY",
+          "detail": "No sources returned. Expected intent out_of_scope; got (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Sorry, I could not find this in the official scheme documents I have, so I will not guess. Please confirm at your nearest CSC or gram panchayat office.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-clarify-fresh-ki-keh-raho-he",
+          "title": "“ki keh raho he” as the first message of a session",
+          "status": "MOCK-ONLY",
+          "detail": "Did not return a scheme answer. Observed mode: mock. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)"
+          ],
+          "data": {
+            "mode": "mock",
+            "wrongScheme": false,
+            "notFound": true
+          }
+        },
+        {
+          "id": "D-clarify-followup-ki-keh-raho-he",
+          "title": "“ki keh raho he” after a PM-KISAN answer",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: no Devanagari text; Roman-script words: Maaf kijiye yeh jaankari mere paas maujood adhikarik. Intent (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "first: answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)",
+            "then: answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)"
+          ]
+        },
+        {
+          "id": "D-clarify-fresh-samajh-nahi-aaya",
+          "title": "“samajh nahi aaya” as the first message of a session",
+          "status": "MOCK-ONLY",
+          "detail": "Did not return a scheme answer. Observed mode: mock. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)"
+          ],
+          "data": {
+            "mode": "mock",
+            "wrongScheme": false,
+            "notFound": true
+          }
+        },
+        {
+          "id": "D-clarify-followup-samajh-nahi-aaya",
+          "title": "“samajh nahi aaya” after a PM-KISAN answer",
+          "status": "MOCK-ONLY",
+          "detail": "Problems: no Devanagari text; Roman-script words: Maaf kijiye yeh jaankari mere paas maujood adhikarik. Intent (none). USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "first: answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)",
+            "then: answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)"
+          ]
+        }
+      ],
+      "durationMs": 17
+    },
+    {
+      "stage": "E",
+      "name": "Dialect text",
+      "mode": "mock",
+      "status": "MOCK-ONLY",
+      "checks": [
+        {
+          "id": "E-marwari",
+          "title": "Marwari (मारवाड़ी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-dhundhari",
+          "title": "Dhundhari/Jaipuri (ढूंढाड़ी/जयपुरी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-shekhawati",
+          "title": "Shekhawati (शेखावाटी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-bagri",
+          "title": "Bagri (बागड़ी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-mewari",
+          "title": "Mewari (मेवाड़ी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-mewati",
+          "title": "Mewati (मेवाती) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-harauti",
+          "title": "Harauti (हाड़ौती) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-malvi",
+          "title": "Malvi (मालवी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-wagdi",
+          "title": "Wagdi (वागड़ी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-braj",
+          "title": "Braj (ब्रज) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-haryanvi",
+          "title": "Haryanvi (हरियाणवी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-bhojpuri",
+          "title": "Bhojpuri (भोजपुरी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-awadhi",
+          "title": "Awadhi (अवधी) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        },
+        {
+          "id": "E-bundeli",
+          "title": "Bundeli (बुंदेली) with dialectHint",
+          "status": "MOCK-ONLY",
+          "detail": "Dialect instruction reached a generation prompt: no. Rendered: no. Problems: facts not in the cited passages: numbers 2000; rupees ₹2000; urls pmkisan.gov.in. USE_MOCKS covers chat, rag: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "answer: “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से …” (notFound false, intent -, sources pm-kisan|pm-kisan|pm-kisan)"
+          ],
+          "data": {
+            "reached": false,
+            "technical": "FAIL"
+          }
+        }
+      ],
+      "data": {
+        "question": "पीएम किसान योजना में साल में कितना पैसा मिलता है?",
+        "standardAnswer": "पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में सीधे बैंक खाते में आते हैं। ज़मीन के रिकॉर्ड में आपका नाम होना चाहिए और आधार से eKYC ज़रूरी है। जिन परिवारों में कोई आयकर देता है या सरकारी कर्मचारी है, वे आवेदन नहीं कर सकते। पंजीकरण pmkisan.gov.in प…",
+        "reviewFile": "eval/review/dialect-review.csv"
+      },
+      "durationMs": 10
+    },
+    {
+      "stage": "F",
+      "name": "Speech in (POST /api/voice/query)",
+      "mode": "mock",
+      "status": "MOCK-ONLY",
+      "checks": [
+        {
+          "id": "F-mock-hi",
+          "title": "hi: 1.5 s of silence sent to the mock voice endpoint",
+          "status": "MOCK-ONLY",
+          "detail": "The mock returned a canned transcript for silence, so every spoken question gets a canned scheme answer regardless of what was said. USE_MOCKS covers voice: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "transcript “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, language hi, dialect marwari; answer “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में …”"
+          ],
+          "data": {
+            "transcript": "पीएम किसान योजना में साल में कितना पैसा मिलता है?",
+            "sources": [
+              "pm-kisan",
+              "pm-kisan",
+              "pm-kisan"
+            ]
+          }
+        },
+        {
+          "id": "F-mock-mr",
+          "title": "mr: 1.5 s of silence sent to the mock voice endpoint",
+          "status": "MOCK-ONLY",
+          "detail": "The mock returned a canned transcript for silence, so every spoken question gets a canned scheme answer regardless of what was said. USE_MOCKS covers voice: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "transcript “आयुष्मान कार्डवर किती रुपयांपर्यंत मोफत उपचार मिळतात?”, language mr, dialect null; answer “आयुष्मान भारत पीएम-जय अंतर्गत प्रत्येक कुटुंबाला दरवर्षी ₹5 लाखांपर्यंत मोफत उपचार सरकारी आणि सूचीब…”"
+          ],
+          "data": {
+            "transcript": "आयुष्मान कार्डवर किती रुपयांपर्यंत मोफत उपचार मिळतात?",
+            "sources": [
+              "ayushman-bharat-pmjay",
+              "ayushman-bharat-pmjay",
+              "ayushman-bharat-pmjay"
+            ]
+          }
+        },
+        {
+          "id": "F-mock-ta",
+          "title": "ta: 1.5 s of silence sent to the mock voice endpoint",
+          "status": "MOCK-ONLY",
+          "detail": "The mock returned a canned transcript for silence, so every spoken question gets a canned scheme answer regardless of what was said. USE_MOCKS covers voice: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "transcript “பிஎம் கிசான் திட்டத்தில் ஆண்டுக்கு எவ்வளவு பணம் கிடைக்கும்?”, language ta, dialect null; answer “பிஎம்-கிசான் திட்டத்தில் தகுதியுள்ள விவசாயக் குடும்பங்களுக்கு ஆண்டுக்கு ₹6,000 கிடைக்கும். இது ₹2,0…”"
+          ],
+          "data": {
+            "transcript": "பிஎம் கிசான் திட்டத்தில் ஆண்டுக்கு எவ்வளவு பணம் கிடைக்கும்?",
+            "sources": [
+              "pm-kisan",
+              "pm-kisan",
+              "pm-kisan"
+            ]
+          }
+        },
+        {
+          "id": "F-mock-en",
+          "title": "en: 1.5 s of silence sent to the mock voice endpoint",
+          "status": "MOCK-ONLY",
+          "detail": "The mock returned a canned transcript for silence, so every spoken question gets a canned scheme answer regardless of what was said. USE_MOCKS covers voice: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "transcript “How much free hospital treatment does the Ayushman card cover?”, language en, dialect marwari; answer “Ayushman Bharat PM-JAY gives free hospital treatment of up to ₹5 lakh per family per year at govern…”"
+          ],
+          "data": {
+            "transcript": "How much free hospital treatment does the Ayushman card cover?",
+            "sources": [
+              "ayushman-bharat-pmjay",
+              "ayushman-bharat-pmjay",
+              "ayushman-bharat-pmjay"
+            ]
+          }
+        }
+      ],
+      "durationMs": 2
+    },
+    {
+      "stage": "G",
+      "name": "Speech out (POST /api/tts)",
+      "mode": "mock",
+      "status": "MOCK-ONLY",
+      "checks": [
+        {
+          "id": "G-hi",
+          "title": "hi: speech for a fixed sentence",
+          "status": "MOCK-ONLY",
+          "detail": "audioUrl null (browser voice expected). USE_MOCKS covers tts: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "HTTP 200"
+          ]
+        },
+        {
+          "id": "G-mr",
+          "title": "mr: speech for a fixed sentence",
+          "status": "MOCK-ONLY",
+          "detail": "audioUrl null (browser voice expected). USE_MOCKS covers tts: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "HTTP 200"
+          ]
+        },
+        {
+          "id": "G-ta",
+          "title": "ta: speech for a fixed sentence",
+          "status": "MOCK-ONLY",
+          "detail": "audioUrl null (browser voice expected). USE_MOCKS covers tts: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "HTTP 200"
+          ]
+        },
+        {
+          "id": "G-en",
+          "title": "en: speech for a fixed sentence",
+          "status": "MOCK-ONLY",
+          "detail": "audioUrl null (browser voice expected). USE_MOCKS covers tts: these results come from fixtures, not from Gemini, and prove nothing about the real pipeline.",
+          "evidence": [
+            "HTTP 200"
+          ]
+        }
+      ],
+      "data": {
+        "sizesKb": []
+      },
+      "durationMs": 1
+    },
+    {
+      "stage": "H",
+      "name": "Browser end-to-end mic test (optional)",
+      "mode": "none",
+      "status": "NOT-TESTED",
+      "reason": "AUDIT_CLIENT_URL is not set (the running client, e.g. http://localhost:5173, served against a real-mode API).",
+      "checks": [],
+      "durationMs": 1
+    },
+    {
+      "stage": "I",
+      "name": "Robustness and error codes",
+      "mode": "fake-backend",
+      "status": "PARTIAL",
+      "checks": [
+        {
+          "id": "I-empty-audio",
+          "title": "Voice request without audio",
+          "status": "PASS",
+          "detail": "Expected 400 AUDIO_REQUIRED; got 400 AUDIO_REQUIRED (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-silent-audio",
+          "title": "Silent audio (STT returns no speech)",
+          "status": "PASS",
+          "detail": "Expected 422 NO_SPEECH_DETECTED; got 422 NO_SPEECH_DETECTED (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-oversized-audio",
+          "title": "Audio over the 10 MB limit",
+          "status": "NOT-TESTED",
+          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
+          "evidence": [
+            "server/src/middleware/upload.ts"
+          ]
+        },
+        {
+          "id": "I-wrong-mime",
+          "title": "Non-audio upload",
+          "status": "NOT-TESTED",
+          "detail": "Enforced by multer inside the Express app, which could not be started here (Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.).",
+          "evidence": [
+            "server/src/middleware/upload.ts"
+          ]
+        },
+        {
+          "id": "I-rate-limit",
+          "title": "Per-IP rate limit reached",
+          "status": "PASS",
+          "detail": "Third request in the window got 429 RATE_LIMITED with Retry-After 60 s.",
+          "evidence": [
+            "server/src/middleware/rateLimit.ts"
+          ]
+        },
+        {
+          "id": "I-gemini-timeout",
+          "title": "Gemini timeout on a text question",
+          "status": "PASS",
+          "detail": "Expected 504 AI_TIMEOUT; got 504 AI_TIMEOUT (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-gemini-429",
+          "title": "Gemini 429 on a text question",
+          "status": "PASS",
+          "detail": "Expected 429 AI_RATE_LIMITED; got 429 AI_RATE_LIMITED (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-missing-key",
+          "title": "Real mode without GEMINI_API_KEY",
+          "status": "PASS",
+          "detail": "Expected 503 AI_NOT_CONFIGURED; got 503 AI_NOT_CONFIGURED (controllers called directly, fake Gemini backend).",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ]
+        },
+        {
+          "id": "I-tts-provider-error",
+          "title": "TTS provider error falls back to browser speech",
+          "status": "PASS",
+          "detail": "synthesizeSpeech with a provider answering 503 returned audioUrl null (client uses browser speech).",
+          "evidence": [
+            "server/src/modules/tts/service.ts"
+          ]
+        },
+        {
+          "id": "I-ui-path",
+          "title": "Friendly, localized error message in the client",
+          "status": "NOT-TESTED",
+          "detail": "The client (ChatProvider errorText) is not exercised by this server-side audit, and no client test runner exists for it.",
+          "evidence": [
+            "client/src/features/chat/ChatProvider.tsx"
+          ]
+        }
+      ],
+      "durationMs": 98
+    },
+    {
+      "stage": "J",
+      "name": "Latency and cost shape",
+      "mode": "none",
+      "status": "FAIL",
+      "checks": [
+        {
+          "id": "J-latency-text",
+          "title": "text request latency (p50 / p95)",
+          "status": "NOT-TESTED",
+          "detail": "Latency is only meaningful against real Gemini calls; this run made none on this path.",
+          "evidence": []
+        },
+        {
+          "id": "J-latency-voice",
+          "title": "voice request latency (p50 / p95)",
+          "status": "NOT-TESTED",
+          "detail": "Latency is only meaningful against real Gemini calls; this run made none on this path.",
+          "evidence": []
+        },
+        {
+          "id": "J-latency-tts",
+          "title": "tts request latency (p50 / p95)",
+          "status": "NOT-TESTED",
+          "detail": "Latency is only meaningful against real Gemini calls; this run made none on this path.",
+          "evidence": []
+        },
+        {
+          "id": "J-shape-text-scheme",
+          "title": "Typed scheme question",
+          "status": "PASS",
+          "detail": "4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 4,
+            "sequential": 4,
+            "labels": {
+              "understand": 1,
+              "embed": 1,
+              "answer": 1,
+              "sms": 1
+            }
+          }
+        },
+        {
+          "id": "J-shape-text-dialect",
+          "title": "Typed scheme question with dialectHint (bhojpuri)",
+          "status": "PASS",
+          "detail": "4 Gemini call(s) (understand×1, embed×1, answer×1, sms×1), 4 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 4,
+            "sequential": 4,
+            "labels": {
+              "understand": 1,
+              "embed": 1,
+              "answer": 1,
+              "sms": 1
+            }
+          }
+        },
+        {
+          "id": "J-shape-text-clarify",
+          "title": "Typed clarification (“ki keh raho he”)",
+          "status": "PASS",
+          "detail": "1 Gemini call(s) (understand×1), 1 sequential. Within the 4-sequential-call budget. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 1,
+            "sequential": 1,
+            "labels": {
+              "understand": 1
+            }
+          }
+        },
+        {
+          "id": "J-shape-voice",
+          "title": "Spoken scheme question (dialect identification on)",
+          "status": "FAIL",
+          "detail": "8 Gemini call(s) (transcribe×1, dialect-audio-only×1, dialect-transcript-only×1, dialect-audio-transcript×1, understand×1, embed×1, answer×1, sms×1), 6 sequential. FLAGGED: more than 4 sequential calls, so real latency adds up across them. HTTP 200. Shape measured with a fake backend; real latency is in the live part of Stage J.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 8,
+            "sequential": 6,
+            "labels": {
+              "transcribe": 1,
+              "dialect-audio-only": 1,
+              "dialect-transcript-only": 1,
+              "dialect-audio-transcript": 1,
+              "understand": 1,
+              "embed": 1,
+              "answer": 1,
+              "sms": 1
+            }
+          }
+        },
+        {
+          "id": "J-shape-tts",
+          "title": "Listen (server speech)",
+          "status": "PASS",
+          "detail": "1 provider call(s) made with fetch outside the Gemini client (not counted by the call observer), 1 sequential. Within the budget.",
+          "evidence": [
+            "scripts/audit/fakeWorker.ts"
+          ],
+          "data": {
+            "calls": 1,
+            "sequential": 1,
+            "labels": {
+              "tts (fetch)": 1
+            }
+          }
+        }
+      ],
+      "durationMs": 397,
+      "data": {}
+    }
+  ],
+  "matrix": [
+    {
+      "row": "hi",
+      "label": "Hindi",
+      "cells": {
+        "understandsSpeech": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.F check F-mock-hi"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.D checks D-hi-*"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "standard-language row: same as \"answers in correct language\""
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"Hindi\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.G check G-hi"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "mr",
+      "label": "Marathi",
+      "cells": {
+        "understandsSpeech": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.F check F-mock-mr"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.D checks D-mr-*"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "standard-language row: same as \"answers in correct language\""
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"Marathi\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.G check G-mr"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "ta",
+      "label": "Tamil",
+      "cells": {
+        "understandsSpeech": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.F check F-mock-ta"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.D checks D-ta-*"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "standard-language row: same as \"answers in correct language\""
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"Tamil\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.G check G-ta"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "en",
+      "label": "English",
+      "cells": {
+        "understandsSpeech": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.F check F-mock-en"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.D checks D-en-*"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "standard-language row: same as \"answers in correct language\""
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"English\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.G check G-en"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "marwari",
+      "label": "Marwari (मारवाड़ी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-marwari"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-marwari"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "dhundhari",
+      "label": "Dhundhari/Jaipuri (ढूंढाड़ी/जयपुरी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-dhundhari"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-dhundhari"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "shekhawati",
+      "label": "Shekhawati (शेखावाटी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-shekhawati"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-shekhawati"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "bagri",
+      "label": "Bagri (बागड़ी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bagri"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bagri"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "mewari",
+      "label": "Mewari (मेवाड़ी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-mewari"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-mewari"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "mewati",
+      "label": "Mewati (मेवाती)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-mewati"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-mewati"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "harauti",
+      "label": "Harauti (हाड़ौती)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-harauti"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-harauti"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "malvi",
+      "label": "Malvi (मालवी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-malvi"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-malvi"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "wagdi",
+      "label": "Wagdi (वागड़ी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-wagdi"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-wagdi"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "braj",
+      "label": "Braj (ब्रज)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-braj"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-braj"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "haryanvi",
+      "label": "Haryanvi (हरियाणवी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-haryanvi"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-haryanvi"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "bhojpuri",
+      "label": "Bhojpuri (भोजपुरी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bhojpuri"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bhojpuri"
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"Bhojpuri\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "awadhi",
+      "label": "Awadhi (अवधी)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-awadhi"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-awadhi"
+        },
+        "ttsNamesLanguage": {
+          "status": "PASS",
+          "evidence": "\"Awadhi\" is listed for both Gemini 3.8 TTS models (https://ai.google.dev/gemini-api/docs/speech-generation, updated 2026-10-28, read 2026-10-31)"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    },
+    {
+      "row": "bundeli",
+      "label": "Bundeli (बुंदेली)",
+      "cells": {
+        "understandsSpeech": {
+          "status": "NOT-TESTED",
+          "evidence": "no clip for this row was run"
+        },
+        "identifiesDialect": {
+          "status": "NOT-TESTED",
+          "evidence": "needs labelled real-speaker clips in eval/audio (none supplied)"
+        },
+        "answersInLanguage": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bundeli"
+        },
+        "answersInDialect": {
+          "status": "MOCK-ONLY",
+          "evidence": "results.json stages.E check E-bundeli"
+        },
+        "ttsNamesLanguage": {
+          "status": "FAIL",
+          "evidence": "not listed by name in the TTS language table (https://ai.google.dev/gemini-api/docs/speech-generation, read 2026-10-31); speech can only approximate it with the parent-language voice"
+        },
+        "speaksReply": {
+          "status": "MOCK-ONLY",
+          "evidence": "mock TTS returns no audio for any input"
+        },
+        "accentMatches": {
+          "status": "MOCK-ONLY",
+          "evidence": "no server audio in mock mode"
+        }
+      }
+    }
+  ],
+  "sandboxNotes": [
+    "configured worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter.",
+    "fake worker: Express app could not be started (express is not installed in the agent sandbox (npm registry blocked)); controllers and the error handler are called directly, without Express routing, multer or the per-IP rate limiter."
+  ],
+  "kiKeh": {
+    "text": "- Real mode (this branch, with the intent router): NOT-TESTED — no run with a Gemini key. The router prompt lists \"ki keh raho he\" as a clarification, but a prompt is not proof.\n- Mock mode, typed: not reproduced — the mock keyword search finds no scheme, so the fixed not-found text is returned (no PM-KISAN answer).\n- Mock mode, spoken: REPRODUCED for any recording — the mock speech-to-text ignores the audio and returns the canned question “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, which gets the canned formal-Hindi scheme answer.\n- Fix status: the intent router exists only in real mode; USE_MOCKS=true must behave exactly as before (R8), so mock mode keeps its canned voice answers.",
+    "evidence": [
+      "configured worker, mock mode, typed: MOCK-ONLY — answer: “Maaf kijiye, yeh jaankari mere paas maujood adhikarik yojana dastavezon mein nahi mili, isliye main andaza nahi lagaunga. Kripya najdeeki CSC ya gram panchayat mein poochhein.” (notFound true, intent -, sources none)",
+      "configured worker, mock voice with 1.5 s of silence: transcript “पीएम किसान योजना में साल में कितना पैसा मिलता है?”, language hi, dialect marwari; answer “पीएम-किसान योजना में पात्र किसान परिवारों को हर साल ₹6,000 मिलते हैं, जो ₹2,000 की तीन किस्तों में …”"
+    ]
+  }
+}

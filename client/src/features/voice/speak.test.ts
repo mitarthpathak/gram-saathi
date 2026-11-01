@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { speak, stopSpeaking } from './speak';
+import { speak, stopSpeaking, voiceNoteFor } from './speak';
 
 class FakeAudio extends EventTarget {
   static instances: FakeAudio[] = [];
@@ -49,5 +49,38 @@ describe('speak playback', () => {
     expect(secondAudio.currentTime).toBe(0);
     expect(secondChanges).toHaveBeenCalledWith(false);
     expect(cancel).toHaveBeenCalledTimes(3);
+  });
+
+  it('reports the server voice once playback starts', () => {
+    vi.stubGlobal('Audio', FakeAudio);
+    vi.stubGlobal('window', { speechSynthesis: { cancel: vi.fn(), getVoices: () => [] } });
+    const onVoice = vi.fn();
+    expect(speak('text', 'hi', 'data:audio/wav;base64,x', undefined, { onVoice })).toBe(true);
+    expect(onVoice).toHaveBeenCalledOnce();
+    expect(onVoice).toHaveBeenCalledWith({ via: 'server' });
+  });
+
+  it('reports when no voice can speak at all', () => {
+    // No Audio element and no speech synthesis: neither path can start.
+    vi.stubGlobal('Audio', undefined);
+    vi.stubGlobal('window', {});
+    const onUnavailable = vi.fn();
+    expect(speak('text', 'hi', 'data:audio/wav;base64,x', undefined, { onUnavailable })).toBe(
+      false,
+    );
+    expect(onUnavailable).toHaveBeenCalledOnce();
+  });
+});
+
+describe('voiceNoteFor', () => {
+  it('labels dialect speech honestly', () => {
+    expect(voiceNoteFor({ via: 'server', basis: 'named-dialect' }, true)).toBe('named-dialect');
+    expect(voiceNoteFor({ via: 'server', basis: 'base-language-approximation' }, true)).toBe(
+      'base-language-approximation',
+    );
+    expect(voiceNoteFor({ via: 'server' }, true)).toBe('base-language-approximation');
+    expect(voiceNoteFor({ via: 'browser' }, true)).toBe('base-language-approximation');
+    expect(voiceNoteFor({ via: 'server', basis: 'named-dialect' }, false)).toBeNull();
+    expect(voiceNoteFor(null, true)).toBeNull();
   });
 });

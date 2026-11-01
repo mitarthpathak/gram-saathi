@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { speak } from '@/features/voice/speak';
+import { speak, voiceNoteFor } from '@/features/voice/speak';
 import { useDemo } from '@/features/demo/useDemo';
 import { fallbackDemoSample, findDemoSample } from '@/features/demo/demoData';
 import { ApiError, api } from '@/lib/api';
@@ -86,20 +86,37 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           ...(dialectHint ? { dialectHint } : {}),
           signal: controller.signal,
         });
+        const answerId = nextMessageId();
         setMessages((all) => [
           ...all.map((message) =>
             message.id === questionId && message.role === 'user'
               ? { ...message, text: response.transcript ?? '', pending: false }
               : message,
           ),
-          { id: nextMessageId(), role: 'assistant', response, via: 'voice' },
+          { id: answerId, role: 'assistant', response, via: 'voice' },
         ]);
         // Voice in, voice out. Server audio costs data, so low-bandwidth mode uses the phone's voice.
+        const dialectWorded = response.answerStyle?.rendered === 'dialect';
         speak(
           response.answer,
           response.detectedLanguage,
           lowBandwidth ? null : response.audioUrl,
           setSpeaking,
+          {
+            // Only dialect-worded text may be voiced (and labelled) as a dialect.
+            dialectId: dialectWorded ? response.answerStyle?.dialectId : null,
+            onVoice: (voice) => {
+              const voiceNote = voiceNoteFor(voice, dialectWorded);
+              if (!voiceNote) return;
+              setMessages((all) =>
+                all.map((message) =>
+                  message.id === answerId && message.role === 'assistant'
+                    ? { ...message, voiceNote }
+                    : message,
+                ),
+              );
+            },
+          },
         );
       } catch (error) {
         setMessages((all) => {
@@ -188,9 +205,11 @@ function errorText(error: unknown, t: (typeof chatStrings)['en']): string {
     case 'AI_TIMEOUT':
     case 'AI_ERROR':
       return t.errorBusy;
-    case 'AI_NOT_CONFIGURED':
     case 'KNOWLEDGE_BASE_MISSING':
+    case 'KNOWLEDGE_BASE_UNVERIFIED':
       return t.errorSetup;
+    case 'AI_NOT_CONFIGURED':
+      return t.errorAiConfig;
   }
   // 413: too long for the server (10 MB) or for the hosting platform's request limit.
   return error.status === 413 ? t.errorTooLong : t.errorGeneric;
