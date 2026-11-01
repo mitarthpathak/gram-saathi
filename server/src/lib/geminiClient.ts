@@ -368,40 +368,70 @@ export interface GenerateJsonOptions<T> {
 /** Asks Gemini for JSON matching `schema`, validates it and returns the typed result. */
 export async function generateJson<T>(options: GenerateJsonOptions<T>): Promise<T> {
   const client = getBackend();
-  const model = options.model ?? env.GEMINI_CHAT_MODEL;
+  const primaryModel = options.model ?? env.GEMINI_CHAT_MODEL;
+  const fallbackModel =
+    env.GEMINI_FALLBACK_MODEL.toLowerCase() === 'none' || env.GEMINI_FALLBACK_MODEL === primaryModel
+      ? undefined
+      : env.GEMINI_FALLBACK_MODEL;
+  const models = fallbackModel ? [primaryModel, fallbackModel] : [primaryModel];
   const jsonSchema = toGeminiJsonSchema(options.schema);
 
-  return withRetries(
-    async () => {
-      const startedAt = Date.now();
-      const { text, usage } = await withGeminiConcurrency(
-        options.label.startsWith('dialect-') ? 'dialect' : 'answer',
-        () =>
-          client.generate({
-            model,
-            system: options.system,
-            input: options.input,
-            jsonSchema,
-            maxOutputTokens: options.maxOutputTokens ?? 2048,
-            timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
-          }),
-        options.signal,
+  for (const [index, model] of models.entries()) {
+    try {
+      return await withRetries(
+        async () => {
+          const startedAt = Date.now();
+          const { text, usage } = await withGeminiConcurrency(
+            options.label.startsWith('dialect-') ? 'dialect' : 'answer',
+            () =>
+              client.generate({
+                model,
+                system: options.system,
+                input: options.input,
+                jsonSchema,
+                maxOutputTokens: options.maxOutputTokens ?? 2048,
+                timeoutMs: options.timeoutMs ?? env.GEMINI_TIMEOUT_MS,
+              }),
+            options.signal,
+          );
+          const result = options.schema.safeParse(parseJsonOutput(text));
+          if (!result.success) {
+            throw new GeminiError(
+              'bad_response',
+              `Gemini ${options.label} output does not match the schema: ${z.prettifyError(result.error)}`,
+            );
+          }
+          logger.debug(
+            `gemini ${options.label}: ${model}, ${Date.now() - startedAt} ms, tokens in ` +
+              `${usage?.inputTokens ?? '?'} / out ${usage?.outputTokens ?? '?'} / thinking ${usage?.thoughtTokens ?? 0}`,
+          );
+          return result.data;
+        },
+        {
+          label: options.label,
+          // A fallback is configured for availability: do not spend Gemini's Retry-After delay
+          // retrying an overloaded primary. Try the fallback immediately, with at most one retry.
+          maxRetries: fallbackModel
+            ? index === 0
+              ? 0
+              : Math.min(options.maxRetries ?? env.GEMINI_MAX_RETRIES, 1)
+            : options.maxRetries,
+        },
       );
-      const result = options.schema.safeParse(parseJsonOutput(text));
-      if (!result.success) {
-        throw new GeminiError(
-          'bad_response',
-          `Gemini ${options.label} output does not match the schema: ${z.prettifyError(result.error)}`,
-        );
-      }
-      logger.debug(
-        `gemini ${options.label}: ${model}, ${Date.now() - startedAt} ms, tokens in ` +
-          `${usage?.inputTokens ?? '?'} / out ${usage?.outputTokens ?? '?'} / thinking ${usage?.thoughtTokens ?? 0}`,
+    } catch (error) {
+      const classified = classifyGeminiError(error);
+      const canFallback =
+        index === 0 &&
+        fallbackModel !== undefined &&
+        (classified?.kind === 'unavailable' || classified?.kind === 'timeout');
+      if (!canFallback) throw error;
+      logger.warn(
+        `Gemini ${options.label}: ${model} is ${classified.kind}; retrying with ${fallbackModel}`,
       );
-      return result.data;
-    },
-    { label: options.label, maxRetries: options.maxRetries },
-  );
+    }
+  }
+
+  throw new Error(`Gemini ${options.label} failed without a model result`);
 }
 
 /** zod -> the JSON Schema subset Gemini accepts in `response_format`. */

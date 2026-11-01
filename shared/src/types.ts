@@ -76,6 +76,10 @@ export interface HealthResponse {
   status: 'ok';
   /** true when the server runs with USE_MOCKS=true. */
   mocks: boolean;
+  /** Whether non-mocked dialect classification can call the configured model. */
+  dialectConfigured?: boolean;
+  /** Whether server-side Gemini speech generation has a key and model configured. */
+  ttsConfigured?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +103,9 @@ export interface VoiceQueryFields {
   sessionId: string;
 }
 
+/** Optional conversation route chosen by the server's intent-understanding step. */
+export type ConversationIntent = 'scheme_question' | 'smalltalk' | 'clarify' | 'out_of_scope';
+
 export interface QueryResponse {
   sessionId: string;
   /** What the user said. Present for voice queries only. */
@@ -114,9 +121,11 @@ export interface QueryResponse {
   dialectCandidates?: DialectOption[];
   /** Answer in the user's language, grounded only in `sources`. */
   answer: string;
+  /** Route for rendering or follow-up behavior; absent on older servers and mock fixtures. */
+  intent?: ConversationIntent;
   /** The passages the answer uses. Empty when `notFound`. */
   sources: Source[];
-  /** Anti-fraud reminder shown with every answer, in the user's language. */
+  /** Anti-fraud reminder; empty for direct conversational replies. */
   fraudWarning: string;
   /** SMS-length version of the answer. */
   smsText: string;
@@ -258,4 +267,26 @@ export interface RetrievedChunk {
 
 export interface RagSearchResponse {
   chunks: RetrievedChunk[];
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/live/token (Gemini Live ephemeral token)
+// ---------------------------------------------------------------------------
+
+export interface LiveTokenRequest {
+  /** Client-generated session identifier; it is validated but never sent to Gemini. */
+  sessionId: string;
+  language?: LanguageCode;
+  dialectHint?: string;
+}
+
+export interface LiveTokenResponse {
+  /** Single-use ephemeral token. The server's Gemini API key is never returned. */
+  token: string;
+  model: string;
+  expiresAt: string;
+  newSessionExpiresAt: string;
+  mock: boolean;
+  /** Setup fallback only when Gemini cannot lock config fields into the token. */
+  setup?: Record<string, unknown>;
 }

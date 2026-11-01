@@ -20,6 +20,7 @@ import {
 import { mockTopFaq } from './faq';
 import { mockDialectFields, mockDialectInfo } from './dialects';
 import { mockDetectLanguage, mockGenerateAnswer, mockSearchSchemes, mockTranscribe } from './query';
+import { mockGreeting, mockSmallTalk } from './query';
 
 // Same text as server/src/modules/chat/fraudWarning.ts.
 export const FRAUD_WARNINGS: Record<LanguageCode, string> = {
@@ -42,6 +43,27 @@ function answer(
   dialectHint?: string,
   signal?: AbortSignal,
 ) {
+  const directLanguage = mockDetectLanguage(text, hint);
+  const direct = mockGreeting(text, directLanguage) ?? mockSmallTalk(text, directLanguage);
+  if (direct) {
+    return delayWithSignal(
+      {
+        sessionId,
+        transcript,
+        detectedLanguage: directLanguage,
+        answer: direct.answer,
+        sources: [],
+        fraudWarning: '',
+        smsText: direct.sms,
+        smsSegments: countSmsSegments(direct.sms),
+        audioUrl: null,
+        usedCache: false,
+        notFound: false,
+        ...dialectForQuery(dialectHint),
+      },
+      signal,
+    );
+  }
   const language = mockDetectLanguage(text, hint);
   const cacheKey = `${language}:${text.toLowerCase().trim()}`;
   const usedCache = askedBefore.has(cacheKey);

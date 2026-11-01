@@ -33,7 +33,7 @@ export function AppSheet({ onClose, children }: AppSheetProps) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-[1000] isolate flex items-center justify-center p-6">
       <m.div
         aria-hidden
         className="absolute inset-0 bg-[rgb(38_35_31/0.32)] full-motion:backdrop-blur-[6px]"
@@ -49,7 +49,7 @@ export function AppSheet({ onClose, children }: AppSheetProps) {
         aria-modal="true"
         aria-label={t.appLabel}
         tabIndex={-1}
-        className="relative aspect-[9/19.5] h-[min(52rem,calc(100dvh-3rem))] outline-none"
+        className="relative aspect-[9/19.5] h-[min(48rem,calc(100dvh-4rem))] outline-none"
       >
         <m.div
           layoutId={APP_SURFACE_ID}

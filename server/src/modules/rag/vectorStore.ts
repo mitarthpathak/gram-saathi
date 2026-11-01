@@ -40,7 +40,10 @@ export const vectorStoreFileSchema = z.object({
       schemeId: z.string(),
       schemeName: z.string(),
       sourceFile: z.string(),
+      officialUrl: z.string().url().optional(),
       sample: z.boolean(),
+      /** Missing in old stores, which makes those documents untrusted by default. */
+      verified: z.boolean().default(false),
     }),
   ),
   chunks: z.array(chunkSchema),

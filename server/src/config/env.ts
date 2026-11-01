@@ -38,6 +38,7 @@ export const MOCKABLE_MODULES = [
   'eligibility',
   'sms',
   'tts',
+  'live',
   'faq',
 ] as const;
 export type MockableModule = (typeof MOCKABLE_MODULES)[number];
@@ -78,8 +79,13 @@ const envSchema = z.object({
   // Gemini. Model ids: https://ai.google.dev/gemini-api/docs/models
   GEMINI_API_KEY: fromEnv(z.string().optional()),
   GEMINI_CHAT_MODEL: fromEnv(z.string().default('gemini-3.8-flash')),
+  /** Used for transient model overloads; set to `none` to disable model fallback. */
+  GEMINI_FALLBACK_MODEL: fromEnv(z.string().trim().default('gemini-3.6-flash')),
   /** Model for speech-to-text; defaults to GEMINI_CHAT_MODEL. */
   GEMINI_AUDIO_MODEL: fromEnv(z.string().optional()),
+  /** Optional Gemini TTS model; empty disables server-side TTS. */
+  GEMINI_TTS_MODEL: fromEnv(z.string().trim().optional()),
+  GEMINI_TTS_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(120_000).default(15_000)),
   GEMINI_EMBED_MODEL: fromEnv(z.string().default('gemini-embedding-2')),
   GEMINI_EMBED_DIMENSIONS: fromEnv(z.coerce.number().int().min(128).max(3072).default(768)),
   /** `default` sends no thinking level and lets the model decide. */
@@ -90,6 +96,15 @@ const envSchema = z.object({
   GEMINI_MAX_RETRIES: fromEnv(z.coerce.number().int().min(0).max(8).default(3)),
   /** Shared cap for Gemini generation and embedding calls; one slot stays available to answers. */
   GEMINI_MAX_CONCURRENT_CALLS: fromEnv(z.coerce.number().int().min(2).max(64).default(8)),
+
+  // Sarvam voice providers. Defaults preserve the existing Gemini STT and browser TTS behavior.
+  STT_PROVIDER: fromEnv(z.enum(['gemini', 'sarvam']).default('gemini')),
+  TTS_PROVIDER: fromEnv(z.enum(['none', 'sarvam', 'gemini']).default('gemini')),
+  SARVAM_API_KEY: fromEnv(z.string().optional()),
+  SARVAM_STT_MODEL: fromEnv(z.string().default('saaras:v3')),
+  SARVAM_TTS_MODEL: fromEnv(z.string().default('bulbul:v3')),
+  SARVAM_TTS_SPEAKER: fromEnv(z.string().default('shubh')),
+  SARVAM_TIMEOUT_MS: fromEnv(z.coerce.number().int().min(1000).max(300_000).default(30_000)),
 
   // Dialect classification. A smaller dialect active set means higher accuracy.
   DIALECT_ENSEMBLE_SIZE: fromEnv(z.coerce.number().int().min(1).max(3).default(3)),
@@ -118,6 +133,11 @@ const envSchema = z.object({
   RATE_LIMIT_PER_MINUTE: fromEnv(z.coerce.number().int().min(0).default(30)),
   /** Express `trust proxy`: hops of proxies in front of the server (1 on Vercel). */
   TRUST_PROXY: fromEnv(z.coerce.number().int().min(0).max(10).default(1)),
+
+  // Gemini Live (ephemeral tokens; client connects directly to Live API).
+  GEMINI_LIVE_MODEL: fromEnv(z.string().trim().min(1).default('gemini-3.8-live')),
+  GEMINI_LIVE_VOICE: fromEnv(z.string().trim().min(1).default('Kore')),
+  GEMINI_LIVE_TOKEN_TTL_SECONDS: fromEnv(z.coerce.number().int().min(60).max(71_999).default(600)),
 });
 
 const parsed = envSchema.safeParse(process.env);
