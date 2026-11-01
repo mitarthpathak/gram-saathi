@@ -29,8 +29,8 @@ export async function synthesizeSpeech(
         : request.language === 'ta'
           ? 'ta-IN'
           : request.language === 'en'
-          ? 'en-IN'
-          : 'hi-IN';
+            ? 'en-IN'
+            : 'hi-IN';
     const key = JSON.stringify([languageCode, env.SARVAM_TTS_SPEAKER, request.text]);
     const cached = sarvamAudioCache.get(key);
     if (cached) {
@@ -46,7 +46,8 @@ export async function synthesizeSpeech(
       });
       const audioUrl = `data:audio/wav;base64,${audio}`;
       sarvamAudioCache.set(key, audioUrl);
-      if (sarvamAudioCache.size > 100) sarvamAudioCache.delete(sarvamAudioCache.keys().next().value!);
+      if (sarvamAudioCache.size > 100)
+        sarvamAudioCache.delete(sarvamAudioCache.keys().next().value!);
       return { audioUrl };
     } catch {
       return { audioUrl: null };

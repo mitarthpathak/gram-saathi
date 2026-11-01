@@ -1,6 +1,3 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PATHS } from '../src/config/env';
 import { setGeminiBackend } from '../src/lib/geminiClient';
