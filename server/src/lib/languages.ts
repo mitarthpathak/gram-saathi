@@ -48,9 +48,22 @@ const ALIASES: Record<string, LanguageCode> = {
   raj: 'hi', // Rajasthani
   hne: 'hi', // Chhattisgarhi
   bns: 'hi', // Bundeli
+  bundeli: 'hi',
+  braj: 'hi',
+  wagdi: 'hi',
+  marwari: 'hi',
+  dhundhari: 'hi',
+  shekhawati: 'hi',
+  bagri: 'hi',
+  mewari: 'hi',
+  mewati: 'hi',
+  harauti: 'hi',
+  malvi: 'hi',
+  haryanvi: 'hi',
   mar: 'mr',
   marathi: 'mr',
   vah: 'mr', // Varhadi
+  varhadi: 'mr',
   tam: 'ta',
   tamil: 'ta',
   eng: 'en',

@@ -11,7 +11,11 @@ import path from 'node:path';
 import { env, PATHS } from '../src/config/env';
 import { embedTexts, isGeminiConfigured } from '../src/lib/geminiClient';
 import { chunkDocument, DEFAULT_CHUNKING } from '../src/modules/rag/chunking';
-import { fingerprintDocuments, loadSchemeDocuments } from '../src/modules/rag/documents';
+import {
+  fingerprintDocuments,
+  loadSchemeDocuments,
+  verifiedOfficialDocuments,
+} from '../src/modules/rag/documents';
 import { buildVectorStoreFile, writeVectorStore } from '../src/modules/rag/vectorStore';
 
 const relative = (file: string) => path.relative(process.cwd(), file) || file;
@@ -28,9 +32,23 @@ async function main(): Promise<void> {
   const dryRun = args.includes('--dry-run');
   const batchSize = numberFlag(args, '--batch-size', 50);
 
-  const documents = await loadSchemeDocuments(PATHS.schemes);
-  if (documents.length === 0) {
+  const discovered = await loadSchemeDocuments(PATHS.schemes);
+  const documents = verifiedOfficialDocuments(discovered);
+  const skipped = discovered.filter((document) => !documents.includes(document));
+  if (discovered.length === 0) {
     throw new Error(`No .md, .txt or .pdf files found in ${relative(PATHS.schemes)}`);
+  }
+  if (skipped.length > 0) {
+    console.warn(
+      `\n! Skipping ${skipped.length} document(s) without verified, secure official sources: ` +
+        skipped.map((document) => document.sourceFile).join(', '),
+    );
+  }
+  if (documents.length === 0) {
+    throw new Error(
+      'No verified official documents are ready to index. Check each document has ' +
+        'sample: false, verified: true and an HTTPS .gov.in/.nic.in source (or PFRDA).',
+    );
   }
   const chunks = documents.flatMap((document) => chunkDocument(document, DEFAULT_CHUNKING));
 
@@ -46,14 +64,6 @@ async function main(): Promise<void> {
         `largest ~${largest} tokens  [${status}]`,
     );
   }
-  const samples = documents.filter((document) => document.sample);
-  if (samples.length > 0) {
-    console.warn(
-      `\n! ${samples.length} file(s) contain SAMPLE text. Replace them with official scheme text ` +
-        `and set "sample: false" in their front matter.`,
-    );
-  }
-
   if (dryRun) {
     console.log('\nDry run: nothing embedded or written.');
     return;
@@ -90,12 +100,16 @@ async function main(): Promise<void> {
       dimensions: env.GEMINI_EMBED_DIMENSIONS,
       sourceFingerprint: fingerprintDocuments(documents),
       chunking: DEFAULT_CHUNKING,
-      documents: documents.map(({ schemeId, schemeName, sourceFile, sample }) => ({
-        schemeId,
-        schemeName,
-        sourceFile,
-        sample,
-      })),
+      documents: documents.map(
+        ({ schemeId, schemeName, sourceFile, officialUrl, sample, verified }) => ({
+          schemeId,
+          schemeName,
+          sourceFile,
+          officialUrl,
+          sample,
+          verified,
+        }),
+      ),
     },
     chunks,
     vectors,

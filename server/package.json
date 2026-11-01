@@ -13,7 +13,12 @@
     "test": "vitest run",
     "ingest": "tsx scripts/ingest.ts",
     "prewarm": "tsx scripts/prewarm.ts",
-    "query": "tsx scripts/query.ts"
+    "query": "tsx scripts/query.ts",
+    "calibrate": "tsx scripts/calibrate-rag.ts",
+    "eval": "vitest run --silent=false --config vitest.eval.config.mts test/evalHarness.test.ts",
+    "audit": "tsx scripts/audit.ts",
+    "tts:voices": "tsx scripts/tts-voices.ts",
+    "tts:samples": "tsx scripts/tts-samples.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",

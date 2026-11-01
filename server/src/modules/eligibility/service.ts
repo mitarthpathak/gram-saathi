@@ -12,6 +12,7 @@ import { isMocked, PATHS } from '../../config/env';
 import { LruCache } from '../../lib/cache';
 import { HttpError } from '../../lib/httpError';
 import { MOCK_ELIGIBILITY_QUESTIONS, evaluateMockEligibility } from '../../mocks';
+import { isOfficialSourceUrl } from '../rag/documents';
 import { parseAnswer } from './answers';
 import { type Answers, evaluateSchemes, nextQuestion } from './engine';
 import { localize } from './localize';
@@ -84,7 +85,19 @@ function rulesFlow(loaded: EligibilityRules): Flow {
 }
 
 function getFlow(): Flow {
-  return isMocked('eligibility') ? MOCK_FLOW : rulesFlow(rules ?? loadRules());
+  if (isMocked('eligibility')) return MOCK_FLOW;
+  const loaded = rules ?? loadRules();
+  const unverified = loaded.schemes.filter(
+    (scheme) => !scheme.verified || !isOfficialSourceUrl(scheme.source),
+  );
+  if (unverified.length > 0) {
+    throw new HttpError(
+      503,
+      'ELIGIBILITY_RULES_UNVERIFIED',
+      'Eligibility results are disabled until every rule is verified against a secure official source.',
+    );
+  }
+  return rulesFlow(loaded);
 }
 
 interface Session {

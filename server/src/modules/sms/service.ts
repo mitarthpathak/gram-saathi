@@ -9,10 +9,10 @@ import { buildSmsInput, SMS_SYSTEM_PROMPT, smsSchema } from './prompts';
  * character budget; if that fails or is still too long, a deterministic cut at a sentence
  * boundary is used, so this never fails because of the AI.
  */
-export async function compressForSms({
-  text,
-  language,
-}: SmsCompressRequest): Promise<SmsCompressResponse> {
+export async function compressForSms(
+  { text, language }: SmsCompressRequest,
+  script?: string,
+): Promise<SmsCompressResponse> {
   const maxSegments = env.SMS_MAX_SEGMENTS;
   const clean = prepareForSms(text, language);
   if (countSmsSegments(clean) <= maxSegments) return withSegments(clean);
@@ -24,7 +24,7 @@ export async function compressForSms({
       const { sms } = await generateJson({
         label: 'sms',
         system: SMS_SYSTEM_PROMPT,
-        input: buildSmsInput(clean, language, budget),
+        input: buildSmsInput(clean, language, budget, script),
         schema: smsSchema,
         maxOutputTokens: 1024,
       });
