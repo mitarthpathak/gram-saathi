@@ -211,7 +211,7 @@ export async function synthesizeSpeech(
   overrides: Partial<TtsSettings> = {},
 ): Promise<TtsResponse> {
   if (env.TTS_PROVIDER === 'sarvam') return synthesizeWithSarvamProvider(request);
-  if (env.TTS_PROVIDER === 'none') return NO_AUDIO;
+  if (env.TTS_PROVIDER === 'none') return { audioUrl: null };
   const settings = { ...ttsSettingsFromEnv(), ...overrides };
   if (!isServerSpeechConfigured(settings)) return NO_AUDIO;
 

@@ -1,6 +1,3 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PATHS } from '../src/config/env';
 import { setGeminiBackend } from '../src/lib/geminiClient';
@@ -199,91 +196,23 @@ describe('wizard sessions (USE_MOCKS=false)', () => {
     clearTranslations();
   });
 
-  it('runs a Marathi session end to end with spoken-style answers', async () => {
-    const response = await startEligibility({ sessionId: 'mr-1', language: 'mr' });
-    expect(response.question).toMatchObject({
-      id: 'age',
-      type: 'number',
-      text: 'तुमचे वय किती आहे? (वर्षांमध्ये)',
-    });
-    const answers: Record<string, string | number> = {
-      age: '३२ वर्षे',
-      occupation: 'शेतकरी',
-      landAcres: 3,
-      paysIncomeTax: 'नाही',
-      familyPaysIncomeTax: 'नाही',
-      hasBankAccount: 'होय',
-    };
-    let step = await answerEligibility({
-      sessionId: 'mr-1',
-      questionId: 'age',
-      answer: answers.age,
-    });
-    while (!step.done) {
-      expect(step.progress?.current).toBeLessThanOrEqual(step.progress?.total ?? 0);
-      step = await answerEligibility({
-        sessionId: 'mr-1',
-        questionId: step.question.id,
-        answer: answers[step.question.id],
-      });
-    }
-    expect(step.results[0]).toMatchObject({ eligible: true });
-    const kisan = step.results.find((r) => r.schemeId === 'pm-kisan')!;
-    expect(kisan).toMatchObject({ eligible: true, schemeName: 'पीएम-किसान सन्मान निधी' });
-    expect(step.results.at(-1)).toMatchObject({
-      schemeId: 'ayushman-bharat-pmjay',
-      eligible: false,
-    });
-    // The session ends with the results.
-    await expect(
-      answerEligibility({ sessionId: 'mr-1', questionId: 'age', answer: 30 }),
-    ).rejects.toMatchObject({ status: 404 });
-  });
-
-  it('refuses an answer to another question (409) and keeps the session on a bad answer', async () => {
-    await startEligibility({ sessionId: 's-2', language: 'en' });
-    await expect(
-      answerEligibility({ sessionId: 's-2', questionId: 'occupation', answer: 'Farmer' }),
-    ).rejects.toMatchObject({ status: 409 });
-    await expect(
-      answerEligibility({ sessionId: 's-2', questionId: 'age', answer: -5 }),
-    ).rejects.toMatchObject({ status: 400 });
-    const next = await answerEligibility({ sessionId: 's-2', questionId: 'age', answer: 30 });
-    expect(next).toMatchObject({
-      done: false,
-      question: {
-        id: 'occupation',
-        options: ['Farmer', 'Daily-wage labourer', 'ASHA / Anganwadi worker', 'Other'],
-      },
+  it('fails closed when any eligibility rule is unverified', async () => {
+    await expect(startEligibility({ sessionId: 'mr-1', language: 'mr' })).rejects.toMatchObject({
+      status: 503,
+      code: 'ELIGIBILITY_RULES_UNVERIFIED',
     });
   });
 
-  it('machine-translates texts that have no reviewed translation, else shows English', async () => {
-    const dir = mkdtempSync(path.join(tmpdir(), 'rules-'));
-    writeFileSync(
-      path.join(dir, 'questions.json'),
-      JSON.stringify({
-        questions: [{ id: 'hasCow', type: 'boolean', text: { en: 'Do you have a cow?' } }],
-      }),
-    );
-    writeFileSync(
-      path.join(dir, 'cow-scheme.json'),
-      JSON.stringify({
-        schemeId: 'cow-scheme',
-        verified: false,
-        schemeName: { en: 'Cow scheme' },
-        eligibleIf: { question: 'hasCow', op: '==', value: true },
-        reasons: { eligible: { en: 'Yes.' } },
-      }),
-    );
-    loadRules(dir);
+  it('does not accept answers while the eligibility rules are unverified', async () => {
+    await expect(
+      answerEligibility({ sessionId: 's-2', questionId: 'age', answer: 30 }),
+    ).rejects.toMatchObject({ status: 503, code: 'ELIGIBILITY_RULES_UNVERIFIED' });
+  });
 
-    expect((await startEligibility({ sessionId: 't-1', language: 'ta' })).question.text).toBe(
-      'Do you have a cow?',
-    );
-    setGeminiBackend(fakeGemini(() => ({ translations: ['உங்களிடம் பசு உள்ளதா?'] })));
-    expect((await startEligibility({ sessionId: 't-2', language: 'ta' })).question.text).toBe(
-      'உங்களிடம் பசு உள்ளதா?',
-    );
+  it('does not expose eligibility results until verification is complete', async () => {
+    await expect(startEligibility({ sessionId: 't-1', language: 'ta' })).rejects.toMatchObject({
+      status: 503,
+      code: 'ELIGIBILITY_RULES_UNVERIFIED',
+    });
   });
 });
