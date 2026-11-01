@@ -12,6 +12,7 @@ export interface TtsDependencies {
 }
 
 const GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const sarvamAudioCache = new Map<string, string>();
 
 /** Optional Gemini TTS. Any absent provider or provider failure returns the browser fallback form. */
 export async function synthesizeSpeech(
@@ -21,21 +22,32 @@ export async function synthesizeSpeech(
   if (dependencies.mocked ?? isMocked('tts')) return { audioUrl: null };
   if (env.TTS_PROVIDER === 'none') return { audioUrl: null };
   if (env.TTS_PROVIDER === 'sarvam') {
+    if (request.text.length > 2500) return { audioUrl: null };
     const languageCode =
       request.language === 'mr'
         ? 'mr-IN'
         : request.language === 'ta'
           ? 'ta-IN'
           : request.language === 'en'
-            ? 'en-IN'
-            : 'hi-IN';
+          ? 'en-IN'
+          : 'hi-IN';
+    const key = JSON.stringify([languageCode, env.SARVAM_TTS_SPEAKER, request.text]);
+    const cached = sarvamAudioCache.get(key);
+    if (cached) {
+      sarvamAudioCache.delete(key);
+      sarvamAudioCache.set(key, cached);
+      return { audioUrl: cached };
+    }
     try {
       const audio = await synthesizeWithSarvam({
         text: request.text,
         languageCode,
         speaker: env.SARVAM_TTS_SPEAKER,
       });
-      return { audioUrl: `data:audio/wav;base64,${audio}` };
+      const audioUrl = `data:audio/wav;base64,${audio}`;
+      sarvamAudioCache.set(key, audioUrl);
+      if (sarvamAudioCache.size > 100) sarvamAudioCache.delete(sarvamAudioCache.keys().next().value!);
+      return { audioUrl };
     } catch {
       return { audioUrl: null };
     }
