@@ -143,3 +143,273 @@
 - Commands run: `npm.cmd run typecheck -w client`; `npm.cmd run lint`; `npm.cmd run build -w client`.
 - Results: client typecheck, lint and production build passed. Modal now locks and restores document/body scrolling while preserving the previous page position; app scroll regions keep native scrolling with contained overscroll and a themed scrollbar. Phone modal maximum height is smaller and narrow-screen root scale is 88%.
 - Open issues: browser interaction was not manually exercised in this follow-up; three previously recorded eligibility tests still fail due to unverified rules.
+
+---
+
+# Dialect voice job (branch `feat/dialect-voice`)
+
+Earlier sections above belong to the finished conversation-layer job. This job's phases follow.
+
+## Phase 0 — recon and baseline
+
+- Branch: created `feat/dialect-voice` from `feat/conversation-layer` (`1b5d297`), which is not
+  merged into `main` (PR #9 open).
+- Files changed: `docs/AGENT_NOTES.md` (rewritten for this job), `docs/DECISIONS.md`,
+  `docs/AGENT_LOG.md`.
+- Commands run: `npm install` (failed: `ENOTFOUND registry.npmjs.org`, then proxy `403` on
+  CONNECT — not retried further); `npm run typecheck`, `npm run lint`, `npm test -w server`,
+  `npm run build` (all fail for lack of dependencies); `prettier --check .` (29 pre-existing
+  differences); sandbox kit: `tsc --noEmit` for server and shared with TypeScript 6.0.3 (0 errors
+  each), `tsx --test server/test/*.test.ts` (135 tests: 125 pass, 7 fail only because Express is
+  not installable, 3 known eligibility failures); `tsx` probe of `mockSearchSchemes`,
+  `mockTranscribe`, `mockGenerateAnswer`; WebFetch of the deployed `/api/health` and
+  `/api/faq/top?lang=hi`.
+- Results: flows, dialect plumbing, TTS state, env vars, mocks and 9 contradictions recorded in
+  `docs/AGENT_NOTES.md`. Key findings: the dialect already reaches the answer prompt (including an
+  unverified model-guessed dialect for typed text); the intent router exists but only in real
+  mode; the deployed server reports `mocks:true` and serves mock FAQ ids; a typed
+  "ki keh raho he" cannot produce PM-KISAN in mock mode while any spoken query does.
+- Open issues: no dependency install, no Gemini key and no client toolchain in this sandbox. All
+  repo-tooling checks are NOT-TESTED here; sandbox-shim results are labelled as such.
+
+## Phase 1 — honest audit harness and baseline
+
+- Files changed: `server/scripts/audit.ts` and `server/scripts/audit/{types,checks,context,goldset,kb,transport,stagesText,stagesSpeech,e2e,worker,fakeWorker,report,ttsLanguages}.ts`,
+  `server/src/lib/facts.ts` (pure fact extraction, used by the audit now and the facts lock in
+  Phase 2), `server/src/lib/geminiClient.ts` (diagnostics observer only),
+  `server/eval/audit-goldset.json`, `server/test/audit.test.ts`, `server/package.json`
+  (`audit` script), `eval/audio/README.md`, `eval/audio/labels.example.json`, `.gitignore`,
+  `.prettierignore`, generated `docs/PIPELINE_AUDIT.md`, `docs/PIPELINE_AUDIT.baseline.md`,
+  `audit/results.json`, `audit/results.baseline.json`, `eval/review/dialect-review.csv`,
+  `docs/DECISIONS.md`.
+- Commands run (sandbox kit): `tsc --noEmit -p server/tsconfig.json` (0 errors);
+  `tsx --test server/test/audit.test.ts` (13/13 pass); full server suite (148 tests: 138 pass,
+  the same 10 failures as baseline — 7 Express-only, 3 known eligibility); `prettier --check` on
+  touched files (clean); `tsx scripts/audit.ts --baseline` with `AUDIT_BASE_URL` and an
+  `AUDIT_ENV_NOTE` describing this sandbox.
+- Baseline results (mock mode, no key, in-process API): A NOT-TESTED (no dependencies),
+  B PARTIAL (models NOT-TESTED; index present; index fingerprint matches only as CRLF; PMAY-G
+  sample), C/D/E/F/G MOCK-ONLY, H NOT-TESTED, I PARTIAL (7 error-code checks PASS with a fake
+  backend; multer limits and the client path NOT-TESTED), J FAIL (voice path: 8 calls, 6
+  sequential, over the 4-call budget; typed scheme path 4 sequential).
+- "ki keh raho he": typed in mock mode → fixed not-found text (not reproduced); any spoken query
+  in mock mode → canned PM-KISAN transcript and formal-Hindi answer (reproduced). Real mode
+  NOT-TESTED (no key). Deployed app not reachable from the shell; the earlier WebFetch evidence
+  (`mocks:true`, mock FAQ ids) is in the report's environment note.
+- Findings (not fixed here, out of scope or human-owned): (1) `fingerprintDocuments` hashes raw
+  text, so the Windows-built index looks stale on Linux/Vercel and startup logs a false warning;
+  (2) the voice path makes 6 sequential model calls; (3) the verified PM-KISAN summary says
+  "₹6,000 per year in three equal instalments" — a correct derived "₹2,000" in an answer is not in
+  the passage, and `preservesContextNumbers` would turn such answers into notFound (real-mode
+  risk, NOT-TESTED); (4) mock fixtures mention ₹2,000, pmkisan.gov.in etc. that the verified
+  passages do not.
+- Open issues: everything real-mode is NOT-TESTED here; Stage H code was never executed (no
+  Playwright, no client server); the in-process transport skips multer and the rate limiter.
+
+## Phase 2 — dialect-aware text replies and tone
+
+- Files changed: `shared/src/types.ts` (`AnswerStyle`, `QueryResponse.answerStyle?`),
+  `docs/API_CONTRACT.md` (field, section, changelog v4), `server/src/config/env.ts`
+  (`DIALECT_REPLY`, `DIALECT_RENDER_TIMEOUT_MS`), `.env.example`,
+  `server/src/config/dialect-render.json` (14 dialects, all `verified: false`; bhojpuri and
+  awadhi `ttsNamedLanguage: true`), `server/src/modules/dialect/renderConfig.ts`,
+  `server/src/lib/facts.ts` (scheme aliases, `checkFactsLock`),
+  `server/src/modules/chat/dialectRender.ts` (pure rewording step, tone rules, policy),
+  `server/src/modules/chat/conversation.ts` (standard-language answer; model dialect guess no
+  longer used), `server/src/modules/chat/service.ts` (decision, rewording in parallel with SMS,
+  `answerStyle` on every path incl. mocks, clarify facts guard), `server/src/modules/chat/messages.ts`
+  (`ASK_AGAIN`), tests `server/test/dialectRender.test.ts`, `server/test/answerStyleMock.test.ts`,
+  updated `server/test/conversation.test.ts`, `server/scripts/audit/fakeWorker.ts`.
+- Commands run (sandbox kit): server and shared `tsc --noEmit` (0 errors); new tests 23/23 pass;
+  full server suite 172 tests: 162 pass, the same 10 baseline failures (7 Express-only, 3
+  eligibility); `audit --skip-static` in mock mode (E now reports `render_off` in mock mode; the
+  fake-backend shape of a typed dialect question is 5 calls, 4 sequential).
+- Results: with a hint or high-confidence identification, the reply is reworded and facts-locked;
+  otherwise `answerStyle` explains why not. Clarifications cannot add facts. Verified with fake
+  model output only.
+- Open issues: dialect quality and naturalness NEEDS-HUMAN; real-model behaviour NOT-TESTED (no
+  key); exemplars are all empty, so rewording is zero-shot; `ASK_AGAIN` strings need native review.
+
+## Phase 3 — spoken replies (server TTS)
+
+- Files changed: `server/src/lib/geminiClient.ts` (`SpeechRequest`/`SpeechResult`, optional
+  `GeminiBackend.synthesize`, `speechRequestBody`, `extractSpeechAudio`, `synthesizeViaRest`,
+  `synthesizeAudio`, observer kind `speech`), `server/src/lib/wav.ts` (new),
+  `server/src/modules/tts/{service,controller,speechText,voices}.ts`,
+  `server/src/config/tts-voices.json` (new, placeholders "to-be-auditioned"),
+  `server/src/config/env.ts` (TTS variables), `server/src/modules/health/service.ts`,
+  `shared/src/types.ts` (`TtsRequest.dialectId?`, `TtsBasis`, `TtsResponse.basis?`),
+  `server/scripts/tts-voices.ts`, `server/scripts/tts-samples.ts`, `server/package.json`
+  (`tts:voices`, `tts:samples`), `server/test/tts.test.ts` (rewritten), audit
+  (`fakeWorker.ts`: fake speech backend, `I-tts-ok`, `I-tts-basis`, `I-tts-unknown-dialect`,
+  `J-shape-tts` via the observer, `J-shape-tts-long`; `stagesText.ts`: `B-model-tts-dialect`,
+  dialect answers kept only when actually dialect-worded; `stagesSpeech.ts`: dialectId only with
+  dialect text), `.env.example`, `docs/API_CONTRACT.md` (TTS section, changelog v5),
+  `docs/RUNBOOK.md` (voice auditioning, design and consent-only replication), `README.md` (env rows,
+  limitation), `docs/DECISIONS.md`, `docs/tts-voice-candidates.md` (placeholder: not generated).
+- Docs re-read 2026-10-31 (speech-generation page, last updated 2026-10-28): request/response
+  shape, voices endpoint and fields, language table (Chhattisgarhi, Magahi, Maithili, Awadhi,
+  Bhojpuri named for both models; Braj, Marwari, Rajasthani, Haryanvi, Bundeli, Wagdi not).
+  UNVERIFIED items listed in DECISIONS.
+- Commands run (sandbox kit): server and shared `tsc --noEmit` (0 errors); `tts.test.ts` 28/28
+  pass; full server suite 192 tests: 182 pass, the same 10 baseline failures; both owner scripts
+  without a key (exit 1 with a clear message) and against a fake `fetch`/backend (pagination,
+  field casing, sample-rate fallback); `audit --skip-static` in mock mode (I-tts checks PASS with
+  the fake backend; J-shape-tts 1 call, long answer 3 calls in parallel); generated audit files
+  restored afterwards (the official re-run is Phase 5); prettier on new and previously clean files.
+- Results: real-mode speech, voice selection, basis labels, splitting, cache, payload cap and the
+  rate fallback are implemented and tested with fakes only. No real TTS call was made (no key):
+  real audio, voice quality and pronunciation are NOT-TESTED / NEEDS-HUMAN.
+- Open issues: library voice ids in `speech_config.voice` UNVERIFIED; answers longer than about
+  70 s of speech exceed the payload cap and fall back to the browser voice; the client does not
+  yet send `dialectId` or show `basis` (Phase 4).
+
+## Phase 4 — client (Listen, honest labels, low-bandwidth, typing indicator)
+
+- Files changed: `client/src/features/voice/speak.ts` (options object, server/browser result,
+  `voiceNoteFor`, low-bandwidth skips server audio, browser failure detection, stop server audio),
+  `client/src/features/voice/SpeakButton.tsx` (reads low-bandwidth, `dialectId`, "Preparing
+  audio…" state, `onSpoken`), `client/src/features/voice/VoiceNoteLine.tsx` (new),
+  `client/src/features/voice/strings.ts` and `client/src/features/chat/strings.ts` (new keys in
+  en/hi/mr/ta; mr/ta marked for native review), `client/src/features/chat/dialects.ts` (new,
+  cached `GET /api/dialects`), `client/src/features/chat/MessageBubble.tsx` (dialect note, voice
+  note, dialectId), `client/src/features/chat/ChatProvider.tsx` (auto-speak passes dialectId,
+  records the voice note), `client/src/features/chat/useChat.ts` (`voiceNote?`),
+  `client/src/features/chat/ChatWindow.tsx` (slow-answer text), `client/src/lib/api.ts`
+  (`dialects()`), `client/src/mocks/index.ts` (`dialects`, `basis: 'none'`), `docs/DECISIONS.md`.
+- Commands run: client `tsc -b` / `vite build` NOT-TESTED (React, Vite and lucide are not
+  installed; npm registry blocked). Instead: `tsc` over all of `client/src` against loose
+  sandbox-only shims for react/react-router/lucide/vite (exit 0 with `noImplicitAny` off; the
+  remaining implicit-any reports were all shim artifacts in untouched files), with a negative
+  control proving it catches wrong string keys, a wrong language code and a wrong `basis`; a Node
+  harness (esbuild bundle, fake `Audio`, fake `speechSynthesis`, fake API) for `speak()` and
+  `voiceNoteFor()`: 12/12 PASS (dialectId sent only when given, low-bandwidth makes no `/api/tts`
+  call, null audio / error / blocked playback fall back to the browser voice, both failing returns
+  `ok: false`); prettier on touched files.
+- Results: SYNTHETIC-ONLY. No real browser, phone or server audio was used; how the labels look and
+  whether playback works on phones is NOT-TESTED.
+- Open issues: client typecheck and build must be run by the owner (`npm run typecheck -w client`,
+  `npm run build -w client`); the new mr/ta strings need native review (runbook, Phase 6).
+
+## Phase 5 — audit re-run and comparison
+
+- Files changed: `server/scripts/audit/report.ts` (before/after moved to the top, check-level
+  changes table, link to the findings file), `server/scripts/audit.ts` ("ki keh raho he" verdict
+  cites the new guard check), `server/scripts/audit/fakeWorker.ts` (`I-clarify-guard`),
+  `server/test/audit.test.ts` (comparison test), regenerated `docs/PIPELINE_AUDIT.md`,
+  `audit/results.json`, `eval/review/dialect-review.csv`; new hand-maintained
+  `docs/AUDIT_FINDINGS.md` (4 fixed, 11 not fixed).
+- Commands run: `AUDIT_ENV_NOTE=… tsx scripts/audit.ts --label after` (sandbox: mock mode, no key,
+  in-process transport); WebFetch of the deployed `/api/health` (`{"status":"ok","mocks":true}`);
+  a WebFetch of the deployed `/api/dialects` failed (tool usage limit), so N6 stays UNVERIFIED;
+  full server suite 193 tests: 183 pass, the same 10 baseline failures; server `tsc --noEmit`
+  0 errors; prettier on touched files.
+- Results: stage statuses identical to the baseline (A NOT-TESTED, B PARTIAL, C–G MOCK-ONLY,
+  H NOT-TESTED, I PARTIAL, J FAIL), no matrix cell changed — expected without a key. New checks,
+  all with a fake model: `I-tts-ok`, `I-tts-basis`, `I-tts-unknown-dialect`, `I-clarify-guard`,
+  `J-shape-tts-long` (PASS). `J-shape-voice` is still FAIL (6 sequential calls).
+- Bugs fixed in this phase: none new; the audit's own bugs found earlier were fixed in Phase 3
+  (dialectId only with dialect text). Everything else is listed in `docs/AUDIT_FINDINGS.md`.
+- Note: the report says "uncommitted changes present" because the harness edits above are
+  committed together with the report (one commit per phase).
+
+## Phase 6 — docs, final report and independent re-check
+
+- Resumed in a new agent session from this log (R2): Phases 0–5 committed, Phase 6 open. Branch
+  checked out from `origin/feat/dialect-voice` at `38689dd`; no other branch touched.
+- Files changed: `README.md` (status, mock vs real quickstart, `DIALECT_REPLY` / `AUDIT_*` rows,
+  known limitations, "Checking what really works", docs list, structure), `docs/ARCHITECTURE.md`
+  (real-mode pipeline diagram: identify → answer → dialect render → speech; call counts; audit;
+  TTS and dialect variables; roadmap; client notes), `docs/API_CONTRACT.md` (`audioUrl: null` is
+  per request; TTS request duration; no type change), `docs/TASKS.md` (current status and owner
+  table), `docs/DECISIONS.md` (Phase 6 section; prettier), `docs/RUNBOOK.md` (rewritten in the
+  required 8-step order plus "Before merging into `main`"), `docs/FINAL_REPORT.md` (rewritten for
+  this job), `docs/AUDIT_FINDINGS.md` (N6 checked; N12–N14 added), `.env.example` (commented
+  `AUDIT_*` variables), `docs/AGENT_LOG.md`.
+- Commands run (sandbox: npm registry 403 at the proxy, no key; kit rebuilt from packages on disk:
+  TypeScript 6.0.3, `@types/node` 26.1.2, `yaml` 2.9.0, zod 3.25.76 `zod/v4`, shims for vitest,
+  express, cors, multer, dotenv, unpdf, `@google/genai`):
+  - `tsc --noEmit -p shared/tsconfig.json`, `tsc --noEmit -p server/tsconfig.json` → 0 errors each;
+    negative control (wrong `LanguageCode` in an `AnswerStyle`) → TS2322 reported.
+  - `tsx --test --test-reporter=spec test/*.test.ts` (server, vitest env) → 183 pass, 10 fail:
+    rate limit ×2, `GET /api/dialects` ×2, mock voice flow ×1 and `dialectTranscribe.test.ts` (2
+    tests, file cannot load) need real Express; 3 eligibility tests fail by design. Same as Phase 5.
+  - `tsx scripts/audit.ts --skip-static --label recheck` → 85 checks, every status, the matrix and
+    the "ki keh raho he" verdict identical to the committed run; generated files restored with
+    `git checkout`.
+  - prettier 3.8.1 `--check`: 24 files repo-wide (29 at base `1b5d297`); of this branch's files
+    only `docs/DECISIONS.md` was newly unformatted (now formatted).
+  - Real Chromium 153 via the preinstalled Playwright: fake microphone flag
+    (`--use-file-for-fake-audio-capture`) tone → peak 0.195, silence → 0; the real `speak.ts`
+    bundled with esbuild against a stub API: 7/7 (dialectId only when given; low-bandwidth makes no
+    `/api/tts` call; null audio and request errors fall back to browser speech; answer audio needs
+    no request; `basis` → note). A WAV made with `encodeWav(concatPcm(…, 250))` decodes (1.45 s).
+    Headless Chromium has 0 speech voices, so browser speech reports `ok: false`. Harnesses are in
+    the agent's scratch space, not the repo.
+  - `main`'s own mock `answerQuestion("ki keh raho he")` via `tsx` (temporary worktree, removed) →
+    not-found text, no sources; client and server mock `query.ts` identical on `main`.
+  - `git merge-tree --write-tree HEAD main` / `HEAD origin/feat/conversation-layer` (read-only) →
+    11 / 9 conflicting files.
+  - WebFetch: deployed `/api/health` → `{"status":"ok","mocks":true}`; `/api/dialects` → 14
+    dialects; speech-generation docs → same model ids and language table as Phase 3, no input
+    token limit stated, "Last updated 2026-10-28 UTC". `curl` to the deployed app from the shell →
+    proxy 403 (not retried).
+  - `mmdc` render of the new architecture diagram → renders.
+- Results: no code changed in this phase. Stage statuses unchanged (A NOT-TESTED, B PARTIAL, C–G
+  MOCK-ONLY, H NOT-TESTED, I PARTIAL, J FAIL); no matrix cell changed.
+- Open issues: everything real-mode (owner, runbook steps 1–8); merge with `main` (N12); typed
+  "ki keh raho he" points to a real-mode run (N13); `ASK_AGAIN` rewording (N14). Push: see the
+  commit's delivery note in the final message.
+
+## Phase 7 — bring `main`'s UI into the branch (owner request)
+
+- Request: compare this branch's UI with `main` and make the later merge easy; never push to
+  `main`, always push to `feat/dialect-voice`.
+- Commits: `f0c27c2` (merge `origin/feat/conversation-layer` at `462aa75`, which contains `main` up
+  to `698b211`), `642e2a8` (merge `origin/main` at `f8ccd8e`, PR #12), `9f27583` (restore the
+  low-bandwidth guard lost in the merge), plus this docs commit.
+- Conflicts resolved: `.gitignore`, `.prettierignore` (both sides kept); `useChat.ts`,
+  `ChatProvider.tsx`, `ChatWindow.tsx`, `MessageBubble.tsx` (main's UI + dialect and voice notes);
+  `speak.ts`, `SpeakButton.tsx`, `serverTts.ts` (add/add), `voice/strings.ts` (main's design +
+  `dialectId`, `basis`, `onVoice`, `onUnavailable`); `README.md`, `docs/ARCHITECTURE.md`,
+  `docs/AGENT_LOG.md`, `docs/FINAL_REPORT.md`. `api.dialects()` removed (main's `getDialects()`).
+- Commands run (sandbox: npm registry blocked, no key):
+  - `tsc --noEmit` server and shared → 0 errors; server tests (shim) → 183 pass, 10 fail (same 7
+    Express-bound + 3 eligibility).
+  - Client loose-shim typecheck (`client/tsconfig.sandbox.json`, local only, git-excluded; React
+    hooks typed, other packages `any`) → no errors besides TS2709 shim artifacts; negative control
+    reports a wrong `dialectId` type, a missing `via` and a missing string key.
+  - Client tests via a sandbox runner (esbuild bundle per test file, `vi.mock` factories, fresh
+    modules per test) → 19/19, including 5 new tests; mutating the per-request-null rule back to
+    `main`'s makes the new test fail.
+  - Merged `speak()` in real Chromium 153 against a stubbed API → 7/7 (dialectId and basis, no
+    request in low-bandwidth mode, per-request null then server again, answer audio, browser
+    fallback reports `onUnavailable` with 0 voices, loading listener toggles).
+  - `main` is an ancestor of the branch (`git merge-base --is-ancestor`); a read-only trial merge
+    into `main` (`git merge-tree`) has no conflicts.
+- Not done: building or rendering the client (Vite, Tailwind, UI packages unavailable); real
+  `npm test -w client`.
+- Open issues: N9 (typed questions send no `dialectHint`), N13, N14, N15 in `AUDIT_FINDINGS.md`.
+
+## Phase 8 — the mic answers your own speech, in your own way (owner request)
+
+- Request: the mic must answer the captured audio, not a canned demo; Haryanvi in → Haryanvi out.
+- Diagnosis: client uploads real audio (`useRecorder.ts`; placeholder audio only without a
+  recorder); the server defaulted to `USE_MOCKS=true`, where `mockTranscribe()` ignores audio; the
+  deployed app reports `mocks: true`. Regional replies needed a confirmed or high-confidence dialect.
+- Files changed: `server/src/config/env.ts` (`USE_MOCKS=auto` default, `resolveMockSetting`,
+  `DIALECT_REPLY=mirror` default), `server/src/modules/chat/dialectRender.ts` (`SpeakerStyle`,
+  unnamed target, speaker block, unchanged-rewrite rule, `decideReplyDialect` context),
+  `server/src/modules/chat/service.ts` (speaker sample, mirror decision in real mode only, fixed
+  `ASK_AGAIN` not reworded), tests `server/test/dialectMirror.test.ts`,
+  `server/test/useMocksAuto.test.ts`, `.env.example`, `README.md`, `docs/API_CONTRACT.md` (v6, no
+  type change), `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`, `docs/AUDIT_FINDINGS.md` (F6, F7, N16),
+  `docs/FINAL_REPORT.md`, `docs/DECISIONS.md`, regenerated `docs/PIPELINE_AUDIT.md` and
+  `audit/results.json` (label `phase-8-mirror`).
+- Commands run (sandbox, no key): server `tsc --noEmit` 0 errors; new tests 10/10; full server suite
+  202 tests: 193 pass, the same 9 environment failures (Express-bound + 3 eligibility);
+  `describeMocks()` in separate processes for `auto`/no key (all mocked), `auto`/key (off),
+  `true`/key (all), `eligibility,sms`/key (those two); audit `--skip-static --label phase-8-mirror`
+  (stage statuses unchanged; `J-shape-voice` now 9 calls, still 6 sequential).
+- Not done: any real-model or real-speaker run (no key); client unchanged (it already labels
+  dialect-worded answers and sends no `dialectId` when `answerStyle.dialectId` is null).

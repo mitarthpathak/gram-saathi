@@ -210,5 +210,5 @@ export const mockApi: Api = {
 
   faqTop: (lang) => delay({ items: mockTopFaq(lang) }),
 
-  tts: () => delay({ audioUrl: null }),
+  tts: () => delay({ audioUrl: null, basis: 'none' as const }),
 };

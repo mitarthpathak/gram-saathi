@@ -1,0 +1,20 @@
+{
+  "$comment": "Gold set for `npm run audit -w server` (Stages C-E). Questions are NOT stored here: they are read from data/faq/questions.json (team-written hi/mr/ta/en questions) so no new regional-language sentence is invented. This file only maps each FAQ id to the scheme document that answers it. Non-scheme messages come from server/eval/testset.json.",
+  "faqSchemes": {
+    "pm-kisan-amount": "pm-kisan",
+    "pm-kisan-eligibility": "pm-kisan",
+    "pm-kisan-register": "pm-kisan",
+    "pmjay-cover": "ayushman-bharat-pmjay",
+    "pmjay-card": "ayushman-bharat-pmjay",
+    "apy-pension": "atal-pension-yojana",
+    "apy-who": "atal-pension-yojana",
+    "pmsby-cover": "pm-suraksha-bima-yojana",
+    "ujjwala-who": "pm-ujjwala-yojana",
+    "mgnrega-days": "mgnrega",
+    "mgnrega-job-card": "mgnrega",
+    "pmay-g-amount": "pmay-gramin"
+  },
+  "dialectQuestionFaqId": "pm-kisan-amount",
+  "followUpFaqId": "pm-kisan-amount",
+  "clarifyMessages": ["ki keh raho he", "samajh nahi aaya"]
+}

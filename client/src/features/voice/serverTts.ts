@@ -1,25 +1,42 @@
-import type { LanguageCode } from '@gram-saathi/shared';
+import type { LanguageCode, TtsBasis } from '@gram-saathi/shared';
 import { api, ApiError } from '@/lib/api';
 import { config } from '@/lib/config';
 import { storage } from '@/lib/storage';
 
 const CACHE_LIMIT = 20;
-const REQUEST_TIMEOUT_MS = 6000;
+// The server gives Gemini TTS up to TTS_TIMEOUT_MS (15 s by default) per piece, with one retry, and
+// long answers are split into pieces synthesized in parallel. A shorter client deadline would turn
+// most server speech into the browser voice.
+const REQUEST_TIMEOUT_MS = 20_000;
 const LOW_BANDWIDTH_KEY = 'gs:lowBandwidth';
-const audioCache = new Map<string, string | null>();
-const inFlight = new Map<string, Promise<string | null>>();
+
+/** Server audio plus what it is based on (POST /api/tts `basis`; older servers omit it). */
+export interface ServerSpeech {
+  audioUrl: string;
+  basis?: TtsBasis;
+}
+
+export interface ServerSpeechOptions {
+  /** Registry dialect id: send it only when `text` is dialect-worded (answerStyle.rendered). */
+  dialectId?: string | null;
+  signal?: AbortSignal;
+}
+
+const audioCache = new Map<string, ServerSpeech | null>();
+const inFlight = new Map<string, Promise<ServerSpeech | null>>();
 let serverUnavailable = false;
 
 /** Fetch server-generated speech. Failures are always returned as null for browser fallback. */
-export async function fetchServerTts(
+export async function fetchServerSpeech(
   text: string,
   language: LanguageCode,
-  signal?: AbortSignal,
-): Promise<string | null> {
+  options: ServerSpeechOptions = {},
+): Promise<ServerSpeech | null> {
+  const { dialectId, signal } = options;
   if (config.useMocks || storage.get(LOW_BANDWIDTH_KEY) === 'true' || signal?.aborted) return null;
   if (serverUnavailable) return null;
 
-  const key = JSON.stringify([language, text]);
+  const key = JSON.stringify([language, dialectId ?? null, text]);
   if (audioCache.has(key)) {
     const cached = audioCache.get(key) ?? null;
     audioCache.delete(key);
@@ -29,7 +46,7 @@ export async function fetchServerTts(
   const pending = inFlight.get(key);
   if (pending) return pending;
 
-  const request = fetchAndCache(key, text, language, signal);
+  const request = fetchAndCache(key, text, language, dialectId ?? null, signal);
   inFlight.set(key, request);
   try {
     return await request;
@@ -38,12 +55,22 @@ export async function fetchServerTts(
   }
 }
 
-async function fetchAndCache(
-  key: string,
+/** Audio URL only: the shape callers had before `basis` existed. */
+export async function fetchServerTts(
   text: string,
   language: LanguageCode,
   signal?: AbortSignal,
 ): Promise<string | null> {
+  return (await fetchServerSpeech(text, language, { signal }))?.audioUrl ?? null;
+}
+
+async function fetchAndCache(
+  key: string,
+  text: string,
+  language: LanguageCode,
+  dialectId: string | null,
+  signal?: AbortSignal,
+): Promise<ServerSpeech | null> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   let abortListener: (() => void) | undefined;
   try {
@@ -54,15 +81,24 @@ async function fetchAndCache(
         signal.addEventListener('abort', abortListener, { once: true });
       }
     });
-    const response = await Promise.race([api.tts({ text, language }), timeout]);
-    const audioUrl = response.audioUrl;
-    if (!audioUrl) {
-      serverUnavailable = true;
+    const response = await Promise.race([
+      api.tts({ text, language, ...(dialectId ? { dialectId } : {}) }),
+      timeout,
+    ]);
+    if (!response.audioUrl) {
+      // A server that reports `basis` answers null per request (an answer over the audio size cap,
+      // one provider timeout): try again for other texts. An older server without `basis` answers
+      // null because it has no server speech at all, so stop asking for this session.
+      if (response.basis === undefined) serverUnavailable = true;
       cache(key, null);
       return null;
     }
-    cache(key, audioUrl);
-    return audioUrl;
+    const speech: ServerSpeech = {
+      audioUrl: response.audioUrl,
+      ...(response.basis ? { basis: response.basis } : {}),
+    };
+    cache(key, speech);
+    return speech;
   } catch (error) {
     if (error instanceof ApiError && !isRetryable(error.status)) serverUnavailable = true;
     return null;
@@ -76,8 +112,8 @@ function isRetryable(status: number): boolean {
   return status === 0 || status === 408 || status === 429 || status >= 500;
 }
 
-function cache(key: string, audioUrl: string | null): void {
+function cache(key: string, speech: ServerSpeech | null): void {
   audioCache.delete(key);
-  audioCache.set(key, audioUrl);
+  audioCache.set(key, speech);
   if (audioCache.size > CACHE_LIMIT) audioCache.delete(audioCache.keys().next().value!);
 }

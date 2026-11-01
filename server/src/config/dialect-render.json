@@ -1,0 +1,61 @@
+{
+  "$comment": "Per-dialect switches for dialect-worded replies and speech. `verified` may only be set to true by a person after native-speaker review of real replies (see docs/RUNBOOK.md); the code never sets it. `ttsNamedLanguage` is true only when the Gemini TTS language table names the variety itself (checked 2026-10-31 on https://ai.google.dev/gemini-api/docs/speech-generation, page updated 2026-10-28); other dialects are spoken as a Hindi-voice approximation.",
+  "dialects": {
+    "marwari": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "dhundhari": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "shekhawati": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "bagri": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "mewari": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "mewati": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "harauti": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "malvi": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "wagdi": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "braj": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "haryanvi": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    },
+    "bhojpuri": {
+      "verified": false,
+      "ttsNamedLanguage": true
+    },
+    "awadhi": {
+      "verified": false,
+      "ttsNamedLanguage": true
+    },
+    "bundeli": {
+      "verified": false,
+      "ttsNamedLanguage": false
+    }
+  }
+}
