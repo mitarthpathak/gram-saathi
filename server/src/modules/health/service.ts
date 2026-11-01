@@ -7,7 +7,6 @@ export function getHealthStatus(): HealthResponse {
     status: 'ok',
     mocks: env.USE_MOCKS.size > 0,
     dialectConfigured: !isMocked('dialect') && Boolean(env.GEMINI_API_KEY),
-    ttsConfigured:
-      !isMocked('tts') && Boolean(env.GEMINI_API_KEY && env.GEMINI_TTS_MODEL),
+    ttsConfigured: !isMocked('tts') && Boolean(env.GEMINI_API_KEY && env.GEMINI_TTS_MODEL),
   };
 }

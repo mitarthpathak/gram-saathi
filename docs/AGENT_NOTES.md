@@ -11,38 +11,38 @@
 
 Defaults below are from `.env.example` and config, not from `.env` (which was not opened).
 
-| Variable | Default / purpose |
-|---|---|
-| `USE_MOCKS` | `false` in the checked-in example; config defaults to mock mode. Can list mocked modules. |
-| `PORT` | `4000` |
-| `CLIENT_ORIGIN` | `http://localhost:5173` |
-| `LOG_LEVEL` | empty; config chooses debug in development and info in production |
-| `GEMINI_API_KEY` | empty; required for live Gemini |
-| `GEMINI_CHAT_MODEL` | `gemini-3.8-flash` |
-| `GEMINI_FALLBACK_MODEL` | `gemini-3.6-flash` |
-| `GEMINI_AUDIO_MODEL` | empty; uses chat model |
-| `GEMINI_EMBED_MODEL` | `gemini-embedding-2` |
-| `GEMINI_EMBED_DIMENSIONS` | `768` |
-| `GEMINI_THINKING_LEVEL` | `low` |
-| `GEMINI_TIMEOUT_MS` | `30000` |
-| `GEMINI_MAX_RETRIES` | `3` |
-| `GEMINI_MAX_CONCURRENT_CALLS` | `8` |
-| `DIALECT_ENSEMBLE_SIZE`, `DIALECT_MIN_VOTES` | unset; dialect calibration defaults apply |
-| `DIALECT_TIMEOUT_MS` | `6000` |
-| `DIALECT_TEXT_DETECT` | `false` |
-| `DIALECT_ACTIVE` | `all` |
-| `DIALECT_EXEMPLARS_PER_LABEL` | `4` |
-| `DIALECT_EXEMPLAR_TOKEN_BUDGET` | `1800` |
-| `RAG_TOP_K` | `4` |
-| `RAG_MIN_SCORE` | `0.5` |
-| `RAG_TRANSLATE_QUERY` | `false` |
-| `CACHE_MAX_ENTRIES` | `500` |
-| `CACHE_TTL_MINUTES` | `360` |
-| `SMS_MAX_SEGMENTS` | `2` |
-| `RATE_LIMIT_PER_MINUTE` | `30` |
-| `TRUST_PROXY` | `1` |
-| `VITE_API_URL` | empty |
-| `VITE_USE_MOCKS` | `false` |
+| Variable                                     | Default / purpose                                                                         |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `USE_MOCKS`                                  | `false` in the checked-in example; config defaults to mock mode. Can list mocked modules. |
+| `PORT`                                       | `4000`                                                                                    |
+| `CLIENT_ORIGIN`                              | `http://localhost:5173`                                                                   |
+| `LOG_LEVEL`                                  | empty; config chooses debug in development and info in production                         |
+| `GEMINI_API_KEY`                             | empty; required for live Gemini                                                           |
+| `GEMINI_CHAT_MODEL`                          | `gemini-3.8-flash`                                                                        |
+| `GEMINI_FALLBACK_MODEL`                      | `gemini-3.6-flash`                                                                        |
+| `GEMINI_AUDIO_MODEL`                         | empty; uses chat model                                                                    |
+| `GEMINI_EMBED_MODEL`                         | `gemini-embedding-2`                                                                      |
+| `GEMINI_EMBED_DIMENSIONS`                    | `768`                                                                                     |
+| `GEMINI_THINKING_LEVEL`                      | `low`                                                                                     |
+| `GEMINI_TIMEOUT_MS`                          | `30000`                                                                                   |
+| `GEMINI_MAX_RETRIES`                         | `3`                                                                                       |
+| `GEMINI_MAX_CONCURRENT_CALLS`                | `8`                                                                                       |
+| `DIALECT_ENSEMBLE_SIZE`, `DIALECT_MIN_VOTES` | unset; dialect calibration defaults apply                                                 |
+| `DIALECT_TIMEOUT_MS`                         | `6000`                                                                                    |
+| `DIALECT_TEXT_DETECT`                        | `false`                                                                                   |
+| `DIALECT_ACTIVE`                             | `all`                                                                                     |
+| `DIALECT_EXEMPLARS_PER_LABEL`                | `4`                                                                                       |
+| `DIALECT_EXEMPLAR_TOKEN_BUDGET`              | `1800`                                                                                    |
+| `RAG_TOP_K`                                  | `4`                                                                                       |
+| `RAG_MIN_SCORE`                              | `0.5`                                                                                     |
+| `RAG_TRANSLATE_QUERY`                        | `false`                                                                                   |
+| `CACHE_MAX_ENTRIES`                          | `500`                                                                                     |
+| `CACHE_TTL_MINUTES`                          | `360`                                                                                     |
+| `SMS_MAX_SEGMENTS`                           | `2`                                                                                       |
+| `RATE_LIMIT_PER_MINUTE`                      | `30`                                                                                      |
+| `TRUST_PROXY`                                | `1`                                                                                       |
+| `VITE_API_URL`                               | empty                                                                                     |
+| `VITE_USE_MOCKS`                             | `false`                                                                                   |
 
 Root scripts: `dev`, `dev:server`, `dev:client`, `eval:dialect`, `calibrate:dialect`, `merge:contrib`, `build`, `typecheck`, `start`, `lint`, `lint:fix`, `format`, `format:check`. Server scripts include `dev`, `build`, `typecheck`, `start`, `test`, `ingest`, `prewarm`, `query`. Client scripts include `dev`, `build`, `typecheck`, `preview`.
 

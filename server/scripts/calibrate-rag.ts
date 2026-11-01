@@ -9,16 +9,52 @@ interface CalibrationCase {
 }
 
 export const SCHEME_CASES: CalibrationCase[] = [
-  { label: 'PM-KISAN eligibility', language: 'hi', queryEn: 'What does the PM-KISAN document say about eligibility?' },
-  { label: 'PM-KISAN application', language: 'en', queryEn: 'How does the PM-KISAN document explain how to apply?' },
-  { label: 'Ayushman card', language: 'mr', queryEn: 'What does the Ayushman Bharat document say about its card?' },
-  { label: 'Ayushman eligibility', language: 'ta', queryEn: 'What does the Ayushman Bharat document say about eligibility?' },
-  { label: 'MGNREGA work', language: 'hi', queryEn: 'What does the MGNREGA document say about work?' },
+  {
+    label: 'PM-KISAN eligibility',
+    language: 'hi',
+    queryEn: 'What does the PM-KISAN document say about eligibility?',
+  },
+  {
+    label: 'PM-KISAN application',
+    language: 'en',
+    queryEn: 'How does the PM-KISAN document explain how to apply?',
+  },
+  {
+    label: 'Ayushman card',
+    language: 'mr',
+    queryEn: 'What does the Ayushman Bharat document say about its card?',
+  },
+  {
+    label: 'Ayushman eligibility',
+    language: 'ta',
+    queryEn: 'What does the Ayushman Bharat document say about eligibility?',
+  },
+  {
+    label: 'MGNREGA work',
+    language: 'hi',
+    queryEn: 'What does the MGNREGA document say about work?',
+  },
   { label: 'PMAY-Gramin', language: 'en', queryEn: 'What does the PMAY-Gramin document explain?' },
-  { label: 'Ujjwala', language: 'mr', queryEn: 'What does the PM Ujjwala document say about applying?' },
-  { label: 'Atal Pension', language: 'ta', queryEn: 'What does the Atal Pension Yojana document say about the scheme?' },
-  { label: 'Suraksha Bima', language: 'hi', queryEn: 'What does the PM Suraksha Bima document say about enrollment?' },
-  { label: 'PM-KISAN benefit', language: 'en', queryEn: 'What does the PM-KISAN document say about its benefit?' },
+  {
+    label: 'Ujjwala',
+    language: 'mr',
+    queryEn: 'What does the PM Ujjwala document say about applying?',
+  },
+  {
+    label: 'Atal Pension',
+    language: 'ta',
+    queryEn: 'What does the Atal Pension Yojana document say about the scheme?',
+  },
+  {
+    label: 'Suraksha Bima',
+    language: 'hi',
+    queryEn: 'What does the PM Suraksha Bima document say about enrollment?',
+  },
+  {
+    label: 'PM-KISAN benefit',
+    language: 'en',
+    queryEn: 'What does the PM-KISAN document say about its benefit?',
+  },
 ];
 
 export const NON_SCHEME_CASES: CalibrationCase[] = [
@@ -39,13 +75,17 @@ export interface ScoreGroup {
   scores: number[];
 }
 
-export function recommendThreshold(schemeScores: number[], nonSchemeScores: number[]): {
+export function recommendThreshold(
+  schemeScores: number[],
+  nonSchemeScores: number[],
+): {
   threshold: number;
   separated: boolean;
   schemeMin: number;
   nonSchemeMax: number;
 } {
-  if (!schemeScores.length || !nonSchemeScores.length) throw new Error('Both calibration groups need scores.');
+  if (!schemeScores.length || !nonSchemeScores.length)
+    throw new Error('Both calibration groups need scores.');
   const schemeMin = Math.min(...schemeScores);
   const nonSchemeMax = Math.max(...nonSchemeScores);
   if (schemeMin > nonSchemeMax) {
@@ -56,8 +96,10 @@ export function recommendThreshold(schemeScores: number[], nonSchemeScores: numb
   const thresholds = [...new Set(values)].sort((a, b) => a - b);
   let best = { threshold: thresholds[0], accuracy: -1 };
   for (const threshold of thresholds) {
-    const schemeRecall = schemeScores.filter((score) => score >= threshold).length / schemeScores.length;
-    const nonSchemeRecall = nonSchemeScores.filter((score) => score < threshold).length / nonSchemeScores.length;
+    const schemeRecall =
+      schemeScores.filter((score) => score >= threshold).length / schemeScores.length;
+    const nonSchemeRecall =
+      nonSchemeScores.filter((score) => score < threshold).length / nonSchemeScores.length;
     const balancedAccuracy = (schemeRecall + nonSchemeRecall) / 2;
     if (balancedAccuracy > best.accuracy) best = { threshold, accuracy: balancedAccuracy };
   }
@@ -67,8 +109,15 @@ export function recommendThreshold(schemeScores: number[], nonSchemeScores: numb
 async function collect(cases: CalibrationCase[]): Promise<ScoreGroup[]> {
   const groups: ScoreGroup[] = [];
   for (const testCase of cases) {
-    const chunks = await searchSchemes({ query: testCase.queryEn, language: 'en', skipTranslation: true });
-    groups.push({ label: `${testCase.language} ${testCase.label}`, scores: chunks.map((chunk) => chunk.score) });
+    const chunks = await searchSchemes({
+      query: testCase.queryEn,
+      language: 'en',
+      skipTranslation: true,
+    });
+    groups.push({
+      label: `${testCase.language} ${testCase.label}`,
+      scores: chunks.map((chunk) => chunk.score),
+    });
   }
   return groups;
 }
@@ -83,8 +132,12 @@ async function main(): Promise<void> {
   printGroup('Non-scheme messages (best chunk score)', nonScheme);
   const recommendation = recommendThreshold(schemeScores, nonSchemeScores);
   console.log(`\nCurrent RAG_MIN_SCORE=${env.RAG_MIN_SCORE}`);
-  console.log(`Recommended RAG_MIN_SCORE=${recommendation.threshold.toFixed(4)} (${recommendation.separated ? 'groups separate on this sample' : 'groups overlap; balanced-accuracy choice'})`);
-  console.log(`Scheme minimum=${recommendation.schemeMin.toFixed(4)}; non-scheme maximum=${recommendation.nonSchemeMax.toFixed(4)}`);
+  console.log(
+    `Recommended RAG_MIN_SCORE=${recommendation.threshold.toFixed(4)} (${recommendation.separated ? 'groups separate on this sample' : 'groups overlap; balanced-accuracy choice'})`,
+  );
+  console.log(
+    `Scheme minimum=${recommendation.schemeMin.toFixed(4)}; non-scheme maximum=${recommendation.nonSchemeMax.toFixed(4)}`,
+  );
   console.log('Calibration is a sample recommendation, not an accuracy guarantee.');
 }
 
@@ -93,13 +146,17 @@ function printGroup(title: string, groups: ScoreGroup[]): void {
   const sorted = [...scores].sort((a, b) => a - b);
   const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
   console.log(`\n${title}: ${scores.length} queries`);
-  console.log(`  min=${Math.min(...scores).toFixed(4)} median=${median.toFixed(4)} max=${Math.max(...scores).toFixed(4)}`);
-  for (const group of groups) console.log(`  ${group.label.padEnd(32)} ${group.scores[0]?.toFixed(4) ?? 'no hits'}`);
+  console.log(
+    `  min=${Math.min(...scores).toFixed(4)} median=${median.toFixed(4)} max=${Math.max(...scores).toFixed(4)}`,
+  );
+  for (const group of groups)
+    console.log(`  ${group.label.padEnd(32)} ${group.scores[0]?.toFixed(4) ?? 'no hits'}`);
 }
 
 if (process.argv[1]?.replaceAll('\\', '/').endsWith('/calibrate-rag.ts')) {
   main().catch((error: unknown) => {
-    if (error instanceof HttpError) console.error(`${error.status} ${error.code}: ${error.message}`);
+    if (error instanceof HttpError)
+      console.error(`${error.status} ${error.code}: ${error.message}`);
     else console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
   });

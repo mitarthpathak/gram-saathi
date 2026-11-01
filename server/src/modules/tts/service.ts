@@ -23,7 +23,10 @@ export async function synthesizeSpeech(
   if (!model || !apiKey) return { audioUrl: null };
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), dependencies.timeoutMs ?? env.GEMINI_TTS_TIMEOUT_MS);
+  const timeout = setTimeout(
+    () => controller.abort(),
+    dependencies.timeoutMs ?? env.GEMINI_TTS_TIMEOUT_MS,
+  );
   try {
     const response = await (dependencies.fetcher ?? fetch)(GEMINI_INTERACTIONS_URL, {
       method: 'POST',
@@ -31,10 +34,18 @@ export async function synthesizeSpeech(
       signal: controller.signal,
       body: JSON.stringify({
         model,
-        input: [{
-          type: 'user_input',
-          content: [{ type: 'text', text: request.text, annotations: [{ type: 'speech_metadata', style: 'warm, clear, conversational' }] }],
-        }],
+        input: [
+          {
+            type: 'user_input',
+            content: [
+              {
+                type: 'text',
+                text: request.text,
+                annotations: [{ type: 'speech_metadata', style: 'warm, clear, conversational' }],
+              },
+            ],
+          },
+        ],
         response_format: { type: 'audio' },
         generation_config: { speech_config: [{ voice: 'Kore' }] },
       }),
@@ -48,7 +59,11 @@ export async function synthesizeSpeech(
     return base64 ? { audioUrl: `data:audio/wav;base64,${base64}` } : { audioUrl: null };
   } catch {
     const timedOut = controller.signal.aborted;
-    logger.warn(timedOut ? 'TTS provider timed out; using browser speech' : 'TTS provider failed; using browser speech');
+    logger.warn(
+      timedOut
+        ? 'TTS provider timed out; using browser speech'
+        : 'TTS provider failed; using browser speech',
+    );
     return { audioUrl: null };
   } finally {
     clearTimeout(timeout);
@@ -71,7 +86,8 @@ function extractAudioBase64(payload: unknown): string | undefined {
     for (const item of content) {
       if (typeof item !== 'object' || item === null) continue;
       const block = item as Record<string, unknown>;
-      if (block.type === 'audio' && typeof block.data === 'string' && block.data.length > 0) return block.data;
+      if (block.type === 'audio' && typeof block.data === 'string' && block.data.length > 0)
+        return block.data;
     }
   }
   return undefined;

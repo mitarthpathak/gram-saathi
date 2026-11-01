@@ -69,22 +69,22 @@ The consented exemplar store currently contains **0 examples** for every dialect
 starting floor, not a guarantee of accuracy. Do not write synthetic examples or normalize a
 speaker's words.
 
-| Dialect | Current consented exemplars | Suggested minimum |
-|---|---:|---:|
-| Awadhi | 0 | 20+ |
-| Bagri | 0 | 20+ |
-| Bhojpuri | 0 | 20+ |
-| Braj | 0 | 20+ |
-| Bundeli | 0 | 20+ |
-| Dhundhari/Jaipuri | 0 | 20+ |
-| Harauti | 0 | 20+ |
-| Haryanvi | 0 | 20+ |
-| Malvi | 0 | 20+ |
-| Marwari | 0 | 20+ |
-| Mewari | 0 | 20+ |
-| Mewati | 0 | 20+ |
-| Shekhawati | 0 | 20+ |
-| Wagdi | 0 | 20+ |
+| Dialect           | Current consented exemplars | Suggested minimum |
+| ----------------- | --------------------------: | ----------------: |
+| Awadhi            |                           0 |               20+ |
+| Bagri             |                           0 |               20+ |
+| Bhojpuri          |                           0 |               20+ |
+| Braj              |                           0 |               20+ |
+| Bundeli           |                           0 |               20+ |
+| Dhundhari/Jaipuri |                           0 |               20+ |
+| Harauti           |                           0 |               20+ |
+| Haryanvi          |                           0 |               20+ |
+| Malvi             |                           0 |               20+ |
+| Marwari           |                           0 |               20+ |
+| Mewari            |                           0 |               20+ |
+| Mewati            |                           0 |               20+ |
+| Shekhawati        |                           0 |               20+ |
+| Wagdi             |                           0 |               20+ |
 
 Braj and Wagdi are experimental Hindi entries in the registry. The client has no dialect selector;
 the API accepts a confirmed `dialectHint`. Exemplar prompts respect

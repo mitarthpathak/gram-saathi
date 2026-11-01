@@ -18,7 +18,10 @@ describe('voice transcript conversation routing', () => {
       }
       if (request.system?.includes('You are the front door')) {
         return {
-          intent: 'clarify', language: 'hi', dialect: 'model-dialect', searchQueryEn: '',
+          intent: 'clarify',
+          language: 'hi',
+          dialect: 'model-dialect',
+          searchQueryEn: '',
           reply: 'मैं फिर से आसान शब्दों में बताता हूँ।',
         };
       }
@@ -27,14 +30,25 @@ describe('voice transcript conversation routing', () => {
     setGeminiBackend(fake);
 
     const response = await answerVoiceQuery({
-      audio: Buffer.from('fake audio'), mimeType: 'audio/webm', language: 'hi',
-      dialectHint: 'braj', sessionId: 'voice-session',
+      audio: Buffer.from('fake audio'),
+      mimeType: 'audio/webm',
+      language: 'hi',
+      dialectHint: 'braj',
+      sessionId: 'voice-session',
     });
 
     expect(response.transcript).toBe('ki keh raho he');
     expect(response.detectedLanguage).toBe('hi');
-    expect(response).toMatchObject({ answer: 'मैं फिर से आसान शब्दों में बताता हूँ।', sources: [], notFound: false });
-    expect(fake.calls.filter((call) => call.system?.includes('You are the front door'))).toHaveLength(1);
-    expect(fake.calls.find((call) => call.system?.includes('You are the front door'))?.system).toContain('selected the dialect "braj"');
+    expect(response).toMatchObject({
+      answer: 'मैं फिर से आसान शब्दों में बताता हूँ।',
+      sources: [],
+      notFound: false,
+    });
+    expect(
+      fake.calls.filter((call) => call.system?.includes('You are the front door')),
+    ).toHaveLength(1);
+    expect(
+      fake.calls.find((call) => call.system?.includes('You are the front door'))?.system,
+    ).toContain('selected the dialect "braj"');
   });
 });

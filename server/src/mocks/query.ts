@@ -273,15 +273,18 @@ export function mockSmallTalk(
   if (!asksWhereFrom) return undefined;
   const replies: Record<LanguageCode, string> = {
     en: "I'm Gram Saathi, here to help with government scheme information. What would you like to know?",
-    hi: script === 'roman'
-      ? 'Main Gram Saathi hoon. Sarkari yojanaon ki jaankari mein madad karta hoon. Aap kis yojana ke baare mein poochhna chahenge?'
-      : 'मैं ग्राम साथी हूँ। सरकारी योजनाओं की जानकारी में मदद करता हूँ। आप किस योजना के बारे में पूछना चाहेंगे?',
-    mr: script === 'roman'
-      ? 'Mi Gram Saathi aahe. Sarkari yojananchi mahiti shodhayla mi madat karto. Tumhala kontya yojanebaddal vicharayche aahe?'
-      : 'मी ग्राम साथी आहे. सरकारी योजनांची माहिती शोधण्यात मी मदत करतो. तुम्हाला कोणत्या योजनेबद्दल जाणून घ्यायचे आहे?',
-    ta: script === 'roman'
-      ? 'Naan Gram Saathi. Arasu thittangal patriya thagavalukku udhavugiren. Endha thittathai patri therindhukolla virumbugireergal?'
-      : 'நான் கிராம் சாத்தி. அரசு திட்டங்கள் பற்றிய தகவலுக்கு உதவுகிறேன். எந்தத் திட்டத்தைப் பற்றி தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
+    hi:
+      script === 'roman'
+        ? 'Main Gram Saathi hoon. Sarkari yojanaon ki jaankari mein madad karta hoon. Aap kis yojana ke baare mein poochhna chahenge?'
+        : 'मैं ग्राम साथी हूँ। सरकारी योजनाओं की जानकारी में मदद करता हूँ। आप किस योजना के बारे में पूछना चाहेंगे?',
+    mr:
+      script === 'roman'
+        ? 'Mi Gram Saathi aahe. Sarkari yojananchi mahiti shodhayla mi madat karto. Tumhala kontya yojanebaddal vicharayche aahe?'
+        : 'मी ग्राम साथी आहे. सरकारी योजनांची माहिती शोधण्यात मी मदत करतो. तुम्हाला कोणत्या योजनेबद्दल जाणून घ्यायचे आहे?',
+    ta:
+      script === 'roman'
+        ? 'Naan Gram Saathi. Arasu thittangal patriya thagavalukku udhavugiren. Endha thittathai patri therindhukolla virumbugireergal?'
+        : 'நான் கிராம் சாத்தி. அரசு திட்டங்கள் பற்றிய தகவலுக்கு உதவுகிறேன். எந்தத் திட்டத்தைப் பற்றி தெரிந்துகொள்ள விரும்புகிறீர்கள்?',
   };
   return { answer: replies[language], sms: replies[language] };
 }
@@ -349,8 +352,21 @@ export function mockDetectLanguage(
     return hint === 'mr' ? 'mr' : 'hi';
   }
   const hindi = [
-    'hai', 'hain', 'kya', 'kaise', 'kitna', 'mujhe', 'nahi', 'yojana', 'batao',
-    'ki', 'kaha', 'kahaan', 'kahan', 'se', 'ho',
+    'hai',
+    'hain',
+    'kya',
+    'kaise',
+    'kitna',
+    'mujhe',
+    'nahi',
+    'yojana',
+    'batao',
+    'ki',
+    'kaha',
+    'kahaan',
+    'kahan',
+    'se',
+    'ho',
   ];
   const marathi = ['ahe', 'aahe', 'kay', 'mala', 'kiti', 'sathi', 'kuthe', 'ani'];
   const english = ['the', 'is', 'are', 'what', 'how', 'who', 'can', 'apply', 'eligible', 'scheme'];

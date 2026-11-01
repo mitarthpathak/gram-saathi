@@ -58,19 +58,19 @@ Workspace scripts also work directly, e.g. `npm run dev -w client`.
 
 One `.env` at the repo root is shared by both apps (template: [.env.example](.env.example)).
 
-| Variable | Default | Purpose |
-|---|---:|---|
-| `GEMINI_API_KEY` | unset | Server-only; required for live Gemini calls. Never commit it. |
-| `GEMINI_CHAT_MODEL` | `gemini-3.8-flash` | Conversation and answer model. |
-| `GEMINI_FALLBACK_MODEL` | `gemini-3.6-flash` | Retry model for temporary primary-model errors; `none` disables fallback. |
-| `GEMINI_AUDIO_MODEL` | chat model | Optional speech-to-text model override. |
-| `GEMINI_EMBED_MODEL` / `GEMINI_EMBED_DIMENSIONS` | `gemini-embedding-2` / `768` | Vector store model and size; changing either requires ingest. |
-| `GEMINI_TTS_MODEL` / `GEMINI_TTS_TIMEOUT_MS` | unset / `15000` | Optional Gemini speech and request timeout. Empty model keeps browser speech. |
-| `USE_MOCKS` | `true` | `true`, `false`, or comma-separated mocked modules. |
-| `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | API port and server CORS allow-list. |
-| `RAG_TOP_K` / `RAG_MIN_SCORE` | `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
-| `DIALECT_*` | see below | Classification, active labels and consented-example limits. |
-| `VITE_API_URL` / `VITE_USE_MOCKS` | empty / `false` | Client API origin and browser-only mocks. Never put secrets in `VITE_*`. |
+| Variable                                         |                          Default | Purpose                                                                                |
+| ------------------------------------------------ | -------------------------------: | -------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`                                 |                            unset | Server-only; required for live Gemini calls. Never commit it.                          |
+| `GEMINI_CHAT_MODEL`                              |               `gemini-3.8-flash` | Conversation and answer model.                                                         |
+| `GEMINI_FALLBACK_MODEL`                          |               `gemini-3.6-flash` | Retry model for temporary primary-model errors; `none` disables fallback.              |
+| `GEMINI_AUDIO_MODEL`                             |                       chat model | Optional speech-to-text model override.                                                |
+| `GEMINI_EMBED_MODEL` / `GEMINI_EMBED_DIMENSIONS` |     `gemini-embedding-2` / `768` | Vector store model and size; changing either requires ingest.                          |
+| `GEMINI_TTS_MODEL` / `GEMINI_TTS_TIMEOUT_MS`     |                  unset / `15000` | Optional Gemini speech and request timeout. Empty model keeps browser speech.          |
+| `USE_MOCKS`                                      |                           `true` | `true`, `false`, or comma-separated mocked modules.                                    |
+| `PORT` / `CLIENT_ORIGIN`                         | `4000` / `http://localhost:5173` | API port and server CORS allow-list.                                                   |
+| `RAG_TOP_K` / `RAG_MIN_SCORE`                    |                      `4` / `0.5` | Retrieval count and minimum score. The threshold is uncalibrated until runbook step 3. |
+| `DIALECT_*`                                      |                        see below | Classification, active labels and consented-example limits.                            |
+| `VITE_API_URL` / `VITE_USE_MOCKS`                |                  empty / `false` | Client API origin and browser-only mocks. Never put secrets in `VITE_*`.               |
 
 The remaining server settings cover timeouts/retries, dialect confidence, translation, cache,
 SMS length and rate limits. See the full [environment table in the architecture guide](docs/ARCHITECTURE.md#configuration).

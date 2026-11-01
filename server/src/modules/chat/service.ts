@@ -159,8 +159,7 @@ async function answerConversation(
           score: chunk.score,
         }));
       },
-      dialectExamples: (label) =>
-        renderPromptExemplars([label], getDialectExemplars()),
+      dialectExamples: (label) => renderPromptExemplars([label], getDialectExemplars()),
     },
     {
       text: input.text,
@@ -192,14 +191,18 @@ async function answerConversation(
     response = {
       sessionId: input.sessionId ?? '',
       transcript: input.transcript,
-        ...dialect,
-        ...notFoundAnswer(result.language ?? fallbackLanguage),
-        intent: result.intent,
-        usedCache: false,
+      ...dialect,
+      ...notFoundAnswer(result.language ?? fallbackLanguage),
+      intent: result.intent,
+      usedCache: false,
     };
   } else {
     const usedChunks = retrieved.filter((chunk) => result.usedChunkIds.includes(chunk.chunkId));
-    if (!result.answer || usedChunks.length === 0 || !preservesContextNumbers(result.answer, usedChunks)) {
+    if (
+      !result.answer ||
+      usedChunks.length === 0 ||
+      !preservesContextNumbers(result.answer, usedChunks)
+    ) {
       response = {
         sessionId: input.sessionId ?? '',
         transcript: input.transcript,

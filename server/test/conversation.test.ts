@@ -11,28 +11,43 @@ import {
 } from '../src/modules/chat/conversation';
 
 const passage: Passage = {
-  id: 'pm-kisan#overview', schemeName: 'PM-KISAN', section: 'Overview',
-  text: 'The benefit is ₹6,000 each year.', score: 0.9,
+  id: 'pm-kisan#overview',
+  schemeName: 'PM-KISAN',
+  section: 'Overview',
+  text: 'The benefit is ₹6,000 each year.',
+  score: 0.9,
 };
 
-function deps(understood: Partial<Understood>, answered: Partial<Answered> = {}): Deps & { queries: string[]; systems: string[] } {
+function deps(
+  understood: Partial<Understood>,
+  answered: Partial<Answered> = {},
+): Deps & { queries: string[]; systems: string[] } {
   const queries: string[] = [];
   const systems: string[] = [];
   return {
     queries,
     systems,
     minScore: 0.5,
-    search: async (query) => { queries.push(query); return [passage]; },
+    search: async (query) => {
+      queries.push(query);
+      return [passage];
+    },
     generateJson: async <T>({ system, prompt }: { system: string; prompt: string }) => {
       systems.push(system);
       if (prompt.includes('Recent conversation:')) {
         return {
-          intent: 'scheme_question', language: 'hi', dialect: null, searchQueryEn: 'annual PM-KISAN benefit', reply: '',
+          intent: 'scheme_question',
+          language: 'hi',
+          dialect: null,
+          searchQueryEn: 'annual PM-KISAN benefit',
+          reply: '',
           ...understood,
         } as T;
       }
       return {
-        answersQuestion: true, answer: 'हर साल ₹6,000 मिलते हैं।', usedChunkIds: [passage.id],
+        answersQuestion: true,
+        answer: 'हर साल ₹6,000 मिलते हैं।',
+        usedChunkIds: [passage.id],
         ...answered,
       } as T;
     },
@@ -52,19 +67,25 @@ describe('conversation layer', () => {
   it('returns notFound below the score threshold', async () => {
     const fake = deps({});
     fake.search = async () => [{ ...passage, score: 0.2 }];
-    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({ kind: 'notFound' });
+    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({
+      kind: 'notFound',
+    });
   });
 
   it('answers smalltalk directly without retrieval', async () => {
     const fake = deps({ intent: 'smalltalk', reply: 'नमस्ते! योजना के बारे में पूछिए।' });
-    expect(await handleTurn(fake, { text: 'hello', history: [] })).toMatchObject({ kind: 'direct', intent: 'smalltalk' });
+    expect(await handleTurn(fake, { text: 'hello', history: [] })).toMatchObject({
+      kind: 'direct',
+      intent: 'smalltalk',
+    });
     expect(fake.queries).toHaveLength(0);
   });
 
   it('clarifies "ki keh raho he" using the prior assistant turn', async () => {
     const fake = deps({ intent: 'clarify', reply: 'मैंने कहा कि हर साल ₹6,000 मिलते हैं।' });
     const result = await handleTurn(fake, {
-      text: 'ki keh raho he', history: [{ role: 'assistant', text: 'हर साल ₹6,000 मिलते हैं।' }],
+      text: 'ki keh raho he',
+      history: [{ role: 'assistant', text: 'हर साल ₹6,000 मिलते हैं।' }],
     });
     expect(result).toMatchObject({ kind: 'direct', intent: 'clarify' });
     expect(fake.systems[0]).toContain('ki keh raho he');
@@ -72,33 +93,53 @@ describe('conversation layer', () => {
   });
 
   it('handles out-of-scope directly', async () => {
-    const fake = deps({ intent: 'out_of_scope', reply: 'मैं सरकारी योजनाओं के बारे में मदद करता हूँ।' });
-    expect(await handleTurn(fake, { text: 'weather today', history: [] })).toMatchObject({ kind: 'direct', intent: 'out_of_scope' });
+    const fake = deps({
+      intent: 'out_of_scope',
+      reply: 'मैं सरकारी योजनाओं के बारे में मदद करता हूँ।',
+    });
+    expect(await handleTurn(fake, { text: 'weather today', history: [] })).toMatchObject({
+      kind: 'direct',
+      intent: 'out_of_scope',
+    });
     expect(fake.queries).toHaveLength(0);
   });
 
   it('rejects hallucinated chunk ids and never reports ids absent from search', async () => {
     const fake = deps({}, { usedChunkIds: ['invented-id'] });
-    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({ kind: 'notFound' });
+    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({
+      kind: 'notFound',
+    });
     const withMixedIds = deps({}, { usedChunkIds: [passage.id, 'invented-id'] });
-    expect(await handleTurn(withMixedIds, { text: 'scheme details', history: [] })).toMatchObject({ kind: 'grounded', usedChunkIds: [passage.id] });
+    expect(await handleTurn(withMixedIds, { text: 'scheme details', history: [] })).toMatchObject({
+      kind: 'grounded',
+      usedChunkIds: [passage.id],
+    });
   });
 
   it('returns notFound when the answer model says it cannot answer', async () => {
     const fake = deps({}, { answersQuestion: false, answer: '', usedChunkIds: [] });
-    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({ kind: 'notFound' });
+    expect(await handleTurn(fake, { text: 'scheme details', history: [] })).toMatchObject({
+      kind: 'notFound',
+    });
   });
 
   it('does not fall through to RAG for non-scheme intent with an empty reply', async () => {
     const fake = deps({ intent: 'smalltalk', reply: '' });
-    expect(await handleTurn(fake, { text: 'hello', history: [] })).toMatchObject({ kind: 'notFound', intent: 'smalltalk' });
+    expect(await handleTurn(fake, { text: 'hello', history: [] })).toMatchObject({
+      kind: 'notFound',
+      intent: 'smalltalk',
+    });
     expect(fake.queries).toHaveLength(0);
   });
 
   it('lets a user dialect hint override the model dialect and includes it in the prompt', async () => {
     const fake = deps({ dialect: 'model-label' });
     fake.dialectExamples = () => [];
-    const result = await handleTurn(fake, { text: 'scheme details', history: [], dialectHint: 'braj' });
+    const result = await handleTurn(fake, {
+      text: 'scheme details',
+      history: [],
+      dialectHint: 'braj',
+    });
     expect(result).toMatchObject({ kind: 'grounded', dialect: 'braj' });
     expect(fake.systems[0]).toContain('selected the dialect "braj"');
     expect(fake.systems[1]).toContain('spoken the braj way');
