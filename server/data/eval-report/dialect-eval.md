@@ -14,40 +14,40 @@ Rows: 0; cache hits: 0
 
 ## Per-class metrics
 
-| Label | Support | Predicted | Precision | Recall | F1 |
-| --- | ---: | ---: | ---: | ---: | ---: |
+| Label | Support | Predicted | Precision | Recall |  F1 |
+| ----- | ------: | --------: | --------: | -----: | --: |
 
 ## Confusion matrix (rows = gold; columns = predicted)
 
-| Gold \ Predicted |  |
-| --- |  |
+| Gold \ Predicted | |
+| --- | |
 
 ## Confusable pairs
 
 | Pair | Rows | Accuracy |
-| --- | ---: | ---: |
+| ---- | ---: | -------: |
 
 ## Breakdowns
 
 ### script
 
 | Group | Rows | Coverage | Answered precision | Abstention |
-| --- | ---: | ---: | ---: | ---: |
+| ----- | ---: | -------: | -----------------: | ---------: |
 
 ### shortText
 
 | Group | Rows | Coverage | Answered precision | Abstention |
-| --- | ---: | ---: | ---: | ---: |
+| ----- | ---: | -------: | -----------------: | ---------: |
 
 ### codeSwitch
 
 | Group | Rows | Coverage | Answered precision | Abstention |
-| --- | ---: | ---: | ---: | ---: |
+| ----- | ---: | -------: | -----------------: | ---------: |
 
 ### audioDuration
 
 | Group | Rows | Coverage | Answered precision | Abstention |
-| --- | ---: | ---: | ---: | ---: |
+| ----- | ---: | -------: | -----------------: | ---------: |
 
 ## Wrong with high confidence
 
